@@ -48,9 +48,9 @@ namespace MonoGameContentProcessors.Processors
             else
                 texture.ConvertBitmapType(typeof(PixelBitmapContent<Color>));
 
-            MGTextureProcessor.ConvertToPVRTC(texture, 1, true, MGCompressionMode.PVRTCFourBitsPerPixel);
+            //MGTextureProcessor.ConvertToPVRTC(texture, 1, true, MGCompressionMode.PVRTCFourBitsPerPixel);
 
-            return content; 
+            return content;
 
         }
     }

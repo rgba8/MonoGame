@@ -180,8 +180,8 @@
       <Name>yeti.wmfsdk</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\PVRTexLibC\PVRTexLibC.vcxproj">
-      <Project>{7CC59D82-06E1-4BA7-8644-2552CBC34316}</Project>
-      <Name>PVRTexLibC</Name>
+      <Project>{7cc59d82-06e1-4ba7-8644-2552cbc34316}</Project>
+      <Name>PVRTexLibC %28Visual Studio 2010%29</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
