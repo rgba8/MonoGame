@@ -88,7 +88,7 @@ namespace Microsoft.Xna.Framework {
 	partial class iOSGameView : UIView {
 		private readonly iOSGamePlatform _platform;
 		private int _colorbuffer;
-		private int _depthbuffer;
+		private int _depthStencilBuffer;
 		private int _framebuffer;
 
 		#region Construction/Destruction
@@ -217,16 +217,16 @@ namespace Microsoft.Xna.Framework {
             GraphicsExtensions.CheckGLError();
 			
 			// Create our Depth buffer. Color buffer must be the last one bound
-			GL.GenRenderbuffers(1, ref _depthbuffer);
+			GL.GenRenderbuffers(1, ref _depthStencilBuffer);
             GraphicsExtensions.CheckGLError();
-			GL.BindRenderbuffer(All.Renderbuffer, _depthbuffer);
+			GL.BindRenderbuffer(All.Renderbuffer, _depthStencilBuffer);
             GraphicsExtensions.CheckGLError();
 			GL.RenderbufferStorage(All.Renderbuffer, All.Depth24Stencil8Oes, viewportWidth, viewportHeight);
             GraphicsExtensions.CheckGLError();
 			
-			GL.FramebufferRenderbuffer(All.Framebuffer, All.DepthAttachment, All.Renderbuffer, _depthbuffer);
+			GL.FramebufferRenderbuffer(All.Framebuffer, All.DepthAttachment, All.Renderbuffer, _depthStencilBuffer);
             GraphicsExtensions.CheckGLError();
-            GL.FramebufferRenderbuffer(All.Framebuffer, All.StencilAttachment, All.Renderbuffer, _depthbuffer);
+            GL.FramebufferRenderbuffer(All.Framebuffer, All.StencilAttachment, All.Renderbuffer, _depthStencilBuffer);
             GraphicsExtensions.CheckGLError();
 
 			_glapi.GenRenderbuffers(1, ref _colorbuffer);
@@ -318,8 +318,8 @@ namespace Microsoft.Xna.Framework {
 			_glapi.DeleteRenderbuffers (1, ref _colorbuffer);
 			_colorbuffer = 0;
 			
-			_glapi.DeleteRenderbuffers (1, ref _depthbuffer);
-			_depthbuffer = 0;
+			_glapi.DeleteRenderbuffers (1, ref _depthStencilBuffer);
+			_depthStencilBuffer = 0;
 		}
 
 		// FIXME: This logic belongs in GraphicsDevice.Present, not
@@ -362,7 +362,7 @@ namespace Microsoft.Xna.Framework {
             if (gds == null || gds.GraphicsDevice == null)
                 return;
 
-			if (_framebuffer + _colorbuffer + _depthbuffer != 0)
+			if (_framebuffer + _colorbuffer + _depthStencilBuffer != 0)
 				DestroyFramebuffer ();
 			if (__renderbuffergraphicsContext == null)
 				CreateContext();
@@ -379,7 +379,7 @@ namespace Microsoft.Xna.Framework {
                 
                 if (__renderbuffergraphicsContext == null)
                     CreateContext ();
-                if (_framebuffer * _colorbuffer * _depthbuffer == 0)
+                if (_framebuffer * _colorbuffer * _depthStencilBuffer == 0)
                     CreateFramebuffer ();
             }
 		}
