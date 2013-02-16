@@ -335,7 +335,7 @@ namespace Microsoft.Xna.Framework {
 
 			__renderbuffergraphicsContext.MakeCurrent(null);
             GraphicsExtensions.CheckGLError();
-            GL.BindFramebuffer(All.Framebuffer, this._framebuffer);
+            GL.BindRenderbuffer(All.Renderbuffer, this._colorbuffer);
             GraphicsExtensions.CheckGLError();
             __renderbuffergraphicsContext.SwapBuffers();
             GraphicsExtensions.CheckGLError();
@@ -349,8 +349,6 @@ namespace Microsoft.Xna.Framework {
 			AssertValidContext ();
 
 			__renderbuffergraphicsContext.MakeCurrent (null);
-            GraphicsExtensions.CheckGLError();
-            GL.BindFramebuffer(All.Framebuffer, this._framebuffer);
             GraphicsExtensions.CheckGLError();
 		}
 

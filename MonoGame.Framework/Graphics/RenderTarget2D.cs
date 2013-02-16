@@ -72,7 +72,6 @@ namespace Microsoft.Xna.Framework.Graphics
         internal SharpDX.Direct3D11.RenderTargetView _renderTargetView;
         internal SharpDX.Direct3D11.DepthStencilView _depthStencilView;
 #elif OPENGL
-        internal uint glFramebuffer;
 		internal uint glDepthStencilBuffer;
 #endif
 
@@ -142,7 +141,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			GL.GenRenderbuffers(1, out glDepthStencilBuffer);
 #endif
             GraphicsExtensions.CheckGLError();
-            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, this.glDepthStencilBuffer);
+            GL.BindRenderbuffer(GLRenderbuffer, this.glDepthStencilBuffer);
             GraphicsExtensions.CheckGLError();
             var glDepthStencilFormat = GLDepthComponent16;
 			switch (preferredDepthFormat)

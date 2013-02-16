@@ -1580,8 +1580,8 @@ namespace Microsoft.Xna.Framework.Graphics
                     _d3dContext.OutputMerger.SetTargets(_currentDepthStencilView, _currentRenderTargets);
 
 #elif OPENGL
-                // Only generate on FBO for all rendertargets and swap out 
-                // the attachements accordingly
+                // Only generate one FBO for all rendertargets and swap out 
+                // the attachements accordingly (also allows multiple rendertargets)
 				if (this.glRenderTargetFramebuffer == 0)
 				{
 #if GLES
