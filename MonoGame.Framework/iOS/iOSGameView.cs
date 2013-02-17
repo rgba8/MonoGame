@@ -310,8 +310,8 @@ namespace Microsoft.Xna.Framework {
 			_glapi.DeleteRenderbuffers (1, ref _colorbuffer);
 			_colorbuffer = 0;
 			
-			_glapi.DeleteRenderbuffers (1, ref _depthStencilBuffer);
-			_depthStencilBuffer = 0;
+			_glapi.DeleteRenderbuffers (1, ref _depthbuffer);
+			_depthbuffer = 0;
 		}
 
 		// FIXME: This logic belongs in GraphicsDevice.Present, not
