@@ -55,6 +55,15 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <MtouchDebug>True</MtouchDebug>
     <MtouchUseArmv7>false</MtouchUseArmv7>
+    <MtouchSdkVersion>Default</MtouchSdkVersion>
+    <MtouchLink>SdkOnly</MtouchLink>
+    <MtouchProfiling>False</MtouchProfiling>
+    <MtouchExtraArgs />
+    <MtouchArch>Default, ARMv7</MtouchArch>
+    <MtouchUseLlvm>False</MtouchUseLlvm>
+    <MtouchUseThumb>False</MtouchUseThumb>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <MtouchUseRefCounting>False</MtouchUseRefCounting>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|iPhone' ">
     <DebugType>none</DebugType>
@@ -65,6 +74,16 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <DefineConstants>IOS;GLES;OPENGL</DefineConstants>
     <MtouchUseArmv7>false</MtouchUseArmv7>
+    <MtouchSdkVersion>Default</MtouchSdkVersion>
+    <MtouchLink>SdkOnly</MtouchLink>
+    <MtouchDebug>False</MtouchDebug>
+    <MtouchProfiling>False</MtouchProfiling>
+    <MtouchExtraArgs />
+    <MtouchArch>Default, ARMv7</MtouchArch>
+    <MtouchUseLlvm>True</MtouchUseLlvm>
+    <MtouchUseThumb>False</MtouchUseThumb>
+    <MtouchUseSGen>True</MtouchUseSGen>
+    <MtouchUseRefCounting>False</MtouchUseRefCounting>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -454,7 +473,7 @@
     <Compile Include="GamerServices\PropertyDictionary.cs" />
     <Compile Include="GameUpdateRequiredException.cs" />
   </ItemGroup>
-  <Import Project="$(ProgramFiles)\MSBuild\MonoTouch\Novell.MonoTouch.Common.targets" Condition="'$(windir)' != '' " />
+  <Import Project="$(MSBuildExtensionsPath)\Xamarin\iOS\Xamarin.MonoTouch.CSharp.targets" Condition="'$(windir)' != '' " />
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <MonoDevelop>
@@ -469,15 +488,7 @@
     </MonoDevelop>
   </ProjectExtensions>
   <ItemGroup>
-    <Folder Include="Graphics\" />
-    <Folder Include="iOS\GamerServices\" />
-    <Folder Include="iOS\Input\" />
     <Folder Include="iOS\Audio\" />
-    <Folder Include="iOS\Media\" />
-    <Folder Include="iOS\Net\" />
-    <Folder Include="Graphics\Effect\Resources\" />
-    <Folder Include="iOS\Devices\" />
-    <Folder Include="iOS\Devices\Sensors\" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ThirdParty\Lidgren.Network\Lidgren.Network.iOS.csproj">
