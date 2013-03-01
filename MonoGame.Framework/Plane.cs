@@ -88,7 +88,7 @@ namespace Microsoft.Xna.Framework
 
             Vector3 cross = Vector3.Cross(ab, ac);
             Normal = Vector3.Normalize(cross);
-            D = -(Vector3.Dot(cross, a));
+            D = -(Vector3.Dot(Normal, a));
         }
 
         public Plane(float a, float b, float c, float d)
@@ -210,7 +210,7 @@ namespace Microsoft.Xna.Framework
 
         public void Intersects(ref BoundingBox box, out PlaneIntersectionType result)
         {
-            result = Intersects(box);
+            box.Intersects (ref this, out result);
         }
 
         public PlaneIntersectionType Intersects(BoundingFrustum frustum)
@@ -225,7 +225,7 @@ namespace Microsoft.Xna.Framework
 
         public void Intersects(ref BoundingSphere sphere, out PlaneIntersectionType result)
         {
-            result = Intersects(sphere);
+            sphere.Intersects(ref this, out result);
         }
 
         public override string ToString()
