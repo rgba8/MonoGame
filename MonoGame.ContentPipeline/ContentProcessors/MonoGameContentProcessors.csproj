@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -50,6 +50,9 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ManagedPVRTC">
+      <HintPath>..\..\ThirdParty\Libs\ManagedPVRTC\ManagedPVRTC.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Content.Pipeline, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
@@ -179,10 +182,12 @@
       <Project>{FECB5BEB-AB05-454A-BB14-6A554E897274}</Project>
       <Name>yeti.wmfsdk</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\PVRTexLibC\PVRTexLibC.vcxproj">
-      <Project>{7cc59d82-06e1-4ba7-8644-2552cbc34316}</Project>
-      <Name>PVRTexLibC %28Visual Studio 2010%29</Name>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\ThirdParty\Libs\ManagedPVRTC\x86\PVRTexLibWrapper.dll">
+      <Link>PVRTexLibWrapper.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
