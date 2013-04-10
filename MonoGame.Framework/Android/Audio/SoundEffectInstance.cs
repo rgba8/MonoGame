@@ -55,13 +55,17 @@ namespace Microsoft.Xna.Framework.Audio
 {
 	public sealed class SoundEffectInstance : IDisposable
 	{
-		
-
 		private bool isDisposed = false;
         private SoundState soundState = SoundState.Stopped;
 		private int _streamId = -1;
 		private bool _loop;
-		private float _pitch = 1.0f;
+		private float _pitch = 0.0f;
+		private float _3dPitch = 1.0f;
+		private float _3dAttenuation = 1.0f;
+
+		private float _maxDistance = 343.0f;
+		private float _referenceDistance = 50.0f;
+		private float _rolloffFactor = 1.0f;
 
 		/// <summary>
 		/// Used to let the instance know Play() has been called when the SoundPool had not finished loading the sound yet
@@ -90,10 +94,31 @@ namespace Microsoft.Xna.Framework.Audio
                 Sound.SoundPool.Stop(_streamId);
 			isDisposed = true;
 		}
-
+		
 		public void Apply3D(AudioListener listener, AudioEmitter emitter)
 		{
+			// Calculate
+			var distance = (emitter.Position - listener.Position).Length();
+			distance = Math.Max(distance,_referenceDistance);
+			distance = Math.Min(distance,_maxDistance);
+			_3dAttenuation = _referenceDistance / (_referenceDistance + _rolloffFactor * (distance - _referenceDistance));
+
+			var SL = emitter.Position - listener.Position;
+			var SV = emitter.Velocity;
+			var LV = listener.Velocity;
+			var dopplerFactor = 1.0f;
+ 
+			var vls = Vector3.Dot(SL, LV) / SL.Length();
+			var vss = Vector3.Dot(SL, SV) / SL.Length();
+
+			vss = Math.Min(vss, speedOfSound / dopplerFactor);
+			vls = Math.Min(vls, speedOfSound / dopplerFactor);
+			_3dPitch = (speedOfSound - dopplerFactor * vls) / (SoundEffect.SpeedOfSound - SoundEffect.DopplerScale * vss);
+
+			UpdatePitch();
+			UpdateVolume();
 		}
+
 		
 		public void Apply3D (AudioListener[] listeners,AudioEmitter emitter)
 		{
@@ -284,13 +309,19 @@ namespace Microsoft.Xna.Framework.Audio
 				if (_pitch != value)
 				{
 					_pitch = value;
-
-					// Convert from -1/1 range to 0.5/2.0 range of SoundPool...
-					var finalRate = 0.75f * (value + 1.0f) + 0.5f;
-					Sound.SoundPool.SetRate(_streamId, finalRate);
+					UpdatePitch();
 				}
 			}
-		}				
+		}
+
+		private void UpdatePitch()
+		{
+			var diff = 1.0f - _3dPitch;
+
+			// Convert from -1/1 range to 0.5/2.0 range of SoundPool...
+			var finalRate = 0.75f * ((_pitch + diff) + 1.0f) + 0.5f;
+			Sound.SoundPool.SetRate(_streamId, finalRate);
+		}
 		
 		public SoundState State 
 		{ 
@@ -335,7 +366,7 @@ namespace Microsoft.Xna.Framework.Audio
 		internal void UpdateVolume()
 		{
 			float panRatio = (this.Pan + 1.0f) / 2.0f;
-			float volumeTotal = SoundEffect.MasterVolume * _volume;
+			float volumeTotal = SoundEffect.MasterVolume * _volume * _3dAttenuation;
 			float volumeLeft = volumeTotal * (1.0f - panRatio);
 			float volumeRight = volumeTotal * panRatio;
 			Sound.SoundPool.SetVolume(_streamId, volumeLeft, volumeRight);
