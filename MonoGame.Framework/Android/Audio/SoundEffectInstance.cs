@@ -113,7 +113,7 @@ namespace Microsoft.Xna.Framework.Audio
 
 			vss = Math.Min(vss, SoundEffect.SpeedOfSound / dopplerFactor);
 			vls = Math.Min(vls, SoundEffect.SpeedOfSound / dopplerFactor);
-			_3dPitch = (speedOfSound - dopplerFactor * vls) / (SoundEffect.SpeedOfSound - SoundEffect.DopplerScale * vss);
+			_3dPitch = (SoundEffect.SpeedOfSound - dopplerFactor * vls) / (SoundEffect.SpeedOfSound - SoundEffect.DopplerScale * vss);
 
 			UpdatePitch();
 			UpdateVolume();
