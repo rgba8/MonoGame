@@ -1634,22 +1634,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
                 GL.FramebufferTexture2D(GLFramebuffer, GLColorAttachment0, TextureTarget.Texture2D, renderTarget.glTexture, 0);
                 GraphicsExtensions.CheckGLError();
-                if (renderTarget.DepthStencilFormat != DepthFormat.None)
-				{
-					GL.FramebufferRenderbuffer(GLFramebuffer, GLDepthAttachment, GLRenderbuffer, renderTarget.glDepthBuffer);
-                    // http://www.songho.ca/opengl/gl_fbo.html
-                    // FramebufferRenderbuffer should be checked with CheckFramebufferStatus(GLFramebuffer) which is being done
-                    // below.  If we check for GLError here we could be catching errors from previous commands and not this.
-                    //GraphicsExtensions.CheckGLError();
-                    if (renderTarget.DepthStencilFormat == DepthFormat.Depth24Stencil8)
-					{
-						GL.FramebufferRenderbuffer(GLFramebuffer, GLStencilAttachment, GLRenderbuffer, renderTarget.glStencilBuffer);
-                        // http://www.songho.ca/opengl/gl_fbo.html
-                        // FramebufferRenderbuffer should be checked with CheckFramebufferStatus(GLFramebuffer) which is being done
-                        // below.  If we check for GLError here we could be catching errors from previous commands and not this.
-                        //GraphicsExtensions.CheckGLError();
-                    }
-				}
+					      GL.FramebufferRenderbuffer(GLFramebuffer, GLDepthAttachment, GLRenderbuffer, renderTarget.glDepthBuffer);
+						    GL.FramebufferRenderbuffer(GLFramebuffer, GLStencilAttachment, GLRenderbuffer, renderTarget.glStencilBuffer);
 
 #if !GLES
 				for (int i = 0; i < _currentRenderTargetBindings.Length; i++)
