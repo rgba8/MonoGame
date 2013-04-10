@@ -111,8 +111,8 @@ namespace Microsoft.Xna.Framework.Audio
 			var vls = Vector3.Dot(SL, LV) / SL.Length();
 			var vss = Vector3.Dot(SL, SV) / SL.Length();
 
-			vss = Math.Min(vss, speedOfSound / dopplerFactor);
-			vls = Math.Min(vls, speedOfSound / dopplerFactor);
+			vss = Math.Min(vss, SoundEffect.SpeedOfSound / dopplerFactor);
+			vls = Math.Min(vls, SoundEffect.SpeedOfSound / dopplerFactor);
 			_3dPitch = (speedOfSound - dopplerFactor * vls) / (SoundEffect.SpeedOfSound - SoundEffect.DopplerScale * vss);
 
 			UpdatePitch();
