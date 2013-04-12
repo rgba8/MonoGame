@@ -14,7 +14,7 @@ namespace Microsoft.Xna.Framework
 		/// This list contains all the Build.Model strings of the effected devices, it should be added to if and when
 		/// more devices exxhibit the same issues
 		/// </summary>
-		private static readonly string[] Kindles = new[] { "KFTT", "KFJWI", "KFJWA" };
+		private static readonly string[] Kindles = new[] { "KFTT", "KFJWI", "KFJWA", };
 
         public enum ESVersions
         {
@@ -25,7 +25,7 @@ namespace Microsoft.Xna.Framework
         static AndroidCompatibility()
         {
             ScaleImageToPowerOf2 = true;
-            ESVersion = ESVersions.v2_0;
+            ESVersion = ESVersions.v2_0;	
 			FlipLandscape = Kindles.Contains(Build.Model);
         }
 

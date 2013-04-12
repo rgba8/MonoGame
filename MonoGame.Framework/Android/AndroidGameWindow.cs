@@ -324,6 +324,7 @@ namespace Microsoft.Xna.Framework
             DisplayOrientation oldOrientation = CurrentOrientation;
 
             CurrentOrientation = newOrientation;
+			
             TouchPanel.DisplayOrientation = newOrientation;
 
             if (applyGraphicsChanges && oldOrientation != CurrentOrientation && _game.graphicsDeviceManager != null)

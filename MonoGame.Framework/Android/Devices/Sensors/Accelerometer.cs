@@ -177,7 +177,16 @@ namespace Microsoft.Devices.Sensors
                             accelerometer.IsDataValid = (values != null && values.Count == 3);
                             if (accelerometer.IsDataValid)
                             {
-                                reading.Acceleration = new Vector3(values[0], values[1], values[2]);
+								//// fix for landscape left on kindle fire
+								//int[] axisSwap = new int[] { -1, -1, 0, 1 };
+								//float[] screenVec = new float[3];
+
+								//screenVec[0] = (float)axisSwap[0] * values[axisSwap[2]];
+								//screenVec[1] = (float)axisSwap[1] * values[axisSwap[3]];
+								//screenVec[2] = values[2];
+
+								//reading.Acceleration = new Vector3(screenVec[0], screenVec[1], screenVec[2]);
+								reading.Acceleration = new Vector3(values[0], values[1], values[2]);
                                 reading.Timestamp = DateTime.Now;
                             }
                             accelerometer.CurrentValue = reading;

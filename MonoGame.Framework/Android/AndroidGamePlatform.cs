@@ -152,7 +152,7 @@ namespace Microsoft.Xna.Framework
         public override void BeforeInitialize()
         {
             // TODO: Determine whether device natural orientation is Portrait or Landscape for OrientationListener
-            //SurfaceOrientation currentOrient = Game.Activity.WindowManager.DefaultDisplay.Rotation;
+            SurfaceOrientation currentOrient = Game.Activity.WindowManager.DefaultDisplay.Rotation;
 
             switch (Window.Context.Resources.Configuration.Orientation)
             {

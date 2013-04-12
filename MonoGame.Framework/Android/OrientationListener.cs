@@ -30,6 +30,8 @@ namespace Microsoft.Xna.Framework
 
         public override void OnOrientationChanged(int orientation)
         {
+			Console.WriteLine("Orientation Changed: {0}", orientation);
+
             // Avoid changing orientation whilst the screen is locked
             if (ScreenReceiver.ScreenLocked)
                 return;
@@ -46,12 +48,14 @@ namespace Microsoft.Xna.Framework
                     ort = 0;
                 }
 
+				Console.WriteLine("Final Orientation: {0}", ort);
+
                 var disporientation = DisplayOrientation.Unknown;
                 switch (ort)
                 {
-                    case 90: disporientation = DisplayOrientation.LandscapeRight;
+					case 90: disporientation = AndroidCompatibility.FlipLandscape ? DisplayOrientation.LandscapeLeft : DisplayOrientation.LandscapeRight;
                         break;
-                    case 270: disporientation = DisplayOrientation.LandscapeLeft;
+					case 270: disporientation = AndroidCompatibility.FlipLandscape ? DisplayOrientation.LandscapeRight : DisplayOrientation.LandscapeLeft;
                         break;
                     case 0: disporientation = DisplayOrientation.Portrait;
                         break;
@@ -61,6 +65,8 @@ namespace Microsoft.Xna.Framework
                         disporientation = DisplayOrientation.LandscapeLeft;
                         break;
                 }
+
+				Console.WriteLine("MG Orientation: {0}", disporientation);
 
                 // Only auto-rotate if target orientation is supported and not current
                 if ((AndroidGameActivity.Game.Window.GetEffectiveSupportedOrientations() & disporientation) != 0 &&
