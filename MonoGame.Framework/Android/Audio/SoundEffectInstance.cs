@@ -137,7 +137,6 @@ namespace Microsoft.Xna.Framework.Audio
 
 		void Sound_LoadCompleted(object sender, EventArgs e)
 		{
-			Console.WriteLine("Sound load completed");
 			if (playRequested)
 			{
 				_sound.LoadCompleted -= Sound_LoadCompleted;
@@ -150,7 +149,6 @@ namespace Microsoft.Xna.Framework.Audio
         {
 			if (!Sound.Loaded && playRequested)
 			{
-				Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
 				return;
 			}
 
@@ -162,11 +160,9 @@ namespace Microsoft.Xna.Framework.Audio
 			}
             else if ( Sound != null )
 			{
-				Console.WriteLine("Playing Sound ID: {0}", Sound.SoundId);
 
 				if (!Sound.Loaded && playRequested)
 				{
-					Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
 					return;
 				}
 
@@ -178,8 +174,6 @@ namespace Microsoft.Xna.Framework.Audio
 
 		private void DoPlay()
 		{
-			Console.WriteLine("DoPlay(), ID: {0}", Sound.SoundId);
-
 			AudioManager audioManager = (AudioManager)Game.Activity.GetSystemService(Context.AudioService);
 			
 			float panRatio = (this.Pan + 1.0f) / 2.0f;
@@ -192,27 +186,17 @@ namespace Microsoft.Xna.Framework.Audio
 			if (finalRate == 1.0f)
 				finalRate = 0.99f; // set initial rate to 0.99 otherwise setRate won't work afterwards... no idea why...
 			
-			
-			Console.WriteLine("Volume: {0} L: {1} / R: {2} - Rate: {3} - Looping: {4} - File: {5} - Priority: {6}", 
-				volumeTotal, volumeLeft, volumeRight, finalRate, _loop, Sound.Filename, priority);
-			
 			_streamId = Sound.SoundPool.Play(Sound.SoundId, volumeLeft, volumeRight, 1, _loop ? -1 : 0, finalRate);
 			instanceCount++;
 			
 			if (_streamId == 0)
 			{
 				playRequested = true;
-				Console.WriteLine("Play Requested for: {0}", Sound.SoundId);
 			}
 			else if (_streamId != -1)
 			{
 				this.playRequested = false;
-				Console.WriteLine("Playing Stream ID: {0}", _streamId);
 				soundState = SoundState.Playing;
-			}
-			else
-			{
-				Console.WriteLine("Error playing sound!");
 			}
 		}
 
