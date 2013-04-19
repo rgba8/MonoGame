@@ -186,6 +186,19 @@ namespace Microsoft.Devices.Sensors
 								//screenVec[2] = values[2];
 
 								//reading.Acceleration = new Vector3(screenVec[0], screenVec[1], screenVec[2]);
+
+								if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerInvertX)
+									values[0] *= -1.0f;
+								if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerInvertY)
+									values[1] *= -1.0f;
+
+								if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerFlipXY)
+								{
+									float tmp = values[0];
+									values[0] = values[1];
+									values[1] = tmp;
+								}
+
 								reading.Acceleration = new Vector3(values[0], values[1], values[2]);
                                 reading.Timestamp = DateTime.Now;
                             }
