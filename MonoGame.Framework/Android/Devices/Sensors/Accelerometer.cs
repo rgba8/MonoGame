@@ -3,6 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
+using System.Collections.Generic;
 using Android.Content;
 using Android.Hardware;
 using Microsoft.Xna.Framework;
@@ -164,6 +165,8 @@ namespace Microsoft.Devices.Sensors
                 //do nothing
             }
 
+			int lastTime = 0;
+
             public void OnSensorChanged(SensorEvent e)
             {
                 try
@@ -187,19 +190,62 @@ namespace Microsoft.Devices.Sensors
 
 								//reading.Acceleration = new Vector3(screenVec[0], screenVec[1], screenVec[2]);
 
-								if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerInvertX)
-									values[0] *= -1.0f;
-								if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerInvertY)
-									values[1] *= -1.0f;
+								//if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerInvertX)
+								//	values[0] *= -1.0f;
+								//if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerInvertY)
+								//	values[1] *= -1.0f;
 
-								if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerFlipXY)
+								//if (AndroidCompatibility.CurrentOrientationSettings.AccelerometerFlipXY)
+								//{
+								//	float tmp = values[0];
+								//	values[0] = values[1];
+								//	values[1] = tmp;
+								//}
+
+								var adjustedValues = AdjustAccelOrientation(Game.Activity.WindowManager.DefaultDisplay.Orientation, values);
+
+								// Galaxy Tab 10.1 style of devices with LandscapeLeft being orientation 0
+								if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 0 && 
+									AndroidGameActivity.Game.Window.CurrentOrientation == DisplayOrientation.LandscapeLeft)
 								{
+									values[0] *= -1.0f;
+
 									float tmp = values[0];
 									values[0] = values[1];
 									values[1] = tmp;
 								}
+								// Galaxy Tab 10.1 style of devices with LandscapeLeft being orientation 
+								else if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 2 && 
+									AndroidGameActivity.Game.Window.CurrentOrientation == DisplayOrientation.LandscapeRight)
+								{
+									values[1] *= -1.0f;
 
-								reading.Acceleration = new Vector3(values[0], values[1], values[2]);
+									float tmp = values[0];
+									values[0] = values[1];
+									values[1] = tmp;
+								}
+								else if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 3 &&
+									AndroidGameActivity.Game.Window.CurrentOrientation == DisplayOrientation.LandscapeLeft)
+								{
+									// landscape left but inverted, KindleFire style...
+									values[0] *= -1.0f;
+									values[1] *= -1.0f;
+								}
+								// Standard inverted landscape
+								else if (AndroidGameActivity.Game.Window.CurrentOrientation == DisplayOrientation.LandscapeRight)
+								{
+									values[0] *= -1.0f;
+								}
+
+								if (Environment.TickCount - lastTime > 500)
+								{
+									Console.WriteLine("Adjusted: {0},{1},{2} - Current Orientation: {3} - Value: {4}", 
+										values[0], values[1], values[2], 
+										AndroidGameActivity.Game.Window.CurrentOrientation, Game.Activity.WindowManager.DefaultDisplay.Orientation);
+									lastTime = Environment.TickCount;
+								}
+
+								reading.Acceleration = new Vector3(values[0], values[1], values[2]);//adjustedValues[0], adjustedValues[1], adjustedValues[2]);
                                 reading.Timestamp = DateTime.Now;
                             }
                             accelerometer.CurrentValue = reading;
@@ -220,6 +266,30 @@ namespace Microsoft.Devices.Sensors
                     // mono    :   at Android.Hardware.SensorEvent.get_Values () [0x00000] in <filename unknown>:0
                 }
             }
+
+			public static float[] AdjustAccelOrientation(int displayRotation, IList<float> eventValues) 
+			{ 
+				float[] adjustedValues = new float[3];
+
+				//List<int[]> axisSwap = new List<int[]> {
+				//new int[] {  1,  -1,  0,  1  },     // ROTATION_0 
+				//new int[] {-1,  -1,  1,  0  },     // ROTATION_90 
+				//new int[] {-1,    1,  0,  1  },     // ROTATION_180 
+				//new int[] {  1,    1,  1,  0  }  }; // ROTATION_270 
+
+				List<int[]> axisSwap = new List<int[]> {
+				new int[] { 1, 1, 0, 1 },     // ROTATION_0 
+				new int[] {	1, -1, 1, 0 },     // ROTATION_90 
+				new int[] {-1, 1, 0, 1 },     // ROTATION_180 
+				new int[] {-1, 1, 1, 0 }}; // ROTATION_270 
+
+				int[] current = axisSwap[displayRotation];
+				adjustedValues[0] = (float)current[0] * eventValues[current[2]];
+				adjustedValues[1] = (float)current[1] * eventValues[current[3]]; 
+				adjustedValues[2]  =  eventValues[2];
+
+				return adjustedValues;
+			}
         }
     }
 }

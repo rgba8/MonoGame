@@ -149,24 +149,78 @@ namespace Microsoft.Xna.Framework
             return !IsPlayingVdeo;
         }
 
+		//public void SetOrientation(int orientation)
+		//{
+		//	// Divide by 90 into an int to round, then multiply out to one of 5 positions, either 0,90,180,270,360. 
+		//	int ort = (90 * (int)Math.Round(orientation / 90f)) % 360;
+
+		//	// Convert 360 to 0
+		//	if (ort == 360)
+		//	{
+		//		ort = 0;
+		//	}
+
+		//	Console.WriteLine("Final Orientation: {0}", ort);
+
+		//	var displayOrientation = DisplayOrientation.Unknown;
+
+		//	var currentOrientationSettings = AndroidCompatibility.CompatibilitySettings.DisplayOrientationMapping[ort];
+		//	displayOrientation = currentOrientationSettings.Orientation;
+
+		//	// Only auto-rotate if target orientation is supported and not current
+		//	if ((AndroidGameActivity.Game.Window.GetEffectiveSupportedOrientations() & displayOrientation) != 0 &&
+		//		 displayOrientation != AndroidGameActivity.Game.Window.CurrentOrientation)
+		//	{
+		//		// Get the settings for the current orientation
+		//		AndroidCompatibility.CurrentOrientationSettings = currentOrientationSettings;
+
+		//		Console.WriteLine("MG Orientation: {0}", displayOrientation);
+
+		//		AndroidGameActivity.Game.Window.SetOrientation(displayOrientation, true);
+		//	}
+		//}
+
         public override void BeforeInitialize()
         {
             // TODO: Determine whether device natural orientation is Portrait or Landscape for OrientationListener
-            SurfaceOrientation currentOrient = Game.Activity.WindowManager.DefaultDisplay.Rotation;
+			/*int currentOrient = Game.Activity.WindowManager.DefaultDisplay.Orientation;
 
-            switch (Window.Context.Resources.Configuration.Orientation)
-            {
-                case Android.Content.Res.Orientation.Portrait:
-                    Window.SetOrientation(DisplayOrientation.Portrait, false);				
-                    break;
-                case Android.Content.Res.Orientation.Landscape:
-                    Window.SetOrientation(DisplayOrientation.LandscapeLeft, false);
-                    break;
-                default:
-                    Window.SetOrientation(DisplayOrientation.LandscapeLeft, false);
-                    break;
-            }			
-            base.BeforeInitialize();
+			switch (Window.Context.Resources.Configuration.Orientation)
+			{
+				case Android.Content.Res.Orientation.Portrait:
+					Window.SetOrientation(DisplayOrientation.Portrait, false);				
+					break;
+				case Android.Content.Res.Orientation.Landscape:
+					{
+						if (currentOrient != 0)
+						{
+							// We're not in the default landscape since we're already on landscape but not on orientation 0,
+							// therefore, set LandscapeRight.
+							Window.SetOrientation(DisplayOrientation.LandscapeRight, false);
+						}
+						else
+						{
+							Window.SetOrientation(DisplayOrientation.LandscapeLeft, false);
+						}
+					}
+					break;
+				default:
+					Window.SetOrientation(DisplayOrientation.LandscapeLeft, false);
+					break;
+			}			*/
+
+
+			#region Landscape Left Forced now
+
+			// Get landscape left settings for the current device
+			//AndroidCompatibility.CompatibilitySettings.DisplayOrientationMapping = AndroidCompatibility.CompatibilitySettings.DisplayOrientationMapping.Values.Where(x => x.Orientation == DisplayOrientation.LandscapeLeft);
+
+			// Force Landscape Left
+			Window.SetOrientation(DisplayOrientation.LandscapeLeft, false);
+			
+			#endregion
+
+			base.BeforeInitialize();
         }
 
         public override bool BeforeRun()

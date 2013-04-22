@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using Android.Hardware;
 using Android.OS;
 
 namespace Microsoft.Xna.Framework
@@ -30,7 +32,7 @@ namespace Microsoft.Xna.Framework
 			//FlipLandscape = Kindles.Contains(Build.Model);
 
 			var deviceCompatList = new Dictionary<string, DeviceCompatibilitySettings>();
-
+			
 			#region Nexus 7
 			var item = new DeviceCompatibilitySettings 
 			{
@@ -111,6 +113,9 @@ namespace Microsoft.Xna.Framework
 					}
 				};
 			}
+
+			// Default values for now
+			CurrentOrientationSettings = CompatibilitySettings.DisplayOrientationMapping[0];
 		}
 
 		public static OrientationSettings CurrentOrientationSettings { get; set; }

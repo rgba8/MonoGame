@@ -150,7 +150,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
 			if (!Sound.Loaded && playRequested)
 			{
-				Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
+				//Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
 				return;
 			}
 
@@ -166,7 +166,7 @@ namespace Microsoft.Xna.Framework.Audio
 
 				if (!Sound.Loaded && playRequested)
 				{
-					Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
+					//Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
 					return;
 				}
 
