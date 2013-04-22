@@ -212,9 +212,6 @@ namespace Microsoft.Xna.Framework
 
 			#region Landscape Left Forced now
 
-			// Get landscape left settings for the current device
-			//AndroidCompatibility.CompatibilitySettings.DisplayOrientationMapping = AndroidCompatibility.CompatibilitySettings.DisplayOrientationMapping.Values.Where(x => x.Orientation == DisplayOrientation.LandscapeLeft);
-
 			// Force Landscape Left
 			Window.SetOrientation(DisplayOrientation.LandscapeLeft, false);
 			

@@ -174,14 +174,14 @@ namespace Microsoft.Devices.Sensors
                     if (e != null && e.Sensor.Type == SensorType.Accelerometer && accelerometer != null)
                     {
                         var values = e.Values;
-                        try
-                        {
-                            AccelerometerReading reading = new AccelerometerReading();
-                            accelerometer.IsDataValid = (values != null && values.Count == 3);
-                            if (accelerometer.IsDataValid)
-                            {
+						try
+						{
+							AccelerometerReading reading = new AccelerometerReading();
+							accelerometer.IsDataValid = (values != null && values.Count == 3);
+							if (accelerometer.IsDataValid)
+							{
 								// Galaxy Tab 10.1 style of devices with LandscapeLeft being orientation 0
-								if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 0 && 
+								if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 0 &&
 									AndroidGameActivity.Game.Window.CurrentOrientation == DisplayOrientation.LandscapeLeft)
 								{
 									values[0] *= -1.0f;
@@ -191,7 +191,7 @@ namespace Microsoft.Devices.Sensors
 									values[1] = tmp;
 								}
 								// Galaxy Tab 10.1 style of devices with LandscapeLeft being orientation 
-								else if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 2 && 
+								else if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 2 &&
 									AndroidGameActivity.Game.Window.CurrentOrientation == DisplayOrientation.LandscapeRight)
 								{
 									values[1] *= -1.0f;
@@ -203,7 +203,7 @@ namespace Microsoft.Devices.Sensors
 								// landscape left but inverted, KindleFire style... (still have to support LandscapeRight)
 								else if (Game.Activity.WindowManager.DefaultDisplay.Orientation == 3 &&
 									AndroidGameActivity.Game.Window.CurrentOrientation == DisplayOrientation.LandscapeLeft)
-								{									
+								{
 									values[0] *= -1.0f;
 									values[1] *= -1.0f;
 								}
@@ -220,10 +220,13 @@ namespace Microsoft.Devices.Sensors
 								}
 
 								reading.Acceleration = new Vector3(values[0], values[1], values[2]);
-                                reading.Timestamp = DateTime.Now;
-                            }
-                            accelerometer.CurrentValue = reading;
-                        }
+								reading.Timestamp = DateTime.Now;
+							}
+							accelerometer.CurrentValue = reading;
+						}
+						catch (Exception ex)
+						{
+						}
                         finally
                         {
                             IDisposable d = values as IDisposable;
