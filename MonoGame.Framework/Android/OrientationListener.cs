@@ -30,6 +30,15 @@ namespace Microsoft.Xna.Framework
 
         public override void OnOrientationChanged(int orientation)
         {
+			// Ignoring this for now...
+			return;
+
+			//Console.WriteLine("Orientation Changed: {0}", orientation);
+
+			// ignore -1?
+			if (orientation == -1)
+				return;
+			
             // Avoid changing orientation whilst the screen is locked
             if (ScreenReceiver.ScreenLocked)
                 return;
@@ -37,37 +46,34 @@ namespace Microsoft.Xna.Framework
             if (!inprogress)
             {
                 inprogress = true;
-                // Divide by 90 into an int to round, then multiply out to one of 5 positions, either 0,90,180,270,360. 
-                int ort = (90 * (int)Math.Round(orientation / 90f)) % 360;
 
-                // Convert 360 to 0
-                if (ort == 360)
-                {
-                    ort = 0;
-                }
+				// Divide by 90 into an int to round, then multiply out to one of 5 positions, either 0,90,180,270,360. 
+				int ort = (90 * (int)Math.Round(orientation / 90f)) % 360;
 
-                var disporientation = DisplayOrientation.Unknown;
-                switch (ort)
-                {
-                    case 90: disporientation = DisplayOrientation.LandscapeRight;
-                        break;
-                    case 270: disporientation = DisplayOrientation.LandscapeLeft;
-                        break;
-                    case 0: disporientation = DisplayOrientation.Portrait;
-                        break;
-                    case 180: disporientation = DisplayOrientation.PortraitDown;
-                        break;
-                    default:
-                        disporientation = DisplayOrientation.LandscapeLeft;
-                        break;
-                }
+				// Convert 360 to 0
+				if (ort == 360)
+				{
+					ort = 0;
+				}
 
-                // Only auto-rotate if target orientation is supported and not current
-                if ((AndroidGameActivity.Game.Window.GetEffectiveSupportedOrientations() & disporientation) != 0 &&
-                     disporientation != AndroidGameActivity.Game.Window.CurrentOrientation)
-                {
-                    AndroidGameActivity.Game.Window.SetOrientation(disporientation, true);
-                }
+				//Console.WriteLine("Final Orientation: {0}", ort);
+
+				var displayOrientation = DisplayOrientation.Unknown;
+
+				var currentOrientationSettings = AndroidCompatibility.CompatibilitySettings.DisplayOrientationMapping[ort];
+				displayOrientation = currentOrientationSettings.Orientation;
+
+				// Only auto-rotate if target orientation is supported and not current
+				if ((AndroidGameActivity.Game.Window.GetEffectiveSupportedOrientations() & displayOrientation) != 0 &&
+					 displayOrientation != AndroidGameActivity.Game.Window.CurrentOrientation)
+				{
+					// Get the settings for the current orientation
+					AndroidCompatibility.CurrentOrientationSettings = currentOrientationSettings;
+
+					Console.WriteLine("MG Orientation: {0}", displayOrientation);
+
+					AndroidGameActivity.Game.Window.SetOrientation(displayOrientation, true);
+				}
                 inprogress = false;
             }
         }
