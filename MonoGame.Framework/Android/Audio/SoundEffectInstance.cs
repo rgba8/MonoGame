@@ -137,7 +137,7 @@ namespace Microsoft.Xna.Framework.Audio
 
 		void Sound_LoadCompleted(object sender, EventArgs e)
 		{
-			Console.WriteLine("Sound load completed");
+			Console.WriteLine("Sound load completed: {0}", Sound.SoundId);
 			if (playRequested)
 			{
 				_sound.LoadCompleted -= Sound_LoadCompleted;
@@ -150,7 +150,7 @@ namespace Microsoft.Xna.Framework.Audio
         {
 			if (!Sound.Loaded && playRequested)
 			{
-				//Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
+				Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
 				return;
 			}
 
@@ -166,7 +166,7 @@ namespace Microsoft.Xna.Framework.Audio
 
 				if (!Sound.Loaded && playRequested)
 				{
-					//Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
+					Console.WriteLine("Play request pending for: {0}", Sound.SoundId);
 					return;
 				}
 
@@ -369,6 +369,7 @@ namespace Microsoft.Xna.Framework.Audio
 			float volumeTotal = SoundEffect.MasterVolume * _volume * _3dAttenuation;
 			float volumeLeft = volumeTotal * (1.0f - panRatio);
 			float volumeRight = volumeTotal * panRatio;
+			//Console.WriteLine("UpdateVolume: {0}", volumeLeft);
 			Sound.SoundPool.SetVolume(_streamId, volumeLeft, volumeRight);
 		}	
 	}
