@@ -6,12 +6,40 @@ using Android.Util;
 
 namespace Microsoft.Xna.Framework.Audio
 {
-    internal class Sound : IDisposable
+    public class Sound : IDisposable
     {
-        private const int MAX_SIMULTANEOUS_SOUNDS = 10;
+		/// <summary>
+		/// Fired when the sound pool is done loading the sample so SoundEffect/SoundEffectInstance can start playing
+		/// is Play() was called before async loading was done.
+		/// </summary>
+		public event EventHandler LoadCompleted = delegate { };
+
+        private const int MAX_SIMULTANEOUS_SOUNDS = 6;
         private static SoundPool s_soundPool = new SoundPool(MAX_SIMULTANEOUS_SOUNDS, Stream.Music, 0);
-        private int _soundId;
+		private int _soundId;
+
+		public int SoundId
+		{
+			get { return _soundId; }
+			set { _soundId = value; }
+		}
+
         bool disposed;
+		bool loaded = false;
+		private string _filename;
+
+		public string Filename
+		{
+			get { return _filename; }
+			set { _filename = value; }
+		}
+
+		public bool Loaded
+		{
+			get { return loaded; }
+			set { loaded = value; }
+		}
+
 
 		internal static SoundPool SoundPool
 		{
@@ -49,20 +77,10 @@ namespace Microsoft.Xna.Framework.Audio
                 if (_soundId != 0)
                     s_soundPool.Unload(_soundId);
                 _soundId = 0;
-
+				
                 disposed = true;
             }
         }
-
-        public void Resume(int streamId)
-        {
-            s_soundPool.Resume(streamId);
-        }
-
-        public float Volume { get; set; }
-        public bool Looping { get; set; }
-        public float Rate { get; set; }
-        public float Pan { get; set; }
 
         public double Duration
         {
@@ -82,42 +100,33 @@ namespace Microsoft.Xna.Framework.Audio
             }
         }
 
-        public int Play()
+        public Sound(string filename)
         {
-            if (_soundId == 0)
-                return -1;
+			// Sound load is async... make sure we know when it's done in case a request for Play() is initiated before loading is complete...
+			// There are probably better ways to do this though...
+			s_soundPool.LoadComplete += LoadComplete;
+			_filename = filename;
 
-            float panRatio = (this.Pan + 1.0f) / 2.0f;
-            float volumeTotal = SoundEffect.MasterVolume * this.Volume;
-            float volumeLeft = volumeTotal * (1.0f - panRatio);
-            float volumeRight = volumeTotal * panRatio;
-
-            float rate = (float)Math.Pow(2, Rate);
-            rate = Math.Max(Math.Min(rate, 2.0f), 0.5f);
-
-            return s_soundPool.Play(_soundId, volumeLeft, volumeRight, 1, Looping ? -1 : 0, rate);
+			using (AssetFileDescriptor fd = Game.Activity.Assets.OpenFd(filename))
+			{
+				_soundId = s_soundPool.Load(fd.FileDescriptor, fd.StartOffset, fd.Length, 1);
+			}
         }
 
-        public void Pause(int streamId)
-        {
-            s_soundPool.Pause(streamId);
-        }
+		void LoadComplete(object sender, SoundPool.LoadCompleteEventArgs e)
+		{
+			s_soundPool.LoadComplete -= LoadComplete;
 
-        public void Stop(int streamId)
-        {
-            s_soundPool.Stop(streamId);
-        }
+			if (e.SampleId == _soundId)
+			{
+				loaded = true;
+				Console.WriteLine("Sound Loaded: {0} - {1}", e.SampleId, e.Status);
 
-        public Sound(string filename, float volume, bool looping)
-        {
-            using (AssetFileDescriptor fd = Game.Activity.Assets.OpenFd(filename))
-                _soundId = s_soundPool.Load(fd.FileDescriptor, fd.StartOffset, fd.Length, 1);
+				LoadCompleted(this, EventArgs.Empty);
+			}
+		}
 
-            this.Looping = looping;
-            this.Volume = volume;
-        }
-
-        public Sound(byte[] audiodata, float volume, bool looping)
+        public Sound(byte[] audiodata)
         {
             _soundId = 0;
             //throw new NotImplementedException();
@@ -136,5 +145,5 @@ namespace Microsoft.Xna.Framework.Audio
 
             audioManager.AdjustStreamVolume(Stream.Music, Adjust.Lower, VolumeNotificationFlags.ShowUi);
         }
-    }
+	}
 }

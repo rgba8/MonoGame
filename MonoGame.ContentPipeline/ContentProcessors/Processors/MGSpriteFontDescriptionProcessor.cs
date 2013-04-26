@@ -50,7 +50,7 @@ namespace MonoGameContentProcessors.Processors
 
             //MGTextureProcessor.ConvertToPVRTC(texture, 1, true, MGCompressionMode.PVRTCFourBitsPerPixel);
 
-            return content;
+            return content; 
 
         }
     }
