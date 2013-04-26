@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -335,6 +335,7 @@
     <Compile Include="Net\QualityOfService.cs" />
     <Compile Include="Net\SendDataOptions.cs" />
     <Compile Include="Storage\StorageDeviceHelper.cs" />
+    <Compile Include="TextInputEventArgs.cs" />
     <Compile Include="Utilities\Hash.cs" />
     <Compile Include="Windows\Audio\AudioLoader.cs" />
     <Compile Include="Windows\Audio\Sound.cs" />
@@ -466,6 +467,12 @@
     <Compile Include="Media\MediaSource.cs" />
     <Compile Include="FrameworkDispatcher.cs" />
     <Compile Include="Audio\MSADPCMToPCM.cs" />
+    <Compile Include="GamerServices\LeaderboardEntry.cs" />
+    <Compile Include="GamerServices\LeaderboardIdentity.cs" />
+    <Compile Include="GamerServices\LeaderboardKey.cs" />
+    <Compile Include="GamerServices\LeaderboardReader.cs" />
+    <Compile Include="GamerServices\LeaderboardWriter.cs" />
+    <Compile Include="GamerServices\PropertyDictionary.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
