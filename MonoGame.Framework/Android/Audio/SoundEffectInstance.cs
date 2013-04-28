@@ -184,9 +184,24 @@ namespace Microsoft.Xna.Framework.Audio
 			float volumeRight = volumeTotal * panRatio;
 			int priority = 1;
 
-			var finalRate = 0.75f * (Pitch + 1.0f) + 0.5f;
+            // XNA's -1 -> 1 doesn't directly map to 0.5 -> 2.0 of SoundPool (0 xna -> 1.25 when interpolating linearly...)
+            var finalRate = 0.0f;
+            if (Pitch < 0)
+            {
+                // -1.0 -> 0.5
+                //  0.0 -> 1
+                finalRate = 1.0f - (-Pitch * 0.5f);
+            }
+            else
+            {
+                finalRate = 1.0f + Pitch;
+            }
+
+			//var finalRate = 0.75f * (Pitch + 1.0f) + 0.5f;
 			if (finalRate == 1.0f)
 				finalRate = 0.99f; // set initial rate to 0.99 otherwise setRate won't work afterwards... no idea why...
+
+            //Console.WriteLine("Final Rate: {0} - Pitch: {1}", finalRate, Pitch);
 			
 			_streamId = Sound.SoundPool.Play(Sound.SoundId, volumeLeft, volumeRight, 1, _loop ? -1 : 0, finalRate);
 			instanceCount++;
