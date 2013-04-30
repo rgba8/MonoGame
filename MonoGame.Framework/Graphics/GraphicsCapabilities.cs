@@ -68,23 +68,23 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <summary>
         /// Whether the device supports anisotropic texture filtering
         /// </summary>
-        internal static bool TextureFilterAnisotropic { get; private set; }
+        internal static bool SupportsTextureFilterAnisotropic { get; private set; }
 
-        internal static bool Depth24 { get; private set; }
+        internal static bool SupportsDepth24 { get; private set; }
 
-        internal static bool PackedDepthStencil { get; private set; }
+        internal static bool SupportsPackedDepthStencil { get; private set; }
 
-        internal static bool DepthNonLinear { get; private set; }
+        internal static bool SupportsDepthNonLinear { get; private set; }
 
         internal static void Initialize(GraphicsDevice device)
         {
             NonPowerOfTwo = GetNonPowerOfTwo(device);
 
 #if GLES
-            TextureFilterAnisotropic = device._extensions.Contains("GL_EXT_texture_filter_anisotropic");
-            Depth24 = device._extensions.Contains("GL_OES_depth24");
-            PackedDepthStencil = device._extensions.Contains("GL_EXT_packed_depth_stencil");
-            DepthNonLinear = device._extensions.Contains("GL_NV_depth_nonlinear");
+            SupportsTextureFilterAnisotropic = device._extensions.Contains("GL_EXT_texture_filter_anisotropic");
+            SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
+            SupportsPackedDepthStencil = device._extensions.Contains("GL_EXT_packed_depth_stencil");
+            SupportsDepthNonLinear = device._extensions.Contains("GL_NV_depth_nonlinear");
 #else
             TextureFilterAnisotric = true;
             Depth24 = true;

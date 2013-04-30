@@ -158,9 +158,9 @@ namespace Microsoft.Xna.Framework.Graphics
           glDepthFormat = GLDepthComponent16; break;
 #if GLES
         case DepthFormat.Depth24: 
-          glDepthFormat = GraphicsCapabilities.Depth24 ? GLDepthComponent24 : GraphicsCapabilities.DepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16; break;
+          glDepthFormat = GraphicsCapabilities.SupportsDepth24 ? GLDepthComponent24 : GraphicsCapabilities.SupportsDepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16; break;
         case DepthFormat.Depth24Stencil8:
-          glDepthFormat = GraphicsCapabilities.Depth24 ? GLDepthComponent24 : GraphicsCapabilities.DepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16;
+          glDepthFormat = GraphicsCapabilities.SupportsDepth24 ? GLDepthComponent24 : GraphicsCapabilities.SupportsDepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16;
           glStencilFormat = GLStencilIndex8; 
           break;
 #else
@@ -182,7 +182,7 @@ namespace Microsoft.Xna.Framework.Graphics
       GraphicsExtensions.CheckGLError();
       if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
       {
-        if (GraphicsCapabilities.PackedDepthStencil)
+        if (GraphicsCapabilities.SupportsPackedDepthStencil)
         {
           this.glStencilBuffer = this.glDepthBuffer;
           GL.BindRenderbuffer(GLRenderbuffer, this.glDepthBuffer);
