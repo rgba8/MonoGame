@@ -176,11 +176,11 @@ namespace Microsoft.Xna.Framework
             Dispose(false);
         }
 
-		[System.Diagnostics.Conditional("DEBUG")]
-		internal void Log(string Message)
-		{
-			if (Platform != null) Platform.Log(Message);
-		}
+        [System.Diagnostics.Conditional("DEBUG")]
+        internal void Log(string Message)
+        {
+            if (Platform != null) Platform.Log(Message);
+        }
 
         #region IDisposable Implementation
 
@@ -213,6 +213,14 @@ namespace Microsoft.Xna.Framework
                     {
                         (_graphicsDeviceManager as GraphicsDeviceManager).Dispose();
                         _graphicsDeviceManager = null;
+                    }
+
+                    if (_graphicsDeviceService != null)
+                    {
+                        _graphicsDeviceService.DeviceCreated -= DeviceCreated;
+                        _graphicsDeviceService.DeviceDisposing -= DeviceDisposing;
+                        _graphicsDeviceService.DeviceReset -= DeviceReset;
+                        _graphicsDeviceService.DeviceResetting -= DeviceResetting;
                     }
 
                     Platform.Dispose();
@@ -432,7 +440,7 @@ namespace Microsoft.Xna.Framework
             case GameRunBehavior.Synchronous:
                 Platform.RunLoop();
                 EndRun();
-				DoExiting();
+                DoExiting();
                 break;
             default:
                 throw new NotImplementedException(string.Format(
@@ -562,8 +570,15 @@ namespace Microsoft.Xna.Framework
             _components.ComponentRemoved += Components_ComponentRemoved;
             InitializeExistingComponents();
 
-            _graphicsDeviceService = (IGraphicsDeviceService)
-                Services.GetService(typeof(IGraphicsDeviceService));
+            _graphicsDeviceService = (IGraphicsDeviceService)Services.GetService(typeof(IGraphicsDeviceService));
+            if (_graphicsDeviceService != null)
+            {
+                _graphicsDeviceService.DeviceCreated += DeviceCreated;
+                _graphicsDeviceService.DeviceDisposing += DeviceDisposing;
+                _graphicsDeviceService.DeviceReset += DeviceReset;
+                _graphicsDeviceService.DeviceResetting += DeviceResetting;
+            }
+
 
             // FIXME: If this test fails, is LoadContent ever called?  This
             //        seems like a condition that warrants an exception more
@@ -573,6 +588,25 @@ namespace Microsoft.Xna.Framework
             {
                 LoadContent();
             }
+        }
+
+        void DeviceResetting(object sender, EventArgs e)
+        {
+        }
+
+        void DeviceReset(object sender, EventArgs e)
+        {
+        }
+
+        void DeviceDisposing(object sender, EventArgs e)
+        {
+            this.Content.Unload();
+            this.UnloadContent();
+        }
+
+        void DeviceCreated(object sender, EventArgs e)
+        {
+            this.LoadContent();
         }
 
         private static readonly Action<IDrawable, GameTime> DrawAction =
@@ -590,24 +624,24 @@ namespace Microsoft.Xna.Framework
         protected virtual void Update(GameTime gameTime)
         {
             _updateables.ForEachFilteredItem(UpdateAction, gameTime);
-		}
+        }
 
         protected virtual void OnExiting(object sender, EventArgs args)
         {
             Raise(Exiting, args);
         }
-		
-		protected virtual void OnActivated (object sender, EventArgs args)
-		{
-			AssertNotDisposed();
-			Raise(Activated, args);
-		}
-		
-		protected virtual void OnDeactivated (object sender, EventArgs args)
-		{
-			AssertNotDisposed();
-			Raise(Deactivated, args);
-		}
+        
+        protected virtual void OnActivated (object sender, EventArgs args)
+        {
+            AssertNotDisposed();
+            Raise(Activated, args);
+        }
+        
+        protected virtual void OnDeactivated (object sender, EventArgs args)
+        {
+            AssertNotDisposed();
+            Raise(Deactivated, args);
+        }
 
         #endregion Protected Methods
 
@@ -635,7 +669,7 @@ namespace Microsoft.Xna.Framework
             var platform = (GamePlatform)sender;
             platform.AsyncRunLoopEnded -= Platform_AsyncRunLoopEnded;
             EndRun();
-			DoExiting();
+            DoExiting();
         }
 
 #if WINDOWS_STOREAPP
@@ -656,18 +690,18 @@ namespace Microsoft.Xna.Framework
 
         internal void applyChanges(GraphicsDeviceManager manager)
         {
-			Platform.BeginScreenDeviceChange(GraphicsDevice.PresentationParameters.IsFullScreen);
+            Platform.BeginScreenDeviceChange(GraphicsDevice.PresentationParameters.IsFullScreen);
             if (GraphicsDevice.PresentationParameters.IsFullScreen)
                 Platform.EnterFullScreen();
             else
                 Platform.ExitFullScreen();
 
             var viewport = new Viewport(0, 0,
-			                            GraphicsDevice.PresentationParameters.BackBufferWidth,
-			                            GraphicsDevice.PresentationParameters.BackBufferHeight);
+                                        GraphicsDevice.PresentationParameters.BackBufferWidth,
+                                        GraphicsDevice.PresentationParameters.BackBufferHeight);
 
             GraphicsDevice.Viewport = viewport;
-			Platform.EndScreenDeviceChange(string.Empty, viewport.Width, viewport.Height);
+            Platform.EndScreenDeviceChange(string.Empty, viewport.Width, viewport.Height);
         }
 
         internal void DoUpdate(GameTime gameTime)
@@ -697,11 +731,11 @@ namespace Microsoft.Xna.Framework
             Initialize();
         }
 
-		internal void DoExiting()
-		{
-			OnExiting(this, EventArgs.Empty);
-			UnloadContent();
-		}
+        internal void DoExiting()
+        {
+            OnExiting(this, EventArgs.Empty);
+            UnloadContent();
+        }
 
         internal void ResizeWindow(bool changed)
         {
