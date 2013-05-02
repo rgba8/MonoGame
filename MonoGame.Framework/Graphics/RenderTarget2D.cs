@@ -95,7 +95,7 @@ namespace Microsoft.Xna.Framework.Graphics
     public event EventHandler<EventArgs> ContentLost;
 
     public RenderTarget2D(GraphicsDevice graphicsDevice, int width, int height, bool mipMap, SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat, int preferredMultiSampleCount, RenderTargetUsage usage)
-      : base(graphicsDevice, width, height, mipMap, preferredFormat, true)
+      : base(graphicsDevice, width, height, mipMap, preferredFormat, SurfaceType.RenderTarget)
     {
       DepthStencilFormat = preferredDepthFormat;
       MultiSampleCount = preferredMultiSampleCount;
