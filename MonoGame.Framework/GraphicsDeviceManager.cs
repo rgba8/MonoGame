@@ -1,4 +1,4 @@
-﻿#region License
+#region License
 /*
 Microsoft Public License (Ms-PL)
 MonoGame - Copyright © 2009 The MonoGame Team
@@ -227,8 +227,8 @@ namespace Microsoft.Xna.Framework
             // hardware feature level.
             _graphicsDevice.GraphicsProfile = GraphicsProfile;
 
-      // The graphics device can use a XAML panel or a window
-      // to created the default swapchain target.
+			// The graphics device can use a XAML panel or a window
+			// to created the default swapchain target.
             if (SwapChainPanel != null)
             {
                 _graphicsDevice.PresentationParameters.DeviceWindowHandle = IntPtr.Zero;
@@ -272,7 +272,7 @@ namespace Microsoft.Xna.Framework
 
             // TODO: Implement multisampling (aka anti-alising) for all platforms!
 
-      _game.applyChanges(this);
+			_game.applyChanges(this);
 #else
 
 #if ANDROID
@@ -319,8 +319,8 @@ namespace Microsoft.Xna.Framework
 #if WINDOWS_PHONE
 
 #elif WINRT
-      // The graphics device can use a XAML panel or a window
-      // to created the default swapchain target.
+			// The graphics device can use a XAML panel or a window
+			// to created the default swapchain target.
             if (SwapChainPanel != null)
             {
                 _graphicsDevice.PresentationParameters.DeviceWindowHandle = IntPtr.Zero;
@@ -420,10 +420,10 @@ namespace Microsoft.Xna.Framework
         internal void ForceSetFullScreen()
         {
             if (IsFullScreen)
-            { 
-                Game.Activity.Window.ClearFlags(Android.Views.WindowManagerFlags.ForceNotFullscreen);
+			{
+				Game.Activity.Window.ClearFlags(Android.Views.WindowManagerFlags.ForceNotFullscreen);
                 Game.Activity.Window.SetFlags(WindowManagerFlags.Fullscreen, WindowManagerFlags.Fullscreen);
-            }
+			}
             else
                 Game.Activity.Window.SetFlags(WindowManagerFlags.ForceNotFullscreen, WindowManagerFlags.ForceNotFullscreen);
         }
