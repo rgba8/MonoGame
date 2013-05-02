@@ -48,7 +48,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		None = -1,
 		Depth16 = 54,
 		Depth24 = 51,
-		Depth24Stencil8 = 48,		
+		Depth24Stencil8 = 48,
     }
 }
 

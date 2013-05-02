@@ -55,10 +55,10 @@ using TextureUnit = OpenTK.Graphics.ES20.All;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
-	public abstract class Texture : GraphicsResource
-	{
-		protected SurfaceFormat format;
-		protected int levelCount;
+    public abstract class Texture : GraphicsResource
+    {
+        protected SurfaceFormat format;
+        protected int levelCount;
 
 #if DIRECTX
 
@@ -67,21 +67,21 @@ namespace Microsoft.Xna.Framework.Graphics
         private SharpDX.Direct3D11.ShaderResourceView _resourceView;
 
 #elif OPENGL
-		internal int glTexture = -1;
-		internal TextureTarget glTarget;
+        internal int glTexture = -1;
+        internal TextureTarget glTarget;
         internal TextureUnit glTextureUnit = TextureUnit.Texture0;
         internal SamplerState glLastSamplerState = null;
 #endif
-		
-		public SurfaceFormat Format
-		{
-			get { return format; }
-		}
-		
-		public int LevelCount
-		{
-			get { return levelCount; }
-		}
+
+        public SurfaceFormat Format
+        {
+            get { return format; }
+        }
+
+        public int LevelCount
+        {
+            get { return levelCount; }
+        }
 
         internal static int CalculateMipLevels(int width, int height = 0, int depth = 0)
         {
@@ -104,54 +104,21 @@ namespace Microsoft.Xna.Framework.Graphics
             switch (format)
             {
                 case SurfaceFormat.Dxt1:
+                case SurfaceFormat.Dxt1a:
                 case SurfaceFormat.RgbPvrtc2Bpp:
                 case SurfaceFormat.RgbaPvrtc2Bpp:
                 case SurfaceFormat.RgbEtc1:
-                    Debug.Assert(MathHelper.IsPowerOfTwo(width), "This format must be power of two!");
-                    pitch = ((width + 3) / 4) * 8;
-                    break;
-
                 case SurfaceFormat.Dxt3:
                 case SurfaceFormat.Dxt5:
                 case SurfaceFormat.RgbPvrtc4Bpp:
                 case SurfaceFormat.RgbaPvrtc4Bpp:
                     Debug.Assert(MathHelper.IsPowerOfTwo(width), "This format must be power of two!");
-                    pitch = ((width + 3) / 4) * 16;
-                    break;
-
-                case SurfaceFormat.Alpha8:
-                    pitch = width;
-                    break;
-
-                case SurfaceFormat.Bgr565:
-                case SurfaceFormat.Bgra4444:
-                case SurfaceFormat.Bgra5551:
-                case SurfaceFormat.NormalizedByte2:
-                case SurfaceFormat.HalfSingle:
-                    pitch = width * 2;
-                    break;
-
-                case SurfaceFormat.Color:
-                case SurfaceFormat.Single:
-                case SurfaceFormat.Rg32:
-                case SurfaceFormat.HalfVector2:
-                case SurfaceFormat.NormalizedByte4:
-                case SurfaceFormat.Rgba1010102:
-                    pitch = width * 4;
-                    break;
-
-                case SurfaceFormat.HalfVector4:
-                case SurfaceFormat.Rgba64:
-                case SurfaceFormat.Vector2:
-                    pitch = width * 8;
-                    break;
-
-                case SurfaceFormat.Vector4:
-                    pitch = width * 16;
+                    pitch = ((width + 3) / 4) * format.Size();
                     break;
 
                 default:
-                    throw new NotImplementedException( "Unexpected format!" );
+                    pitch = width * format.Size();
+                    break;
             };
 
             return pitch;
@@ -178,7 +145,7 @@ namespace Microsoft.Xna.Framework.Graphics
         }
 
         protected override void Dispose(bool disposing)
-		{
+        {
             if (!IsDisposed)
             {
 #if DIRECTX
@@ -198,18 +165,17 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
 #elif OPENGL
                 GraphicsDevice.AddDisposeAction(() =>
-                    {
-                        GL.DeleteTextures(1, ref glTexture);
-                        GraphicsExtensions.CheckGLError();
-                        glTexture = -1;
-                    });
+                {
+                    GL.DeleteTextures(1, ref glTexture);
+                    GraphicsExtensions.CheckGLError();
+                    glTexture = -1;
+                });
 
                 glLastSamplerState = null;
 #endif
             }
             base.Dispose(disposing);
-		}
-		
-	}
-}
+        }
 
+    }
+}
