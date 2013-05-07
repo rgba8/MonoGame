@@ -101,15 +101,25 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         internal static bool SupportsAtitc { get; private set; }
 
+        internal static float MaxAnisotropy = 1;
+
         internal static void Initialize(GraphicsDevice device)
         {
             NonPowerOfTwo = GetNonPowerOfTwo(device);
-
+#if OPENGL
 #if GLES
             SupportsTextureFilterAnisotropic = device._extensions.Contains("GL_EXT_texture_filter_anisotropic");
             SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
             SupportsPackedDepthStencil = device._extensions.Contains("GL_OES_packed_depth_stencil");
             SupportsDepthNonLinear = device._extensions.Contains("GL_NV_depth_nonlinear");
+            if (SupportsTextureFilterAnisotropic)
+            {
+                GL.GetFloat(All.MaxTextureMaxAnisotropyExt, ref MaxAnisotropy);
+            }
+#else
+            GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out MaxAnisotropy);
+#endif
+            GraphicsExtensions.CheckGLError();
 #else
             TextureFilterAnisotric = true;
             Depth24 = true;
