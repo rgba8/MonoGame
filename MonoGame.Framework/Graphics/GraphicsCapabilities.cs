@@ -107,24 +107,22 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             NonPowerOfTwo = GetNonPowerOfTwo(device);
 #if OPENGL
-#if GLES
-            SupportsTextureFilterAnisotropic = device._extensions.Contains("GL_EXT_texture_filter_anisotropic");
-            SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
-            SupportsPackedDepthStencil = device._extensions.Contains("GL_OES_packed_depth_stencil");
             SupportsDepthNonLinear = device._extensions.Contains("GL_NV_depth_nonlinear");
-            if (SupportsTextureFilterAnisotropic)
-            {
-                GL.GetFloat(All.MaxTextureMaxAnisotropyExt, ref MaxAnisotropy);
-            }
+            SupportsTextureFilterAnisotropic = device._extensions.Contains("GL_EXT_texture_filter_anisotropic");
+            SupportsPackedDepthStencil = device._extensions.Contains("GL_EXT_packed_depth_stencil") || device._extensions.Contains("GL_OES_packed_depth_stencil");
+#if GLES
+            SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
+            GL.GetFloat(All.MaxTextureMaxAnisotropyExt, ref MaxAnisotropy);
 #else
+            SupportsDepth24 = true;
             GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out MaxAnisotropy);
 #endif
             GraphicsExtensions.CheckGLError();
 #else
-            TextureFilterAnisotric = true;
-            Depth24 = true;
-            PackedDepthStencil = true;
-            DepthNonLinear = false;
+            SupportsTextureFilterAnisotropic = true;
+            SupportsDepth24 = true;
+            SupportsPackedDepthStencil = true;
+            SupportsDepthNonLinear = false;
 #endif
 
             // Texture compression
