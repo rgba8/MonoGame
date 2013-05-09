@@ -155,10 +155,12 @@ namespace Microsoft.Xna.Framework.Graphics
       switch (preferredDepthFormat)
       {
         case DepthFormat.Depth16: 
-          glDepthFormat = GLDepthComponent16; break;
+          glDepthFormat = GLDepthComponent16; 
+          break;
 #if GLES
         case DepthFormat.Depth24: 
-          glDepthFormat = GraphicsCapabilities.SupportsDepth24 ? GLDepthComponent24 : GraphicsCapabilities.SupportsDepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16; break;
+          glDepthFormat = GraphicsCapabilities.SupportsDepth24 ? GLDepthComponent24 : GraphicsCapabilities.SupportsDepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16; 
+          break;
         case DepthFormat.Depth24Stencil8:
           glDepthFormat = GraphicsCapabilities.SupportsDepth24 ? GLDepthComponent24 : GraphicsCapabilities.SupportsDepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16;
           glStencilFormat = GLStencilIndex8; 
@@ -166,8 +168,9 @@ namespace Microsoft.Xna.Framework.Graphics
 #else
         case DepthFormat.Depth24: 
           glDepthFormat = GLDepthComponent24;
+          break;
         case DepthFormat.Depth24Stencil8:
-          glDepthFormat = GraphicsCapabilities.Depth24;
+          glDepthFormat = GLDepthComponent24;
           glStencilFormat = GLStencilIndex8; 
           break;
 #endif
