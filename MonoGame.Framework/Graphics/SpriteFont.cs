@@ -357,7 +357,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     p.Y += currentGlyph.BoundsInTexture.Height - LineSpacing;
                 p.Y += currentGlyph.Cropping.Y;
 
-				Vector2.Transform(ref p, ref transformation, out p);
+                Vector2.Transform(ref p, ref transformation, out p);
 
                 var destRect = new Vector4( p.X, p.Y, 
                                             currentGlyph.BoundsInTexture.Width * scale.X,
