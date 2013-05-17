@@ -112,7 +112,7 @@ namespace Microsoft.Xna.Framework.Graphics
             SupportsPackedDepthStencil = device._extensions.Contains("GL_EXT_packed_depth_stencil") || device._extensions.Contains("GL_OES_packed_depth_stencil");
 #if GLES
             SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
-            GL.GetFloat(All.MaxTextureMaxAnisotropyExt, ref MaxAnisotropy);
+            //GL.GetFloat(All.MaxTextureMaxAnisotropyExt, ref MaxAnisotropy);
 #else
             SupportsDepth24 = true;
             GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out MaxAnisotropy);

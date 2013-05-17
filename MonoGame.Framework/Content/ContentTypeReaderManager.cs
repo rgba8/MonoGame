@@ -204,6 +204,9 @@ namespace Microsoft.Xna.Framework.Content
 			// TODO: For WinRT this is most likely broken!
 			preparedType = preparedType.Replace(", Microsoft.Xna.Framework.Graphics", string.Format(", {0}", assemblyName));
 			preparedType = preparedType.Replace(", Microsoft.Xna.Framework", string.Format(", {0}", assemblyName));
+
+
+            preparedType = preparedType.Replace(", Fds.InfiniteFlight.ContentPipeline", ", Fds.Framework");
 			
 			return preparedType;
 		}
