@@ -362,6 +362,20 @@ namespace Microsoft.Xna.Framework.Graphics
                 fData[10] = value.M33;
                 fData[11] = value.M43;
             }
+            else if (RowCount == 4 && ColumnCount == 2)
+            {
+                var fData = (float[])Data;
+
+                fData[0] = value.M11;
+                fData[1] = value.M21;
+                fData[2] = value.M31;
+                fData[3] = value.M41;
+
+                fData[4] = value.M12;
+                fData[5] = value.M22;
+                fData[6] = value.M32;
+                fData[7] = value.M42;
+            }
             else if (RowCount == 3 && ColumnCount == 4)
             {
                 var fData = (float[])Data;
@@ -397,6 +411,18 @@ namespace Microsoft.Xna.Framework.Graphics
                 fData[6] = value.M13;
                 fData[7] = value.M23;
                 fData[8] = value.M33;
+            }
+            else if (RowCount == 3 && ColumnCount == 2)
+            {
+                var fData = (float[])Data;
+
+                fData[0] = value.M11;
+                fData[1] = value.M21;
+                fData[2] = value.M31;
+
+                fData[3] = value.M12;
+                fData[4] = value.M22;
+                fData[5] = value.M32;
             }
 
             StateKey = unchecked(NextStateKey++);

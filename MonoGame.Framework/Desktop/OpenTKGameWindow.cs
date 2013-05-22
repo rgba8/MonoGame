@@ -351,12 +351,8 @@ namespace Microsoft.Xna.Framework
 #if WINDOWS
             {
                 var windowInfoType = window.WindowInfo.GetType();
-                var propertyInfo = windowInfoType.GetProperty("Parent");
-                var parent = propertyInfo.GetValue(window.WindowInfo, null);
-
-                var windowInfoParentType = parent.GetType();
-                propertyInfo = windowInfoParentType.GetProperty("WindowHandle");
-                _windowHandle = (IntPtr)propertyInfo.GetValue(parent, null);
+                var propertyInfo = windowInfoType.GetProperty("WindowHandle");
+                _windowHandle = (IntPtr)propertyInfo.GetValue(window.WindowInfo, null);
             }
 #endif
             // Provide the graphics context for background loading
