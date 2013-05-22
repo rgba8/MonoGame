@@ -346,13 +346,20 @@ namespace Microsoft.Xna.Framework
             updateClientBounds = false;
             clientBounds = new Rectangle(window.ClientRectangle.X, window.ClientRectangle.Y,
                                          window.ClientRectangle.Width, window.ClientRectangle.Height);
-            windowState = window.WindowState;            
+            windowState = window.WindowState;
 
 #if WINDOWS
             {
                 var windowInfoType = window.WindowInfo.GetType();
-                var propertyInfo = windowInfoType.GetProperty("WindowHandle");
-                _windowHandle = (IntPtr)propertyInfo.GetValue(window.WindowInfo, null);
+
+                // Xna's handle is not of the inner control but of the actual window with borders.
+                // Hack even more to crawl to it...
+                var propertyInfo = windowInfoType.GetProperty("Parent");
+                var parent = propertyInfo.GetValue(window.WindowInfo, null);
+
+                var windowInfoParentType = parent.GetType();
+                propertyInfo = windowInfoParentType.GetProperty("WindowHandle");
+                _windowHandle = (IntPtr)propertyInfo.GetValue(parent, null);
             }
 #endif
             // Provide the graphics context for background loading
