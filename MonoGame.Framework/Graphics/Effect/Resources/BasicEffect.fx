@@ -392,11 +392,18 @@ float4 PSBasicVertexLightingNoFog(VSOutput pin) : SV_Target0
 // Pixel shader: vertex lighting + texture.
 float4 PSBasicVertexLightingTx(VSOutputTx pin) : SV_Target0
 {
-    float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+	/*float4 tex = SAMPLE_TEXTURE(Texture, pin.TexCoord);
+    float3 colortmp = tex.rgb * pin.Diffuse.rgb;   
+	float4 color = float4(colortmp, tex.a);*/
+	
+	float4 color = SAMPLE_TEXTURE(Texture, pin.TexCoord) * pin.Diffuse;
+
+	// This doesn't work on Adreno GPU's, multiplying Alpha makes everything all bright...
+    //AddSpecular(color, pin.Specular.rgb);
+    color.rgb += pin.Specular.rgb;
     
-    AddSpecular(color, pin.Specular.rgb);
-    ApplyFog(color, pin.Specular.w);
-    
+	ApplyFog(color, pin.Specular.w);
+
     return color;
 }
 

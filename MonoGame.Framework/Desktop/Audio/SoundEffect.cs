@@ -252,6 +252,7 @@ namespace Microsoft.Xna.Framework.Audio
             set
             {
                 _masterVolume = value;
+                AL.Listener(ALListenerf.Gain, _masterVolume);
             }
         }
 

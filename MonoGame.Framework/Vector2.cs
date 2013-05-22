@@ -411,15 +411,18 @@ namespace Microsoft.Xna.Framework
         }
 
         public static Vector2 Transform(Vector2 position, Matrix matrix)
-        {
+        {            
             Transform(ref position, ref matrix, out position);
             return position;
         }
 
         public static void Transform(ref Vector2 position, ref Matrix matrix, out Vector2 result)
         {
-            result = new Vector2((position.X * matrix.M11) + (position.Y * matrix.M21) + matrix.M41,
-                                 (position.X * matrix.M12) + (position.Y * matrix.M22) + matrix.M42);
+            var posx = position.X;
+            var posy = position.Y;
+
+            result.X = (posx * matrix.M11) + (posy * matrix.M21) + matrix.M41;
+            result.Y = (posx * matrix.M12) + (posy * matrix.M22) + matrix.M42;
         }
 
         public static Vector2 Transform(Vector2 position, Quaternion quat)

@@ -144,8 +144,7 @@ namespace Microsoft.Xna.Framework
             this.Y = y;
             this.Z = z;
         }
-
-
+        
         public Vector3(float value)
         {
             this.X = value;
@@ -153,14 +152,12 @@ namespace Microsoft.Xna.Framework
             this.Z = value;
         }
 
-
         public Vector3(Vector2 value, float z)
         {
             this.X = value.X;
             this.Y = value.Y;
             this.Z = z;
         }
-
 
         #endregion Constructors
 
@@ -238,9 +235,16 @@ namespace Microsoft.Xna.Framework
 
         public static void Cross(ref Vector3 vector1, ref Vector3 vector2, out Vector3 result)
         {
-            result = new Vector3(vector1.Y * vector2.Z - vector2.Y * vector1.Z,
-                                 -(vector1.X * vector2.Z - vector2.X * vector1.Z),
-                                 vector1.X * vector2.Y - vector2.X * vector1.Y);
+            var vector1X = vector1.X;
+            var vector1Y = vector1.Y;
+            var vector1Z = vector1.Z;
+            var vector2X = vector2.X;
+            var vector2Y = vector2.Y;
+            var vector2Z = vector2.Z;
+
+            result.X = vector1Y * vector2Z - vector2Y * vector1Z;
+            result.Y = -(vector1X * vector2Z - vector2X * vector1Z);
+            result.Z = vector1X * vector2Y - vector2X * vector1Y;
         }
 
         public static float Distance(Vector3 vector1, Vector3 vector2)
@@ -441,7 +445,9 @@ namespace Microsoft.Xna.Framework
 
         public static void Negate(ref Vector3 value, out Vector3 result)
         {
-            result = new Vector3(-value.X, -value.Y, -value.Z);
+            result.X = -value.X;
+            result.Y = -value.Y;
+            result.Z = -value.Z;
         }
 
         public void Normalize()
@@ -546,9 +552,13 @@ namespace Microsoft.Xna.Framework
 
         public static void Transform(ref Vector3 position, ref Matrix matrix, out Vector3 result)
         {
-            result = new Vector3((position.X * matrix.M11) + (position.Y * matrix.M21) + (position.Z * matrix.M31) + matrix.M41,
-                                 (position.X * matrix.M12) + (position.Y * matrix.M22) + (position.Z * matrix.M32) + matrix.M42,
-                                 (position.X * matrix.M13) + (position.Y * matrix.M23) + (position.Z * matrix.M33) + matrix.M43);
+            var positionX = position.X;
+            var positionY = position.Y;
+            var positionZ = position.Z;
+
+            result.X = (positionX * matrix.M11) + (positionY * matrix.M21) + (positionZ * matrix.M31) + matrix.M41;
+            result.Y = (positionX * matrix.M12) + (positionY * matrix.M22) + (positionZ * matrix.M32) + matrix.M42;
+            result.Z = (positionX * matrix.M13) + (positionY * matrix.M23) + (positionZ * matrix.M33) + matrix.M43;
         }
 
         public static void Transform(Vector3[] sourceArray, ref Matrix matrix, Vector3[] destinationArray)
@@ -626,9 +636,13 @@ namespace Microsoft.Xna.Framework
 
         public static void TransformNormal(ref Vector3 normal, ref Matrix matrix, out Vector3 result)
         {
-            result = new Vector3((normal.X * matrix.M11) + (normal.Y * matrix.M21) + (normal.Z * matrix.M31),
-                                 (normal.X * matrix.M12) + (normal.Y * matrix.M22) + (normal.Z * matrix.M32),
-                                 (normal.X * matrix.M13) + (normal.Y * matrix.M23) + (normal.Z * matrix.M33));
+            var normalX = normal.X;
+            var normalY = normal.Y;
+            var normalZ = normal.Z;
+
+            result.X = (normalX * matrix.M11) + (normalY * matrix.M21) + (normalZ * matrix.M31);
+            result.Y = (normalX * matrix.M12) + (normalY * matrix.M22) + (normalZ * matrix.M32);
+            result.Z = (normalX * matrix.M13) + (normalY * matrix.M23) + (normalZ * matrix.M33);
         }
 
         #endregion Public methods

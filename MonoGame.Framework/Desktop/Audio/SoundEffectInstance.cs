@@ -175,7 +175,19 @@ namespace Microsoft.Xna.Framework.Audio
 		{
 			Apply3D ( new AudioListener[] { listener }, emitter);
 		}
-		
+
+		public void Reset3D ()
+		{
+			tmpVector.X = 0;
+			tmpVector.Y = 0;
+			tmpVector.Z = 0;
+			AL.Source(sourceId, ALSource3f.Position, ref tmpVector);
+			AL.Source(sourceId, ALSourceb.SourceRelative, true);
+		}
+
+        OpenTK.Vector3 tmpVector = new OpenTK.Vector3();
+        OpenTK.Vector3 tmpVector2 = new OpenTK.Vector3();
+
         /// <summary>
         /// Applies a 3D transform on the emitter and the listeners to account for head-up
         /// listening orientation in a 3D surround-sound pseudo-environment. The actual 3D
@@ -186,28 +198,65 @@ namespace Microsoft.Xna.Framework.Audio
         /// <param name="emitter"></param>
 		public void Apply3D (AudioListener[] listeners, AudioEmitter emitter)
 		{
-			// get AL's listener position
-			float x, y, z;
-			AL.GetListener (ALListener3f.Position, out x, out y, out z);
+            AL.Source(sourceId, ALSourceb.SourceRelative, false);
+            AL.Source(sourceId, ALSourcef.ReferenceDistance, 50.0f);
 
-			for (int i = 0; i < listeners.Length; i++)
-			{
-				AudioListener listener = listeners[i];
+            tmpVector.X = emitter.Position.X;
+            tmpVector.Y = emitter.Position.Y;
+            tmpVector.Z = emitter.Position.Z;
+            AL.Source(sourceId, ALSource3f.Position, ref tmpVector);
+
+            tmpVector.X = emitter.Velocity.X;
+            tmpVector.Y = emitter.Velocity.Y;
+            tmpVector.Z = emitter.Velocity.Z;
+            AL.Source(sourceId, ALSource3f.Velocity, ref tmpVector);
+
+            if (listeners.Length != 0)
+            {
+                AudioListener listener = listeners[0];
+
+                tmpVector.X = listener.Position.X;
+                tmpVector.Y = listener.Position.Y;
+                tmpVector.Z = listener.Position.Z;
+                AL.Listener(ALListener3f.Position, ref tmpVector);
+
+                tmpVector.X = listener.Forward.X;
+                tmpVector.Y = listener.Forward.Y;
+                tmpVector.Z = listener.Forward.Z;
+
+                tmpVector2.X = listener.Up.X;
+                tmpVector2.Y = listener.Up.Y;
+                tmpVector2.Z = listener.Up.Z;
+                AL.Listener(ALListenerfv.Orientation, ref tmpVector, ref tmpVector2);
+
+                tmpVector.X = listener.Velocity.X;
+                tmpVector.Y = listener.Velocity.Y;
+                tmpVector.Z = listener.Velocity.Z;
+                AL.Listener(ALListener3f.Velocity, ref tmpVector);
+            }
+
+            //// get AL's listener position
+            //float x, y, z;
+            //AL.GetListener (ALListener3f.Position, out x, out y, out z);
+
+            //for (int i = 0; i < listeners.Length; i++)
+            //{
+            //    AudioListener listener = listeners[i];
 				
-				// get the emitter offset from origin
-				Vector3 posOffset = emitter.Position - listener.Position;
-				// set up orientation matrix
-				Matrix orientation = Matrix.CreateWorld(Vector3.Zero, listener.Forward, listener.Up);
-				// set up our final position and velocity according to orientation of listener
-				Vector3 finalPos = new Vector3(x + posOffset.X, y + posOffset.Y, z + posOffset.Z);
-				finalPos = Vector3.Transform(finalPos, orientation);
-				Vector3 finalVel = emitter.Velocity;
-				finalVel = Vector3.Transform(finalVel, orientation);
+            //    // get the emitter offset from origin
+            //    Vector3 posOffset = emitter.Position - listener.Position;
+            //    // set up orientation matrix
+            //    Matrix orientation = Matrix.CreateWorld(Vector3.Zero, listener.Forward, listener.Up);
+            //    // set up our final position and velocity according to orientation of listener
+            //    Vector3 finalPos = new Vector3(x + posOffset.X, y + posOffset.Y, z + posOffset.Z);
+            //    finalPos = Vector3.Transform(finalPos, orientation);
+            //    Vector3 finalVel = emitter.Velocity;
+            //    finalVel = Vector3.Transform(finalVel, orientation);
 				
-				// set the position based on relative positon
-				AL.Source(sourceId, ALSource3f.Position, finalPos.X, finalPos.Y, finalPos.Z);
-				AL.Source(sourceId, ALSource3f.Velocity, finalVel.X, finalVel.Y, finalVel.Z);
-			}
+            //    // set the position based on relative positon
+            //    AL.Source(sourceId, ALSource3f.Position, finalPos.X, finalPos.Y, finalPos.Z);
+            //    AL.Source(sourceId, ALSource3f.Velocity, finalVel.X, finalVel.Y, finalVel.Z);
+            //}
 		}
 
         /// <summary>
@@ -261,7 +310,7 @@ namespace Microsoft.Xna.Framework.Audio
 			// Pan
 			AL.Source (sourceId, ALSource3f.Position, _pan, 0, 0.1f);
 			// Volume
-			AL.Source (sourceId, ALSourcef.Gain, _volume * SoundEffect.MasterVolume);
+			AL.Source (sourceId, ALSourcef.Gain, _volume);
 			// Looping
 			AL.Source (sourceId, ALSourceb.Looping, IsLooped);
 			// Pitch
@@ -287,7 +336,8 @@ namespace Microsoft.Xna.Framework.Audio
             AL.Source(soundBuffer.SourceId, ALSourcei.Buffer, bufferId);
 			ApplyState ();
 
-			controller.PlaySound (soundBuffer);            
+			controller.PlaySound (soundBuffer);
+
 			//Console.WriteLine ("playing: " + sourceId + " : " + soundEffect.Name);
 			soundState = SoundState.Playing;
 		}
@@ -445,7 +495,7 @@ namespace Microsoft.Xna.Framework.Audio
 				_volume = value;
 				if (hasSourceId) {
 					// Volume
-					AL.Source (sourceId, ALSourcef.Gain, _volume * SoundEffect.MasterVolume);
+					AL.Source (sourceId, ALSourcef.Gain, _volume);
 				}
 
 			}
