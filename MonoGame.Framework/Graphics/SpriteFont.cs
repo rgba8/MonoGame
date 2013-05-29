@@ -329,10 +329,15 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (!hasCurrentGlyph)
                 {
                     if (!defaultGlyph.HasValue)
-                        throw new ArgumentException(Errors.TextContainsUnresolvableCharacters, "text");
-
-                    currentGlyph = defaultGlyph.Value;
-                    hasCurrentGlyph = true;
+                    {
+                        // why throw?
+                        //throw new ArgumentException(Errors.TextContainsUnresolvableCharacters, "text");
+                    }
+                    else
+                    {
+                        currentGlyph = defaultGlyph.Value;
+                        hasCurrentGlyph = true;
+                    }
                 }
 
                 if (hasCurrentGlyph) {

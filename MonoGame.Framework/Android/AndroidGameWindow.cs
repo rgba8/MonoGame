@@ -211,9 +211,12 @@ namespace Microsoft.Xna.Framework
 
         protected override void DestroyFrameBuffer()
         {
-            // DeviceResetting events
-            _game.graphicsDeviceManager.OnDeviceResetting(EventArgs.Empty);
-            _game.GraphicsDevice.OnDeviceResetting();
+            if (_game.GraphicsDevice != null)
+            {
+                // DeviceResetting events
+                _game.graphicsDeviceManager.OnDeviceResetting(EventArgs.Empty);
+                _game.GraphicsDevice.OnDeviceResetting();
+            }
 
             Android.Util.Log.Debug("MonoGame", "AndroidGameWindow.DestroyFrameBuffer");
 
