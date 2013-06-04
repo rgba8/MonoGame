@@ -869,8 +869,10 @@ namespace Microsoft.Xna.Framework.Graphics
             waitEvent.Wait();
 #elif MONOMAC
 			SaveAsImage(stream, width, height, ImageFormat.Jpeg);
-#else
+#elif WINDOWS
             SaveAsImage(stream, width, height, ImageFormat.Jpeg);
+#else
+            throw new NotImplementedException();
 #endif
         }
 
@@ -880,8 +882,10 @@ namespace Microsoft.Xna.Framework.Graphics
             SaveAsImage(BitmapEncoder.PngEncoderId, stream, width, height);
 #elif MONOMAC
 			SaveAsImage(stream, width, height, ImageFormat.Png);
-#else
+#elif WINDOWS
             SaveAsImage(stream, width, height, ImageFormat.Png);
+#else
+            throw new NotImplementedException();
 #endif
         }
 
