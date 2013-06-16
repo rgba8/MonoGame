@@ -871,6 +871,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			SaveAsImage(stream, width, height, ImageFormat.Jpeg);
 #elif WINDOWS
             SaveAsImage(stream, width, height, ImageFormat.Jpeg);
+#else
+            throw new NotImplementedException();
 #endif
         }
 
@@ -882,6 +884,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			SaveAsImage(stream, width, height, ImageFormat.Png);
 #elif WINDOWS
             SaveAsImage(stream, width, height, ImageFormat.Png);
+#else
+            throw new NotImplementedException();
 #endif
         }
 

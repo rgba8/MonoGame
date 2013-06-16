@@ -197,7 +197,7 @@ namespace Microsoft.Xna.Framework.Graphics
                                  GetStencilOp(StencilPass));
                     GraphicsExtensions.CheckGLError();
                 }
-
+                GL.StencilMask(this.StencilWriteMask);
             }
         }
 
