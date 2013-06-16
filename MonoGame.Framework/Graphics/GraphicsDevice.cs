@@ -1142,8 +1142,15 @@ namespace Microsoft.Xna.Framework.Graphics
             ScissorRectangle = _viewport.Bounds;
             DepthStencilState = DepthStencilState.Default;
             BlendState = BlendState.Opaque;
-            ApplyState(false);
 
+            // Matt: We're forcing scissor rectangle to dirty because there is a corner case I can't isolate that causes the clear not be to done
+            // properly once we've rendered a tile in Earth... some meshes and UI elements render with a clipping that resembles the size of our
+            // stencil mask texture... disabling the dirty check fixes the problem here... 
+            // We need to find the root cause of this... maybe something with changing RT or viewports... no idea...
+            _scissorRectangleDirty = true;
+
+            ApplyState(false);
+            
             ClearBufferMask bufferMask = 0;
             if ((options & ClearOptions.Target) == ClearOptions.Target)
             {
@@ -1925,6 +1932,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 var scissorRect = _scissorRectangle;
                 if (!IsRenderTargetBound)
                     scissorRect.Y = _viewport.Height - scissorRect.Y - scissorRect.Height;
+
                 GL.Scissor(scissorRect.X, scissorRect.Y, scissorRect.Width, scissorRect.Height);
                 GraphicsExtensions.CheckGLError();
 #endif

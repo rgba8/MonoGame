@@ -108,5 +108,15 @@ namespace Microsoft.Xna.Framework
 
             spriteBatch.End();
         }
+
+        #region IResumeManager Members
+
+
+        public void LoadingComplete()
+        {
+            
+        }
+
+        #endregion
     }
 }

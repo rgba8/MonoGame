@@ -201,6 +201,7 @@ namespace Microsoft.Xna.Framework
 
                         _contextWasLost = false;
                         _isResuming = false;
+                        _resumer.LoadingComplete();
                     });
 
                 bgThread.Start();
