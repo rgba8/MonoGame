@@ -110,11 +110,10 @@ namespace Microsoft.Xna.Framework
             {
 				if (!_exiting)
 				{
-					_exiting = true;
-					Game.DoExiting();
-                    Net.NetworkSession.Exit();
-               	    Game.Activity.Finish();
-				    Window.Close();
+                    //
+                    // Killing activities is frowned upon on Android, instead move it to the background
+                    // 
+                    Game.Activity.MoveTaskToBack(true);
 				}
             }
             catch
