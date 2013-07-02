@@ -59,5 +59,7 @@ namespace Microsoft.Xna.Framework
         /// Called whilst the game is resuming. Draw something to the screen here.
         /// </summary>
         void Draw();
+
+        void LoadingComplete();
     }
 }
