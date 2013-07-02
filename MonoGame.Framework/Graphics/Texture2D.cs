@@ -735,41 +735,13 @@ namespace Microsoft.Xna.Framework.Graphics
                 InInputShareable = true,
             }))
             {
-                var width = image.Width;
-                var height = image.Height;
-
-                int[] pixels = new int[width * height];
-                if ((width != image.Width) || (height != image.Height))
-                {
-                    using (Bitmap imagePadded = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888))
-                    {
-                        Canvas canvas = new Canvas(imagePadded);
-                        canvas.DrawARGB(0, 0, 0, 0);
-                        canvas.DrawBitmap(image, 0, 0, null);
-                        imagePadded.GetPixels(pixels, 0, width, 0, 0, width, height);
-                        imagePadded.Recycle();
-                    }
-                }
-                else
-                {
-                    image.GetPixels(pixels, 0, width, 0, 0, width, height);
-                }
-                image.Recycle();
-
-                // Convert from ARGB to ABGR
-                for (int i = 0; i < width * height; ++i)
-                {
-                    uint pixel = (uint)pixels[i];
-                    pixels[i] = (int)((pixel & 0xFF00FF00) | ((pixel & 0x00FF0000) >> 16) | ((pixel & 0x000000FF) << 16));
-                }
-
-                Texture2D texture = null;
+                var texture = new Texture2D(graphicsDevice, image.Width, image.Height, false, SurfaceFormat.Color);
                 Threading.BlockOnUIThread(() =>
                 {
-                    texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Color);
-                    texture.SetData<int>(pixels);
+                    GL.BindTexture(texture.glTarget, texture.glTexture);
+                    Android.Opengl.GLUtils.TexImage2D((int)texture.glTarget, 0, image, 0);
                 });
-
+                image.Recycle();
                 return texture;
             }
 
@@ -813,37 +785,6 @@ namespace Microsoft.Xna.Framework.Graphics
                 texture.SetData(data);
 
                 return texture;
-            }
-#endif
-        }
-
-        private void FillTextureFromStream(Stream stream)
-        {
-#if ANDROID
-            using (Bitmap image = BitmapFactory.DecodeStream(stream, null, new BitmapFactory.Options
-            {
-                InScaled = false,
-                InDither = false,
-                InJustDecodeBounds = false,
-                InPurgeable = true,
-                InInputShareable = true,
-            }))
-            {
-                var width = image.Width;
-                var height = image.Height;
-
-                int[] pixels = new int[width * height];
-                image.GetPixels(pixels, 0, width, 0, 0, width, height);
-
-                // Convert from ARGB to ABGR
-                for (int i = 0; i < width * height; ++i)
-                {
-                    uint pixel = (uint)pixels[i];
-                    pixels[i] = (int)((pixel & 0xFF00FF00) | ((pixel & 0x00FF0000) >> 16) | ((pixel & 0x000000FF) << 16));
-                }
-
-                this.SetData<int>(pixels);
-                image.Recycle();
             }
 #endif
         }
@@ -1096,11 +1037,28 @@ namespace Microsoft.Xna.Framework.Graphics
 
         // This method allows games that use Texture2D.FromStream 
         // to reload their textures after the GL context is lost.
-        internal void Reload(Stream textureStream)
+        internal void Reload(Stream stream)
         {
-#if OPENGL
-            GenerateGLTextureIfRequired();
-            FillTextureFromStream(textureStream);
+#if OPENGL     
+#if ANDROID
+            using (Bitmap image = BitmapFactory.DecodeStream(stream, null, new BitmapFactory.Options
+            {
+                InScaled = false,
+                InDither = false,
+                InJustDecodeBounds = false,
+                InPurgeable = true,
+                InInputShareable = true,
+            }))
+            {
+                Threading.BlockOnUIThread(() =>
+                {
+                    GenerateGLTextureIfRequired();
+                    GL.BindTexture(this.glTarget, this.glTexture);
+                    Android.Opengl.GLUtils.TexImage2D((int)this.glTarget, 0, image, 0);
+                });
+                image.Recycle();
+            }
+#endif
 #endif
         }
 
