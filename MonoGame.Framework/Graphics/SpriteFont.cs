@@ -233,10 +233,16 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (!hasCurrentGlyph)
                 {
                     if (!defaultGlyph.HasValue)
-                        throw new ArgumentException(Errors.TextContainsUnresolvableCharacters, "text");
-
-                    currentGlyph = defaultGlyph.Value;
-                    hasCurrentGlyph = true;                        
+                    {
+                        // Throwing an exception here isn't a good idea... 
+                        // it causes a crash on the end user and it's hard to figure out why without crash logs...
+                        //throw new ArgumentException(Errors.TextContainsUnresolvableCharacters, "text");
+                    }
+                    else
+                    {
+                        currentGlyph = defaultGlyph.Value;
+                        hasCurrentGlyph = true;
+                    }
                 }
 
                 var proposedWidth = offset.X + currentGlyph.WidthIncludingBearings;
