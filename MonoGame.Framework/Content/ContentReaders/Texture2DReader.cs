@@ -136,7 +136,6 @@ namespace Microsoft.Xna.Framework.Content
                 //Convert the image data if required
                 switch (surfaceFormat)
                 {
-#if !IOS
                     case SurfaceFormat.Dxt1:
                     case SurfaceFormat.Dxt1a:
                         if (!GraphicsCapabilities.SupportsDxt1)
@@ -150,7 +149,6 @@ namespace Microsoft.Xna.Framework.Content
                         if (!GraphicsCapabilities.SupportsS3tc)
                             levelData = DxtUtil.DecompressDxt5(levelData, levelWidth, levelHeight);
                         break;
-#endif
                     case SurfaceFormat.Bgr565:
                         {
                             /*
