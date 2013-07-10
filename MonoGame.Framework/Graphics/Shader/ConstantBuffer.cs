@@ -97,15 +97,14 @@ namespace Microsoft.Xna.Framework.Graphics
                 _cbuffer = new SharpDX.Direct3D11.Buffer(GraphicsDevice._d3dDevice, desc);
 
 #elif OPENGL 
-
-            var data = new byte[_parameters.Length];
+            var data = new int[_parameters.Length];
             for (var i = 0; i < _parameters.Length; i++)
             {
-                data[i] = (byte)(_parameters[i] | _offsets[i]);
+                data[i] = _parameters[i] | _offsets[i];
             }
-
-            HashKey = MonoGame.Utilities.Hash.ComputeHash(data);
-
+            byte[] bytes = new byte[data.Length * sizeof(int)];
+            Buffer.BlockCopy(data, 0, bytes, 0, bytes.Length);
+            HashKey = MonoGame.Utilities.Hash.ComputeHash(bytes);
 #endif
         }
 
@@ -114,11 +113,6 @@ namespace Microsoft.Xna.Framework.Graphics
 #if OPENGL
             // Force the uniform location to be looked up again
             _program = -1;
-#endif
-
-#if DIRECTX
-            SharpDX.Utilities.Dispose(ref _cbuffer);
-            _dirty = true;
 #endif
         }
 
@@ -238,9 +232,6 @@ namespace Microsoft.Xna.Framework.Graphics
 
         internal void Apply(GraphicsDevice device, ShaderStage stage, int slot)
         {
-            if (_cbuffer == null)
-                Initialize();
-
             // NOTE: We make the assumption here that the caller has
             // locked the d3dContext for us to use.
             var d3dContext = GraphicsDevice._d3dContext;
