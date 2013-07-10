@@ -97,15 +97,14 @@ namespace Microsoft.Xna.Framework.Graphics
                 _cbuffer = new SharpDX.Direct3D11.Buffer(GraphicsDevice._d3dDevice, desc);
 
 #elif OPENGL 
-
-            var data = new byte[_parameters.Length];
+            var data = new int[_parameters.Length];
             for (var i = 0; i < _parameters.Length; i++)
             {
-                data[i] = (byte)(_parameters[i] | _offsets[i]);
+                data[i] = _parameters[i] | _offsets[i];
             }
-
-            HashKey = MonoGame.Utilities.Hash.ComputeHash(data);
-
+            byte[] bytes = new byte[data.Length * sizeof(int)];
+            Buffer.BlockCopy(data, 0, bytes, 0, bytes.Length);
+            HashKey = MonoGame.Utilities.Hash.ComputeHash(bytes);
 #endif
         }
 
