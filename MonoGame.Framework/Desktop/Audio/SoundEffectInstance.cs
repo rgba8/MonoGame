@@ -215,24 +215,27 @@ namespace Microsoft.Xna.Framework.Audio
             {
                 AudioListener listener = listeners[0];
 
-                tmpVector.X = listener.Position.X;
-                tmpVector.Y = listener.Position.Y;
-                tmpVector.Z = listener.Position.Z;
-                AL.Listener(ALListener3f.Position, ref tmpVector);
+                if (listener != null)
+                {
+                    tmpVector.X = listener.Position.X;
+                    tmpVector.Y = listener.Position.Y;
+                    tmpVector.Z = listener.Position.Z;
+                    AL.Listener(ALListener3f.Position, ref tmpVector);
 
-                tmpVector.X = listener.Forward.X;
-                tmpVector.Y = listener.Forward.Y;
-                tmpVector.Z = listener.Forward.Z;
+                    tmpVector.X = listener.Forward.X;
+                    tmpVector.Y = listener.Forward.Y;
+                    tmpVector.Z = listener.Forward.Z;
 
-                tmpVector2.X = listener.Up.X;
-                tmpVector2.Y = listener.Up.Y;
-                tmpVector2.Z = listener.Up.Z;
-                AL.Listener(ALListenerfv.Orientation, ref tmpVector, ref tmpVector2);
+                    tmpVector2.X = listener.Up.X;
+                    tmpVector2.Y = listener.Up.Y;
+                    tmpVector2.Z = listener.Up.Z;
+                    AL.Listener(ALListenerfv.Orientation, ref tmpVector, ref tmpVector2);
 
-                tmpVector.X = listener.Velocity.X;
-                tmpVector.Y = listener.Velocity.Y;
-                tmpVector.Z = listener.Velocity.Z;
-                AL.Listener(ALListener3f.Velocity, ref tmpVector);
+                    tmpVector.X = listener.Velocity.X;
+                    tmpVector.Y = listener.Velocity.Y;
+                    tmpVector.Z = listener.Velocity.Z;
+                    AL.Listener(ALListener3f.Velocity, ref tmpVector);
+                }
             }
 
             //// get AL's listener position

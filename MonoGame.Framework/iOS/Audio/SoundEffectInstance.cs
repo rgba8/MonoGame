@@ -78,7 +78,15 @@ namespace Microsoft.Xna.Framework.Audio
 
         public void Apply3D(AudioListener[] listeners, AudioEmitter emitter)
         {
-            //throw new NotImplementedException();
+            _sound.Position = emitter.Position;
+            _sound.Velocity = emitter.Velocity;
+
+            if (listeners.Length != 0 && listeners[0] != null)
+            {
+                var listener = listeners[0];
+
+                _sound.SetListener(listener.Position, listener.Forward, listener.Up, listener.Velocity);
+            }
         }
 
         public void Pause()

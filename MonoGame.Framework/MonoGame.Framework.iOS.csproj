@@ -86,11 +86,11 @@
     <MtouchUseRefCounting>False</MtouchUseRefCounting>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="OpenTK" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Core" />
     <Reference Include="monotouch" />
-    <Reference Include="OpenTK" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Graphics\IRenderTarget.cs" />

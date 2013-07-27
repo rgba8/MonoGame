@@ -59,16 +59,15 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 int blockCountX = (width + 3) / 4;
                 int blockCountY = (height + 3) / 4;
-                
+
                 for (int y = 0; y < blockCountY; y++)
                 {
                     for (int x = 0; x < blockCountX; x++)
                     {
-						DecompressDxt1Block(imageReader, x, y, blockCountX, width, height, imageData);
-					}
+                        DecompressDxt1Block(imageReader, x, y, blockCountX, width, height, imageData);
+                    }
                 }
             }
-
             return imageData;
         }
 
@@ -315,6 +314,7 @@ namespace Microsoft.Xna.Framework.Graphics
         
         internal static byte[] DecompressDxt5(Stream imageStream, int width, int height)
 		{
+
             byte[] imageData = new byte[width * height * 4];
 
             using (BinaryReader imageReader = new BinaryReader(imageStream))
@@ -331,8 +331,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
             }
 
+
             return imageData;
-        }
+        } 
 
         private static void DecompressDxt5Block(BinaryReader imageReader, int x, int y, int blockCountX, int width, int height, byte[] imageData)
         {
