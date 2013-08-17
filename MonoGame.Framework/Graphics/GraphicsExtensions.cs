@@ -489,7 +489,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     glFormat = PixelFormat.Luminance;
                     glType = PixelType.UnsignedByte;
                     break;
-#if !IOS && !ANDROID
+#if !GLES
 			case SurfaceFormat.Dxt1:
 				glInternalFormat = PixelInternalFormat.CompressedRgbS3tcDxt1Ext;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
@@ -512,9 +512,7 @@ namespace Microsoft.Xna.Framework.Graphics
 				glFormat = PixelFormat.Red;
 				glType = PixelType.Float;
 				break;
-#endif
-
-#if ANDROID
+#else
                 case SurfaceFormat.Dxt1:
                     // 0x83F0 is the RGB version, 0x83F1 is the RGBA version (1-bit alpha)
                     // XNA uses the RGB version.
@@ -534,10 +532,10 @@ namespace Microsoft.Xna.Framework.Graphics
                     glInternalFormat = (PixelInternalFormat)0x83F3;
                     glFormat = (PixelFormat)All.CompressedTextureFormats;
                     break;
-#endif
-
-
-#if IOS || ANDROID
+                case SurfaceFormat.RgbEtc1:
+                    glInternalFormat = (PixelInternalFormat)0x8D64; // GL_ETC1_RGB8_OES
+                    glFormat = (PixelFormat)All.CompressedTextureFormats;
+                    break;
                 case SurfaceFormat.RgbPvrtc2Bpp:
                     glInternalFormat = PixelInternalFormat.CompressedRgbPvrtc2Bppv1Img;
                     glFormat = (PixelFormat)All.CompressedTextureFormats;
@@ -554,9 +552,9 @@ namespace Microsoft.Xna.Framework.Graphics
                     glInternalFormat = PixelInternalFormat.CompressedRgbaPvrtc4Bppv1Img;
                     glFormat = (PixelFormat)All.CompressedTextureFormats;
                     break;
-#endif
                 default:
                     throw new NotSupportedException();
+#endif
             }
         }
 
