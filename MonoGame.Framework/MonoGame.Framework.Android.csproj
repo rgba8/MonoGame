@@ -73,6 +73,7 @@
     <Compile Include="Android\IResumeManager.cs" />
     <Compile Include="Android\ResumeManager.cs" />
     <Compile Include="Graphics\GraphicsCapabilities.cs" />
+    <Compile Include="Graphics\Vertices\VertexBufferBinding.cs" />
     <Compile Include="Input\Mouse.cs" />
     <Compile Include="Android\Input\Touch\AndroidTouchEventManager.cs" />
     <Compile Include="Android\OrientationListener.cs" />

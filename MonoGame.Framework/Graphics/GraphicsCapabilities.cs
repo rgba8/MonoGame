@@ -76,6 +76,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
         internal static bool SupportsDepthNonLinear { get; private set; }
 
+        internal static bool SupportsTextureMaxLevel { get; private set; }
+
         /// <summary>
         /// Gets the support for DXT1
         /// </summary>
@@ -114,10 +116,12 @@ namespace Microsoft.Xna.Framework.Graphics
             SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
             if (SupportsTextureFilterAnisotropic)
                 GL.GetFloat(All.MaxTextureMaxAnisotropyExt, ref MaxAnisotropy);
+            SupportsTextureMaxLevel = device._extensions.Contains("GL_APPLE_texture_max_level");
 #else
             SupportsDepth24 = true;
             if (SupportsTextureFilterAnisotropic)
                 GL.GetFloat((GetPName)ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out MaxAnisotropy);
+            SupportsTextureMaxLevel = true;
 #endif
             GraphicsExtensions.CheckGLError();
 #else
