@@ -97,6 +97,7 @@
     <Compile Include="Graphics\RenderTargetCube.cs" />
     <Compile Include="Graphics\ResourceCreatedEventArgs.cs" />
     <Compile Include="Graphics\ResourceDestroyedEventArgs.cs" />
+    <Compile Include="Graphics\Vertices\VertexBufferBinding.cs" />
     <Compile Include="iOS\Audio\Sound.cs" />
     <Compile Include="iOS\Audio\SoundEffect.cs" />
     <Compile Include="iOS\Audio\SoundEffectInstance.cs" />

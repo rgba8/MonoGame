@@ -1789,6 +1789,11 @@ namespace Microsoft.Xna.Framework.Graphics
         
 #endif
 
+        public void SetVertexBuffers(VertexBufferBinding[] vertexBuffers)
+        {
+            throw new NotImplementedException();
+        }
+
 
         public void SetVertexBuffer(VertexBuffer vertexBuffer)
         {

@@ -66,8 +66,10 @@ namespace Microsoft.Xna.Framework.Graphics
 #if OPENGL
 #if GLES
         private const TextureParameterName TextureParameterNameTextureMaxAnisotropy = (TextureParameterName)All.TextureMaxAnisotropyExt;
+        private const TextureParameterName TextureParameterNameTextureMaxLevel = (TextureParameterName)0x813D;
 #else
         private const TextureParameterName TextureParameterNameTextureMaxAnisotropy = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
+        private const TextureParameterName TextureParameterNameTextureMaxLevel = TextureParameterName.TextureMaxLevel;
 #endif
 #endif
 
@@ -352,6 +354,14 @@ namespace Microsoft.Xna.Framework.Graphics
                     break;
                 default:
                     throw new NotImplementedException();
+            }
+
+            if (GraphicsCapabilities.SupportsTextureMaxLevel)
+            {
+                if (this.MaxMipLevel > 0)
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterNameTextureMaxLevel, this.MaxMipLevel);
+                else
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterNameTextureMaxLevel, 1000);
             }
 
             // Set up texture addressing.
