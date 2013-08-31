@@ -89,16 +89,12 @@ namespace Microsoft.Xna.Framework
         private iOSGameViewController _viewController;
         private UIWindow _mainWindow;
         private List<NSObject> _applicationObservers;
-		private OpenALSoundController soundControllerInstance = null;
         private CADisplayLink _displayLink;
 
         public iOSGamePlatform(Game game) :
             base(game)
         {
             game.Services.AddService(typeof(iOSGamePlatform), this);
-			
-			// Setup our OpenALSoundController to handle our SoundBuffer pools
-			soundControllerInstance = OpenALSoundController.GetInstance;
 			
             Directory.SetCurrentDirectory(NSBundle.MainBundle.ResourcePath);
 
@@ -150,8 +146,7 @@ namespace Microsoft.Xna.Framework
             get { return GameRunBehavior.Asynchronous; }
         }
 
-        [Obsolete(
-            "iOSGamePlatform.IsPlayingVideo must be removed when MonoGame " +
+        [Obsolete"iOSGamePlatform.IsPlayingVideo must be removed when MonoGame " +
             "fully implements the XNA VideoPlayer contract.")]
         public bool IsPlayingVideo { get; set; }
 
@@ -228,9 +223,6 @@ namespace Microsoft.Xna.Framework
 
         public override bool BeforeDraw(GameTime gameTime)
         {
-    		// Update our OpenAL sound buffer pools
-    		soundControllerInstance.Update();
-
             if (IsPlayingVideo)
                 return false;
 
