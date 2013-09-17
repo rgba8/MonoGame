@@ -191,16 +191,19 @@ namespace Microsoft.Xna.Framework.Content
                         {
 #if OPENGL
                             // Shift the channels to suit OPENGL
-                            int offset = 0;
-                            for (int y = 0; y < levelHeight; y++)
+                            unchecked
                             {
-                                for (int x = 0; x < levelWidth; x++)
+                                int offset = 0;
+                                for (int y = 0; y < levelHeight; y++)
                                 {
-                                    ushort pixel = BitConverter.ToUInt16(levelData, offset);
-                                    pixel = (ushort)(((pixel & 0x0FFF) << 4) | ((pixel & 0xF000) >> 12));
-                                    levelData[offset] = (byte)(pixel);
-                                    levelData[offset + 1] = (byte)(pixel >> 8);
-                                    offset += 2;
+                                    for (int x = 0; x < levelWidth; x++)
+                                    {
+                                        ushort pixel = BitConverter.ToUInt16(levelData, offset);
+                                        pixel = (ushort)(((pixel & 0x0FFF) << 4) | ((pixel & 0xF000) >> 12));
+                                        levelData[offset] = (byte)(pixel);
+                                        levelData[offset + 1] = (byte)(pixel >> 8);
+                                        offset += 2;
+                                    }
                                 }
                             }
 #endif

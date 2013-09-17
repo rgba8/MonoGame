@@ -146,7 +146,7 @@ namespace Microsoft.Xna.Framework
             get { return GameRunBehavior.Asynchronous; }
         }
 
-        [Obsolete"iOSGamePlatform.IsPlayingVideo must be removed when MonoGame " +
+        [Obsolete("iOSGamePlatform.IsPlayingVideo must be removed when MonoGame " +
             "fully implements the XNA VideoPlayer contract.")]
         public bool IsPlayingVideo { get; set; }
 
