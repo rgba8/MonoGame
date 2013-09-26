@@ -121,9 +121,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		internal PssTexture2D _texture2D;
 
 #elif OPENGL
-		PixelInternalFormat glInternalFormat;
-		GLPixelFormat glFormat;
-		PixelType glType;
+		internal PixelInternalFormat glInternalFormat;
+		internal GLPixelFormat glFormat;
+		internal PixelType glType;
 #endif
 	
         public Rectangle Bounds
@@ -1096,6 +1096,14 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 #endif
+
+        protected internal override void GraphicsDeviceReset()
+        {
+            base.GraphicsDeviceReset();
+#if OPENGL
+            this.GenerateGLTextureIfRequired();
+#endif
+        }
 
 #if ANDROID
 		private byte[] GetTextureData(int ThreadPriorityLevel)

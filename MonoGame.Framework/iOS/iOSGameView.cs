@@ -105,6 +105,7 @@ namespace Microsoft.Xna.Framework {
 
 		private void Initialize ()
 		{
+            this.
 			MultipleTouchEnabled = true;
 			Opaque = true;
 		}
@@ -209,43 +210,37 @@ namespace Microsoft.Xna.Framework {
 
 			__renderbuffergraphicsContext.MakeCurrent (null);
 			
-			// HACK:  GraphicsDevice itself should be calling
-			//        glViewport, so we shouldn't need to do it
-			//        here and then force the state into
-			//        GraphicsDevice.  However, that change is a
-			//        ways off, yet.
-            int viewportHeight = (int)Math.Round(Layer.Bounds.Size.Height * Layer.ContentsScale);
-            int viewportWidth = (int)Math.Round(Layer.Bounds.Size.Width * Layer.ContentsScale);
-
 			_glapi.GenFramebuffers (1, ref _framebuffer);
 			_glapi.BindFramebuffer (All.Framebuffer, _framebuffer);
-			
-			// Create our Depth buffer. Color buffer must be the last one bound
-			GL.GenRenderbuffers(1, ref _depthbuffer);
-			GL.BindRenderbuffer(All.Renderbuffer, _depthbuffer);
-            GL.RenderbufferStorage (All.Renderbuffer, All.DepthComponent16, viewportWidth, viewportHeight);
-			GL.FramebufferRenderbuffer(All.Framebuffer, All.DepthAttachment, All.Renderbuffer, _depthbuffer);
 
 			_glapi.GenRenderbuffers(1, ref _colorbuffer);
 			_glapi.BindRenderbuffer(All.Renderbuffer, _colorbuffer);
-
 			var ctx = ((IGraphicsContextInternal) __renderbuffergraphicsContext).Implementation as iPhoneOSGraphicsContext;
-
 			// TODO: EAGLContext.RenderBufferStorage returns false
 			//       on all but the first call.  Nevertheless, it
 			//       works.  Still, it would be nice to know why it
 			//       claims to have failed.
-			ctx.EAGLContext.RenderBufferStorage ((uint) All.Renderbuffer, Layer);
-			
-			_glapi.FramebufferRenderbuffer (All.Framebuffer, All.ColorAttachment0, All.Renderbuffer, _colorbuffer);
+			ctx.EAGLContext.RenderBufferStorage((uint) All.Renderbuffer, Layer);
+            _glapi.FramebufferRenderbuffer(All.Framebuffer, All.ColorAttachment0, All.Renderbuffer, _colorbuffer);
+
+            var renderbufferWidth = 0;
+            var renderbufferHeight = 0;
+            GL.GetRenderbufferParameter(All.Renderbuffer, All.RenderbufferWidth, ref renderbufferWidth);
+            GL.GetRenderbufferParameter(All.Renderbuffer, All.RenderbufferHeight, ref renderbufferHeight);
+
+            // Create our Depth buffer. Color buffer must be the last one bound
+            GL.GenRenderbuffers(1, ref _depthbuffer);
+            GL.BindRenderbuffer(All.Renderbuffer, _depthbuffer);
+            GL.RenderbufferStorage(All.Renderbuffer, All.DepthComponent16, renderbufferWidth, renderbufferHeight);
+            GL.FramebufferRenderbuffer(All.Framebuffer, All.DepthAttachment, All.Renderbuffer, _depthbuffer);
 			
 			var status = GL.CheckFramebufferStatus (All.Framebuffer);
 			if (status != All.FramebufferComplete)
 				throw new InvalidOperationException (
 					"Framebuffer was not created correctly: " + status);
 
-			_glapi.Viewport(0, 0, viewportWidth, viewportHeight);
-            _glapi.Scissor(0, 0, viewportWidth, viewportHeight);
+            _glapi.Viewport(0, 0, renderbufferWidth, renderbufferHeight);
+            _glapi.Scissor(0, 0, renderbufferWidth, renderbufferHeight);
 
 			var gds = (IGraphicsDeviceService) _platform.Game.Services.GetService(
 				typeof (IGraphicsDeviceService));
@@ -253,21 +248,21 @@ namespace Microsoft.Xna.Framework {
 			if (gds != null && gds.GraphicsDevice != null)
 			{
                 var pp = gds.GraphicsDevice.PresentationParameters;
-                int height = viewportHeight;
-                int width = viewportWidth;
+                int height = renderbufferHeight;
+                int width = renderbufferWidth;
 
                 if (this.NextResponder is iOSGameViewController)
                 {
                     var displayOrientation = _platform.Game.Window.CurrentOrientation;
                     if (displayOrientation == DisplayOrientation.LandscapeLeft || displayOrientation == DisplayOrientation.LandscapeRight)
                     {
-                        height = Math.Min(viewportHeight, viewportWidth);
-                        width = Math.Max(viewportHeight, viewportWidth);
+                        height = Math.Min(renderbufferHeight, renderbufferWidth);
+                        width = Math.Max(renderbufferHeight, renderbufferWidth);
                     }
                     else
                     {
-                        height = Math.Max(viewportHeight, viewportWidth);
-                        width = Math.Min(viewportHeight, viewportWidth);
+                        height = Math.Max(renderbufferHeight, renderbufferWidth);
+                        width = Math.Min(renderbufferHeight, renderbufferWidth);
                     }
                 }
 
@@ -317,6 +312,7 @@ namespace Microsoft.Xna.Framework {
 			AssertValidContext ();
 
 			__renderbuffergraphicsContext.MakeCurrent (null);
+            GL.BindFramebuffer(All.Framebuffer, this._framebuffer);
             GL.BindRenderbuffer (All.Renderbuffer, this._colorbuffer);
             __renderbuffergraphicsContext.SwapBuffers();
 		}
@@ -341,11 +337,11 @@ namespace Microsoft.Xna.Framework {
             if (gds == null || gds.GraphicsDevice == null)
                 return;
 
-			if (_framebuffer + _colorbuffer + _depthbuffer != 0)
-				DestroyFramebuffer ();
+            if (_framebuffer * _colorbuffer * _depthbuffer != 0)
+                DestroyFramebuffer();
 			if (__renderbuffergraphicsContext == null)
 				CreateContext();
-			CreateFramebuffer ();
+            CreateFramebuffer();
 		}
 
 		#region UIWindow Notifications
@@ -353,13 +349,13 @@ namespace Microsoft.Xna.Framework {
 		[Export ("didMoveToWindow")]
 		public virtual void DidMoveToWindow ()
 		{
-
-            if (Window != null) {
-                
+            if (Window != null) 
+            {    
                 if (__renderbuffergraphicsContext == null)
                     CreateContext ();
                 if (_framebuffer * _colorbuffer * _depthbuffer == 0)
-                    CreateFramebuffer ();
+                    CreateFramebuffer();
+                
             }
 		}
 

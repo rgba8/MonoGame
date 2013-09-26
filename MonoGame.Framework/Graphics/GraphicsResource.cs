@@ -85,10 +85,18 @@ namespace Microsoft.Xna.Framework.Graphics
 
         }
 
+        internal protected virtual void GraphicsDeviceReset()
+        {
+
+        }
+
         internal static void DoGraphicsDeviceResetting()
         {
             lock (resourcesLock)
             {
+                // Remove references to resources that have been garbage collected.
+                resources.RemoveAll(wr => !wr.IsAlive);
+
                 foreach (var resource in resources)
                 {
                     var target = resource.Target;
@@ -96,8 +104,23 @@ namespace Microsoft.Xna.Framework.Graphics
                         (target as GraphicsResource).GraphicsDeviceResetting();
                 }
 
+                
+            }
+        }
+
+        internal static void DoGraphicsDeviceReset()
+        {
+            lock (resourcesLock)
+            {
                 // Remove references to resources that have been garbage collected.
                 resources.RemoveAll(wr => !wr.IsAlive);
+
+                foreach (var resource in resources)
+                {
+                    var target = resource.Target;
+                    if (target != null)
+                        (target as GraphicsResource).GraphicsDeviceReset();
+                }
             }
         }
 

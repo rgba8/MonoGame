@@ -139,8 +139,13 @@ namespace Microsoft.Xna.Framework.Graphics
         internal protected override void GraphicsDeviceResetting()
         {
 #if OPENGL
-            this.glTexture = -1;
-            this.glLastSamplerState = null;
+            Threading.BlockOnUIThread(() => 
+            {
+                GL.DeleteTextures(1, ref glTexture);
+                GraphicsExtensions.CheckGLError();
+                glTexture = -1;
+                this.glLastSamplerState = null;
+            });
 #endif
         }
 

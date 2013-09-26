@@ -50,8 +50,9 @@ using MonoMac.OpenGL;
 using OpenTK.Graphics.OpenGL;
 #elif GLES
 using OpenTK.Graphics.ES20;
-using RenderbufferTarget = OpenTK.Graphics.ES20.All;
-using RenderbufferStorage = OpenTK.Graphics.ES20.All;
+using System.Runtime.InteropServices;
+using System.Collections;
+using System.Collections.Generic;
 #endif
 #endif
 
@@ -59,27 +60,9 @@ namespace Microsoft.Xna.Framework.Graphics
 {
   public class RenderTarget2D : Texture2D, IRenderTarget
   {
-#if GLES
-    const RenderbufferTarget GLRenderbuffer = RenderbufferTarget.Renderbuffer;
-    const RenderbufferStorage GLDepthComponent16 = RenderbufferStorage.DepthComponent16;
-    const RenderbufferStorage GLDepthComponent16NonLinear = (RenderbufferStorage)0x8E2C;
-    const RenderbufferStorage GLDepthComponent24 = RenderbufferStorage.DepthComponent24Oes;
-    const RenderbufferStorage GLDepth24Stencil8 = RenderbufferStorage.Depth24Stencil8Oes;
-    const RenderbufferStorage GLStencilIndex8 = RenderbufferStorage.StencilIndex8;
-#elif OPENGL
-    const RenderbufferTarget GLRenderbuffer = RenderbufferTarget.RenderbufferExt;
-    const RenderbufferStorage GLDepthComponent16 = RenderbufferStorage.DepthComponent16;
-    const RenderbufferStorage GLDepthComponent24 = RenderbufferStorage.DepthComponent24;
-    const RenderbufferStorage GLDepth24Stencil8 = RenderbufferStorage.Depth24Stencil8;
-    const RenderbufferStorage GLStencilIndex8 = RenderbufferStorage.StencilIndex8;
-#endif
-
 #if DIRECTX
         protected RenderTargetView _renderTargetView;
         protected DepthStencilView _depthStencilView;
-#elif OPENGL
-    internal uint glDepthBuffer;
-    internal uint glStencilBuffer;
 #elif PSM
         internal FrameBuffer _frameBuffer;
 #endif
@@ -100,21 +83,19 @@ namespace Microsoft.Xna.Framework.Graphics
       DepthStencilFormat = preferredDepthFormat;
       MultiSampleCount = preferredMultiSampleCount;
       RenderTargetUsage = usage;
-
-#if DIRECTX
-            // Create a view interface on the rendertarget to use on bind.
-            _renderTargetView = new RenderTargetView(graphicsDevice._d3dDevice, _texture);
-#elif PSM
+    
+#if PSM
             _frameBuffer = new FrameBuffer();     
             _frameBuffer.SetColorTarget(_texture2D,0);
-#endif
+            if (preferredDepthFormat != DepthFormat.None)
+                throw new NotImplementedException();
+#elif DIRECTX
+            // Create a view interface on the rendertarget to use on bind.
+            _renderTargetView = new RenderTargetView(graphicsDevice._d3dDevice, _texture);
 
-      // If we don't need a depth buffer then we're done.
-      if (preferredDepthFormat == DepthFormat.None)
-        return;
-
-#if DIRECTX
-
+            // If we don't need a depth buffer then we're done.
+            if (preferredDepthFormat == DepthFormat.None)
+                return;
             // Setup the multisampling description.
             var multisampleDesc = new SharpDX.DXGI.SampleDescription(1, 0);
             if ( preferredMultiSampleCount > 1 )
@@ -145,84 +126,12 @@ namespace Microsoft.Xna.Framework.Graphics
                         Dimension = DepthStencilViewDimension.Texture2D
                 });
             }
-#elif PSM
-            throw new NotImplementedException();
 #elif OPENGL
-      
-      
-      var glDepthFormat = GLDepthComponent16;
-      var glStencilFormat = GLStencilIndex8;
-      switch (preferredDepthFormat)
+      Threading.BlockOnUIThread(() => 
       {
-        case DepthFormat.Depth16: 
-          glDepthFormat = GLDepthComponent16; 
-          break;
-#if GLES
-        case DepthFormat.Depth24: 
-          glDepthFormat = GraphicsCapabilities.SupportsDepth24 ? GLDepthComponent24 : GraphicsCapabilities.SupportsDepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16; 
-          break;
-        case DepthFormat.Depth24Stencil8:
-          glDepthFormat = GraphicsCapabilities.SupportsDepth24 ? GLDepthComponent24 : GraphicsCapabilities.SupportsDepthNonLinear ? GLDepthComponent16NonLinear : GLDepthComponent16;
-          glStencilFormat = GLStencilIndex8; 
-          break;
-#else
-        case DepthFormat.Depth24: 
-          glDepthFormat = GLDepthComponent24;
-          break;
-        case DepthFormat.Depth24Stencil8:
-          glDepthFormat = GLDepthComponent24;
-          glStencilFormat = GLStencilIndex8; 
-          break;
-#endif
-
-      }
-
-      Threading.BlockOnUIThread(() =>
-      {
-
-#if GLES
-      GL.GenRenderbuffers(1, ref glDepthBuffer);
-#else
-      GL.GenRenderbuffers(1, out glDepthBuffer);
-#endif
-      GraphicsExtensions.CheckGLError();
-      if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
-      {
-        if (GraphicsCapabilities.SupportsPackedDepthStencil)
-        {
-          this.glStencilBuffer = this.glDepthBuffer;
-          GL.BindRenderbuffer(GLRenderbuffer, this.glDepthBuffer);
-          GraphicsExtensions.CheckGLError();
-          GL.RenderbufferStorage(GLRenderbuffer, GLDepth24Stencil8, this.width, this.height);
-          GraphicsExtensions.CheckGLError();
-        }
-        else
-        {
-          GL.BindRenderbuffer(GLRenderbuffer, this.glDepthBuffer);
-          GraphicsExtensions.CheckGLError();
-          GL.RenderbufferStorage(GLRenderbuffer, glDepthFormat, this.width, this.height);
-          GraphicsExtensions.CheckGLError();
-#if GLES
-          GL.GenRenderbuffers(1, ref glStencilBuffer);
-#else
-          GL.GenRenderbuffers(1, out glStencilBuffer);
-#endif
-          GraphicsExtensions.CheckGLError();
-          GL.BindRenderbuffer(GLRenderbuffer, this.glStencilBuffer);
-          GraphicsExtensions.CheckGLError();
-          GL.RenderbufferStorage(GLRenderbuffer, glStencilFormat, this.width, this.height);
-          GraphicsExtensions.CheckGLError();
-        }
-      }
-      else
-      {
-        GL.BindRenderbuffer(GLRenderbuffer, this.glDepthBuffer);
-        GraphicsExtensions.CheckGLError();
-        GL.RenderbufferStorage(GLRenderbuffer, glDepthFormat, this.width, this.height);
-        GraphicsExtensions.CheckGLError();
-      }
-#endif
+        this.GraphicsDevice.CreateNativeRenderTarget2D(this);
       });
+#endif
     }
 
     public RenderTarget2D(GraphicsDevice graphicsDevice, int width, int height, bool mipMap, SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat)
@@ -254,16 +163,38 @@ namespace Microsoft.Xna.Framework.Graphics
 #elif PSM
                 _frameBuffer.Dispose();
 #elif OPENGL
-        GraphicsDevice.AddDisposeAction(() =>
-            {
-              if (this.glStencilBuffer != 0 && this.glStencilBuffer != this.glDepthBuffer)
-                GL.DeleteRenderbuffers(1, ref this.glStencilBuffer);
-              GL.DeleteRenderbuffers(1, ref this.glDepthBuffer);
-              GraphicsExtensions.CheckGLError();
-            });
+       Threading.BlockOnUIThread(() => { this.GraphicsDevice.DeleteNativeRenderTarget2D(this); });
 #endif
       }
       base.Dispose(disposing);
+    }
+
+    protected internal override void GraphicsDeviceResetting()
+    {
+        base.GraphicsDeviceResetting();
+#if OPENGL
+        if (this.GraphicsDevice != null)
+        {
+            Threading.BlockOnUIThread(() => 
+            { 
+                this.GraphicsDevice.DeleteNativeRenderTarget2D(this); 
+            });
+        }
+#endif
+    }
+
+    protected internal override void GraphicsDeviceReset()
+    {
+        base.GraphicsDeviceReset();
+#if OPENGL
+        if (this.GraphicsDevice != null)
+        {
+            Threading.BlockOnUIThread(() => 
+            {
+                this.GraphicsDevice.CreateNativeRenderTarget2D(this);
+            });
+        }
+#endif
     }
 
 #if DIRECTX
