@@ -129,7 +129,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #elif OPENGL
       Threading.BlockOnUIThread(() => 
       {
-        this.GraphicsDevice.CreateNativeRenderTarget2D(this);
+        this.GraphicsDevice.CreateGLRenderTarget2D(this);
       });
 #endif
     }
@@ -163,7 +163,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #elif PSM
                 _frameBuffer.Dispose();
 #elif OPENGL
-       Threading.BlockOnUIThread(() => { this.GraphicsDevice.DeleteNativeRenderTarget2D(this); });
+       Threading.BlockOnUIThread(() => { this.GraphicsDevice.DeleteGLRenderTarget(this); });
 #endif
       }
       base.Dispose(disposing);
@@ -177,7 +177,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Threading.BlockOnUIThread(() => 
             { 
-                this.GraphicsDevice.DeleteNativeRenderTarget2D(this); 
+                this.GraphicsDevice.DeleteGLRenderTarget(this); 
             });
         }
 #endif
@@ -191,7 +191,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Threading.BlockOnUIThread(() => 
             {
-                this.GraphicsDevice.CreateNativeRenderTarget2D(this);
+                this.GraphicsDevice.CreateGLRenderTarget2D(this);
             });
         }
 #endif
