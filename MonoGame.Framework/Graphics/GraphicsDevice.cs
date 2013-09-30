@@ -1763,6 +1763,27 @@ namespace Microsoft.Xna.Framework.Graphics
 
         #endregion
 
+        #region GL_NV_framebuffer_multisample
+
+        internal const All AllRenderBufferSamplesNV = (All)0x8CAB;
+        internal const All AllFramebufferIncompleteMultisampleNV = (All)0x8D56;
+        internal const All AllMaxSamplesNV = (All)0x8D57;
+
+        [DllImport(OpenGLLibrary, EntryPoint = "glRenderbufferStorageMultisampleNV")]
+        internal extern static void GLRenderbufferStorageMultisampleNV(All target, int samples, All internalformat, int width, int height);
+
+        #endregion
+
+        #region GL_NV_framebuffer_blit
+
+        internal const All AllReadFramebufferNV = (All)0x8CA8;
+        internal const All AllDrawFramebufferNV = (All)0x8CA9;
+
+        [DllImport(OpenGLLibrary, EntryPoint = "glBlitFramebufferNV ")]
+        internal extern static void GLBlitFramebufferNV(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, All mask, All filter);
+
+        #endregion
+
         #region GL_APPLE_framebuffer_multisample
 
         internal const All AllFramebufferIncompleteMultisampleApple = (All)0x8D56;
@@ -1779,10 +1800,6 @@ namespace Microsoft.Xna.Framework.Graphics
 
         #endregion
 
-        internal bool SupportsAppleframebufferMultisample;
-        internal bool SupportsImgMultisampledRenderToTexture;
-        internal bool SupportsAngleFramebufferMultisample;
-        internal bool SupportsExtMultisampledRenderToTexture;
         internal bool SupportsExtDiscardFramebuffer;
 
         internal All[] GLDiscardAttachementsDefault = new All[] { AllDepthExt, AllStencilExt, AllColorExt };
@@ -1810,7 +1827,6 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (this._extensions.Contains("GL_APPLE_framebuffer_multisample"))
             {
-                this.SupportsAppleframebufferMultisample = true;
                 this.GLRenderbufferStorageMultisample = new GLRenderbufferStorageMultisampleDelegate(GLRenderbufferStorageMultisampleApple);
                 this.GLBlitFramebuffer = new GLBlitFramebufferDelegate(GLBlitFramebufferApple);
                 this.GLFramebufferTexture2DMultisample = null;
@@ -1819,26 +1835,31 @@ namespace Microsoft.Xna.Framework.Graphics
             }
             else if (this._extensions.Contains("GL_ANGLE_framebuffer_multisample"))
             {
-                this.SupportsAngleFramebufferMultisample = true;
                 this.GLRenderbufferStorageMultisample = new GLRenderbufferStorageMultisampleDelegate(GLRenderbufferStorageMultisampleAngle);
                 this.GLBlitFramebuffer = new GLBlitFramebufferDelegate(GLBlitFramebufferAngle);
                 this.GLFramebufferTexture2DMultisample = null;
                 this.AllReadFramebuffer = AllReadFramebufferAngle;
                 this.AllDrawFramebuffer = AllDrawFramebufferAngle;
             }
+            else if (this._extensions.Contains("GL_EXT_multisampled_render_to_texture"))
+            {
+                this.GLRenderbufferStorageMultisample = new GLRenderbufferStorageMultisampleDelegate(GLRenderbufferStorageMultisampleExt);
+                this.GLFramebufferTexture2DMultisample = new GLFramebufferTexture2DMultisampleDelegate(GLFramebufferTexture2DMultisampleExt);
+                this.GLBlitFramebuffer = null;
+            }
             else if (this._extensions.Contains("GL_IMG_multisampled_render_to_texture"))
             {
-                this.SupportsImgMultisampledRenderToTexture = true;
                 this.GLRenderbufferStorageMultisample = new GLRenderbufferStorageMultisampleDelegate(GLRenderbufferStorageMultisampleImg);
                 this.GLFramebufferTexture2DMultisample = new GLFramebufferTexture2DMultisampleDelegate(GLFramebufferTexture2DMultisampleImg);
                 this.GLBlitFramebuffer = null;
             }
-            else if (this._extensions.Contains("GL_EXT_multisampled_render_to_texture"))
+            else if (this._extensions.Contains("GL_NV_framebuffer_multisample"))
             {
-                this.SupportsExtMultisampledRenderToTexture = true;
-                this.GLRenderbufferStorageMultisample = new GLRenderbufferStorageMultisampleDelegate(GLRenderbufferStorageMultisampleExt);
-                this.GLFramebufferTexture2DMultisample = new GLFramebufferTexture2DMultisampleDelegate(GLFramebufferTexture2DMultisampleExt);
-                this.GLBlitFramebuffer = null;
+                this.GLRenderbufferStorageMultisample = new GLRenderbufferStorageMultisampleDelegate(GLRenderbufferStorageMultisampleNV);
+                this.GLBlitFramebuffer = new GLBlitFramebufferDelegate(GLBlitFramebufferNV);
+                this.GLFramebufferTexture2DMultisample = null;
+                this.AllReadFramebuffer = AllReadFramebufferNV;
+                this.AllDrawFramebuffer = AllDrawFramebufferNV;
             }
             else
             {
