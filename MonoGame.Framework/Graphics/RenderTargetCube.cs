@@ -166,8 +166,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 };
                 _depthStencilView = new DepthStencilView(graphicsDevice._d3dDevice, depthBuffer, depthStencilViewDescription);
             }
-#else
-            throw new NotImplementedException();
+#elif OPENGL
+            Threading.BlockOnUIThread(() =>
+            {
+                this.GraphicsDevice.CreateGLRenderTarget(this, size, size, preferredDepthFormat, preferredMultiSampleCount, this.RenderTargetUsage);
+            });         
 #endif            
         }
 
@@ -199,10 +202,40 @@ namespace Microsoft.Xna.Framework.Graphics
                         _depthStencilView = null;
                     }
                 }
+#elif OPENGL
+       Threading.BlockOnUIThread(() => { this.GraphicsDevice.DeleteGLRenderTarget(this); });
 #endif
 
                 base.Dispose(disposing);
             }
+        }
+
+        protected internal override void GraphicsDeviceResetting()
+        {
+            base.GraphicsDeviceResetting();
+#if OPENGL
+            if (this.GraphicsDevice != null)
+            {
+                Threading.BlockOnUIThread(() =>
+                {
+                    this.GraphicsDevice.DeleteGLRenderTarget(this);
+                });
+            }
+#endif
+        }
+
+        protected internal override void GraphicsDeviceReset()
+        {
+            base.GraphicsDeviceReset();
+#if OPENGL
+            if (this.GraphicsDevice != null)
+            {
+                Threading.BlockOnUIThread(() =>
+                {
+                    this.GraphicsDevice.CreateGLRenderTarget(this, this.Size, this.Size, this.DepthStencilFormat, this.MultiSampleCount, this.RenderTargetUsage);
+                });
+            }
+#endif
         }
 
 #if DIRECTX

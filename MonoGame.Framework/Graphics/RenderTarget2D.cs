@@ -129,7 +129,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #elif OPENGL
       Threading.BlockOnUIThread(() => 
       {
-        this.GraphicsDevice.CreateGLRenderTarget2D(this);
+        this.GraphicsDevice.CreateGLRenderTarget(this, width, height, preferredDepthFormat, preferredMultiSampleCount, usage);
       });
 #endif
     }
@@ -191,7 +191,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Threading.BlockOnUIThread(() => 
             {
-                this.GraphicsDevice.CreateGLRenderTarget2D(this);
+                this.GraphicsDevice.CreateGLRenderTarget(this, this.Width, this.Height, this.DepthStencilFormat, this.MultiSampleCount, this.RenderTargetUsage);
             });
         }
 #endif
