@@ -1964,7 +1964,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
                 GL.BindRenderbuffer(All.Renderbuffer, renderTargetGL.DepthTarget);
                 GraphicsExtensions.CheckGLError();
-                if (this.GLRenderbufferStorageMultisample != null)
+                if (preferredMultisampleCount > 0 && this.GLRenderbufferStorageMultisample != null)
                     this.GLRenderbufferStorageMultisample(All.Renderbuffer, preferredMultisampleCount, depthInternalFormat, width, height);
                 else
                     GL.RenderbufferStorage(All.Renderbuffer, depthInternalFormat, width, height);
@@ -1981,7 +1981,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
                 GL.BindRenderbuffer(All.Renderbuffer, renderTargetGL.StencilTarget);
                 GraphicsExtensions.CheckGLError();
-                if (this.GLRenderbufferStorageMultisample != null)
+                if (preferredMultisampleCount > 0 && this.GLRenderbufferStorageMultisample != null)
                     this.GLRenderbufferStorageMultisample(All.Renderbuffer, preferredMultisampleCount, stencilInternalFormat, width, height);
                 else
                     GL.RenderbufferStorage(All.Renderbuffer, stencilInternalFormat, width, height);
