@@ -2086,7 +2086,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         {
                             if (glTextureTarget == All.TextureCubeMap)
                                 glTextureTarget = All.TextureCubeMapPositiveX + (int)renderTargetBinding.CubeMapFace;
-                            if (this.GLFramebufferTexture2DMultisample != null)
+                            if (renderTargetGL.Samples > 0 && this.GLFramebufferTexture2DMultisample != null)
                                 this.GLFramebufferTexture2DMultisample(All.Framebuffer, All.ColorAttachment0, glTextureTarget, renderTargetGL.ColorTarget, 0, renderTargetGL.Samples);
                             else
                                 GL.FramebufferTexture2D(All.Framebuffer, All.ColorAttachment0, glTextureTarget, renderTargetGL.ColorTarget, 0);
