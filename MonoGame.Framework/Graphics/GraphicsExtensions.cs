@@ -460,6 +460,16 @@ namespace Microsoft.Xna.Framework.Graphics
 
             switch (format)
             {
+                case SurfaceFormat.Vector3:
+                    glInternalFormat = PixelInternalFormat.Rgb;
+                    glFormat = PixelFormat.Rgb;
+                    glType = PixelType.Float;
+                    break;
+                case SurfaceFormat.Vector4:
+                    glInternalFormat = PixelInternalFormat.Rgba;
+                    glFormat = PixelFormat.Rgba;
+                    glType = PixelType.Float;
+                    break;
                 case SurfaceFormat.Color:
                     glInternalFormat = PixelInternalFormat.Rgba;
                     glFormat = PixelFormat.Rgba;
@@ -596,6 +606,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.Rgba64:
                 case SurfaceFormat.Vector2:
                     return 8;
+                case SurfaceFormat.Vector3:
+                    return 12;
                 case SurfaceFormat.Vector4:
                     return 16;
                 default:
