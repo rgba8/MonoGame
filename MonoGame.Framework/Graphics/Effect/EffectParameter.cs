@@ -190,13 +190,12 @@ namespace Microsoft.Xna.Framework.Graphics
 			switch(ParameterClass) 
             {
 			case EffectParameterClass.Scalar:
-				return new Single[] { GetValueSingle () };
             case EffectParameterClass.Vector:
 			case EffectParameterClass.Matrix:
-                    if (Data is Matrix)
-                        return Matrix.ToFloatArray((Matrix)Data);
-                    else
-                        return (float[])Data;
+                var fData = (float[])Data;
+                var result = new float[fData.Length];
+                Buffer.BlockCopy(fData, 0, result, 0, fData.Length * 4);
+                return result;
 			default:
 				throw new NotImplementedException();
 			}
@@ -544,8 +543,23 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		public void SetValue (Single[] value)
 		{
-			for (var i=0; i<value.Length; i++)
-				Elements[i].SetValue (value[i]);
+            if (this.ParameterClass != EffectParameterClass.Matrix && this.ParameterClass != EffectParameterClass.Vector && this.ParameterClass != EffectParameterClass.Scalar)
+            {
+                throw new InvalidCastException();
+            }
+            if (value != null && value.Length > 0)
+            {
+                if (this.Elements != null && this.Elements.Count > 0)
+                {
+                    for (var i = 0; i < value.Length; i++)
+                        this.Elements[i].SetValue(value[i]);
+                }
+                else
+                {
+                    var fData = (float[])this.Data;
+                    Buffer.BlockCopy(value, 0, fData, 0, fData.Length * 4);
+                }
+            }
 
             StateKey = unchecked(NextStateKey++);
 		}

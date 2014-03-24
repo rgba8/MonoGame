@@ -79,6 +79,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
         // DXT1 also has a 1-bit alpha form
         Dxt1a = 70,
+
+        Vector3 = 80,
     }
     
     public enum SurfaceFormat_Legacy
