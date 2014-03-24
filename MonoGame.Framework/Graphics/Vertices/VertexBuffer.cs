@@ -227,7 +227,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 Marshal.Copy (ptr, buffer, 0, buffer.Length);
             } else {
                 // Temporary buffer to store the copied section of data
-                byte[] buffer = new byte[elementCount * vertexStride];
+                byte[] buffer = new byte[elementCount * vertexStride - offsetInBytes];
                 // Copy from the vertex buffer to the temporary buffer
                 Marshal.Copy(ptr, buffer, 0, buffer.Length);
                 
