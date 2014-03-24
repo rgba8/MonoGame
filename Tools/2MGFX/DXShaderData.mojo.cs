@@ -11,7 +11,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
 		private MojoShader.MOJOSHADER_symbol[] _symbols;
 
-		public static DXShaderData CreateGLSL (byte[] byteCode, List<DXConstantBufferData> cbuffers, int sharedIndex, Dictionary<string, SamplerStateInfo> samplerStates)
+		public static DXShaderData CreateGLSL (byte[] byteCode, List<DXConstantBufferData> cbuffers, int sharedIndex, Dictionary<string, SamplerStateInfo> samplerStates,
+            ShaderPrecision floatPrecision,ShaderPrecision intPrecision)
 		{
 			var dxshader = new DXShaderData ();
 			dxshader.SharedIndex = sharedIndex;
@@ -192,13 +193,13 @@ namespace Microsoft.Xna.Framework.Graphics
 
 			// Add the required precision specifiers for GLES.
 
-            var floatPrecision = dxshader.IsVertexShader ? "precision highp float;\r\n" : "precision mediump float;\r\n";
+            string[] precisions = new string[3]
+            { "lowp", "mediump", "highp" };
 
-			glslCode = "#ifdef GL_ES\r\n" +
-                 floatPrecision +
-				"precision mediump int;\r\n" +
-				"#endif\r\n" +
-				glslCode;
+            string sFloatPrecision = string.Format("precision {0} float;\r\n", precisions[(int)floatPrecision]);
+            string sIntPrecision = string.Format("precision {0} int;\r\n", precisions[(int)intPrecision]);
+            
+			glslCode = "#ifdef GL_ES\r\n" + sFloatPrecision + sIntPrecision + "#endif\r\n" + glslCode;
 
 			// Store the code for serialization.
 			dxshader.ShaderCode = Encoding.ASCII.GetBytes (glslCode);

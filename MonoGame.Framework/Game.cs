@@ -452,8 +452,15 @@ namespace Microsoft.Xna.Framework
         private readonly GameTime _gameTime = new GameTime();
         private Stopwatch _gameTimer = Stopwatch.StartNew();
 
+        public virtual void BeginFrame()
+        {
+        }
+        public virtual void EndFrame()
+        {
+        }
         public void Tick()
         {
+            BeginFrame();
             // NOTE: This code is very sensitive and can break very badly
             // with even what looks like a safe change.  Be sure to test 
             // any change fully in both the fixed and variable timestep 
@@ -541,6 +548,7 @@ namespace Microsoft.Xna.Framework
         protected virtual bool BeginDraw() { return true; }
         protected virtual void EndDraw()
         {
+            EndFrame();
             Platform.Present();
         }
 
