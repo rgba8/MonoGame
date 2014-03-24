@@ -234,7 +234,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (shaderInfo.DX11Profile)
                     dxShader = DXShaderData.CreateHLSL(bytecode, isVertexShader, ConstantBuffers, Shaders.Count, shaderInfo.SamplerStates, shaderInfo.Debug);
                 else
-                    dxShader = DXShaderData.CreateGLSL(bytecode, ConstantBuffers, Shaders.Count, shaderInfo.SamplerStates);
+                    dxShader = DXShaderData.CreateGLSL(bytecode, ConstantBuffers, Shaders.Count, shaderInfo.SamplerStates,
+                        isVertexShader ? shaderInfo.VertexFloatPrecision : shaderInfo.PixelFloatPrecision,
+                        isVertexShader ? shaderInfo.VertexIntPrecision : shaderInfo.PixelIntPrecision);
 
                 Shaders.Add(dxShader);
             }

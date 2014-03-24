@@ -470,6 +470,20 @@ namespace Microsoft.Xna.Framework.Graphics
                     glFormat = PixelFormat.Rgba;
                     glType = PixelType.Float;
                     break;
+				case SurfaceFormat.HalfVector4:
+                {
+                    glInternalFormat = (PixelInternalFormat)34842;
+                    glFormat = PixelFormat.Rgba;
+                    glType = (PixelType)5131;
+                    break;
+                }
+                case SurfaceFormat.HalfSingle:
+                {
+                    glInternalFormat = (PixelInternalFormat)33325;
+                    glFormat = (PixelFormat)6403;
+                    glType = (PixelType)5131;
+                    break;
+                }
                 case SurfaceFormat.Color:
                     glInternalFormat = PixelInternalFormat.Rgba;
                     glFormat = PixelFormat.Rgba;

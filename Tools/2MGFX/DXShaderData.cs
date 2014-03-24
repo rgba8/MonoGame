@@ -1,8 +1,17 @@
 namespace Microsoft.Xna.Framework.Graphics
 {
-	internal partial class DXShaderData
+    public enum ShaderPrecision
+    {
+        Low = 0,
+        Medium,
+        High
+    };
+    
+    internal partial class DXShaderData
 	{
 		public bool IsVertexShader;
+
+
 
 		public struct Sampler
 		{

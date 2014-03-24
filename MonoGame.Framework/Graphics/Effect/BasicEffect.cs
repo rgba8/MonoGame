@@ -127,6 +127,17 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
+        private Matrix worldViewProj = Matrix.Identity;
+        public Matrix WorldViewProj
+        {
+            get { return worldViewProj; }
+            set
+            {
+                worldViewProj = value;
+                worldViewProjParam.SetValue(value);
+                dirtyFlags &= ~EffectDirtyFlags.WorldViewProj;
+            }
+        }
 
         /// <summary>
         /// Gets or sets the material diffuse color (range 0 to 1).
@@ -400,6 +411,7 @@ namespace Microsoft.Xna.Framework.Graphics
             world = cloneSource.world;
             view = cloneSource.view;
             projection = cloneSource.projection;
+            worldViewProj = cloneSource.worldViewProj;
 
             diffuseColor = cloneSource.diffuseColor;
             emissiveColor = cloneSource.emissiveColor;
