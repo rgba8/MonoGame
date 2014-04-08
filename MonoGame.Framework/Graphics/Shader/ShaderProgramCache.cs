@@ -20,6 +20,10 @@ using ProgramParameter = OpenTK.Graphics.ES20.All;
 #endif
 #endif
 
+#if GLES
+using System.Text
+#endif
+
 namespace Microsoft.Xna.Framework.Graphics
 {
 
@@ -101,13 +105,6 @@ namespace Microsoft.Xna.Framework.Graphics
             GL.LinkProgram(program);
             GraphicsExtensions.CheckGLError();
 
-            GL.UseProgram(program);
-            GraphicsExtensions.CheckGLError();
-
-            vertexShader.GetVertexAttributeLocations(program);
-
-            pixelShader.ApplySamplerTextureUnits(program);
-
             var linked = 0;
 
 #if GLES
@@ -118,12 +115,32 @@ namespace Microsoft.Xna.Framework.Graphics
             GraphicsExtensions.LogGLError("VertexShaderCache.Link(), GL.GetProgram");
             if (linked == 0)
             {
-#if !GLES
+#if GLES
+                string log = "";
+                int length = 0;
+                GL.GetProgram(program, ProgramParameter.InfoLogLength, ref length);
+                GraphicsExtensions.CheckGLError();
+                if (length > 0)
+                {
+                    var logBuilder = new StringBuilder(length);
+                    GL.GetProgramInfoLog(program, length, ref length, logBuilder);
+                    GraphicsExtensions.CheckGLError();
+                    log = logBuilder.ToString();
+                }
+#else
                 var log = GL.GetProgramInfoLog(program);
-                Console.WriteLine(log);
 #endif
+                Console.WriteLine(log);
+
                 throw new InvalidOperationException("Unable to link effect program");
             }
+
+            GL.UseProgram(program);
+            GraphicsExtensions.CheckGLError();
+
+            vertexShader.GetVertexAttributeLocations(program);
+
+            pixelShader.ApplySamplerTextureUnits(program);
 
             ShaderProgramInfo info;
             info.program = program;

@@ -472,16 +472,28 @@ namespace Microsoft.Xna.Framework.Graphics
                     break;
 				case SurfaceFormat.HalfVector4:
                 {
-                    glInternalFormat = (PixelInternalFormat)34842;
+#if GLES && IOS
+                    glInternalFormat = PixelInternalFormat.Rgba;
                     glFormat = PixelFormat.Rgba;
-                    glType = (PixelType)5131;
+                    glType = (PixelType)0x8D61;                     // GL_HALF_FLOAT_OES;
+#else
+                    glInternalFormat = (PixelInternalFormat)0x881A; // GL_RGBA16F_ARB
+                    glFormat = PixelFormat.Rgba;
+                    glType = (PixelType)0x140B;                     // GL_HALF_FLOAT;
+#endif
                     break;
                 }
                 case SurfaceFormat.HalfSingle:
                 {
-                    glInternalFormat = (PixelInternalFormat)33325;
-                    glFormat = (PixelFormat)6403;
-                    glType = (PixelType)5131;
+#if GLES && IOS
+                    glInternalFormat = (PixelInternalFormat)0x1903; // GL_R_EXT;
+                    glFormat = (PixelFormat)0x1903;                 // GL_R_EXT
+                    glType = (PixelType)0x8D61;                     // GL_HALF_FLOAT_OES;
+#else
+                    glInternalFormat = (PixelInternalFormat)0x822D; // GL_R16F;
+                    glFormat = (PixelFormat)0x1903;                 // GL_R_EXT;
+                    glType = (PixelType)0x140B;                     // GL_HALF_FLOAT;
+#endif
                     break;
                 }
                 case SurfaceFormat.Color:
