@@ -21,7 +21,7 @@ using ProgramParameter = OpenTK.Graphics.ES20.All;
 #endif
 
 #if GLES
-using System.Text
+using System.Text;
 #endif
 
 namespace Microsoft.Xna.Framework.Graphics
