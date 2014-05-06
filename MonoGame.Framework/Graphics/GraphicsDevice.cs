@@ -1066,6 +1066,8 @@ namespace Microsoft.Xna.Framework.Graphics
             Clear (options, color.ToVector4 (), depth, stencil);
         }
 
+        private DepthStencilState clearDepthStencilState = new DepthStencilState { StencilEnable = true };
+
         public void Clear(ClearOptions options, Vector4 color, float depth, int stencil)
         {
 #if DIRECTX
@@ -1112,14 +1114,8 @@ namespace Microsoft.Xna.Framework.Graphics
             var prevDepthStencilState = DepthStencilState;
             var prevBlendState = BlendState;
             ScissorRectangle = _viewport.Bounds;
-            DepthStencilState = DepthStencilState.Default;
+            DepthStencilState = this.clearDepthStencilState;
             BlendState = BlendState.Opaque;
-
-            // Matt: We're forcing scissor rectangle to dirty because there is a corner case I can't isolate that causes the clear not be to done
-            // properly once we've rendered a tile in Earth... some meshes and UI elements render with a clipping that resembles the size of our
-            // stencil mask texture... disabling the dirty check fixes the problem here... 
-            // We need to find the root cause of this... maybe something with changing RT or viewports... no idea...
-            _scissorRectangleDirty = true;
 
             ApplyState(false);
             
