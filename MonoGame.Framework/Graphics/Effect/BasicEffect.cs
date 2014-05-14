@@ -18,7 +18,7 @@ namespace Microsoft.Xna.Framework.Graphics
     /// <summary>
     /// Built-in effect that supports optional texturing, vertex coloring, fog, and lighting.
     /// </summary>
-    public class BasicEffect : Effect, IEffectMatrices, IEffectLights, IEffectFog
+    public class BasicEffect : Effect, IEffectMatrices, IEffectLights, IEffectCamera, IEffectFog
     {
         #region Effect Parameters
 
@@ -52,6 +52,9 @@ namespace Microsoft.Xna.Framework.Graphics
         Matrix projection = Matrix.Identity;
 
         Matrix worldView;
+        Matrix worldViewProj = Matrix.Identity;
+
+        Vector3 cameraPosition = Vector3.Zero;
 
         Vector3 diffuseColor = Vector3.One;
         Vector3 emissiveColor = Vector3.Zero;
@@ -112,7 +115,6 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-
         /// <summary>
         /// Gets or sets the projection matrix.
         /// </summary>
@@ -127,7 +129,6 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-        private Matrix worldViewProj = Matrix.Identity;
         public Matrix WorldViewProj
         {
             get { return worldViewProj; }
@@ -136,6 +137,17 @@ namespace Microsoft.Xna.Framework.Graphics
                 worldViewProj = value;
                 worldViewProjParam.SetValue(value);
                 dirtyFlags &= ~EffectDirtyFlags.WorldViewProj;
+            }
+        }
+
+        public Vector3 CameraPosition
+        {
+            get { return cameraPosition; }
+            set
+            {
+                cameraPosition = value;
+                eyePositionParam.SetValue(value);
+                dirtyFlags &= ~EffectDirtyFlags.EyePosition;
             }
         }
 
@@ -412,6 +424,7 @@ namespace Microsoft.Xna.Framework.Graphics
             view = cloneSource.view;
             projection = cloneSource.projection;
             worldViewProj = cloneSource.worldViewProj;
+            cameraPosition = cloneSource.cameraPosition;
 
             diffuseColor = cloneSource.diffuseColor;
             emissiveColor = cloneSource.emissiveColor;

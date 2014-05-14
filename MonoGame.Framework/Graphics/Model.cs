@@ -79,7 +79,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			//Debug.WriteLine("{0}:{1}", s, node.Name);
 		}
 		
-		public void Draw(Matrix world, Matrix view, Matrix projection) 
+		public void Draw(Matrix world, Matrix view, Matrix projection, Vector3 cameraPosition) 
 		{       
 			int boneCount = this.bones.Count;
 			
@@ -98,12 +98,16 @@ namespace Microsoft.Xna.Framework.Graphics
                 foreach (Effect effect in mesh.Effects)
                 {
 					IEffectMatrices effectMatricies = effect as IEffectMatrices;
-					if (effectMatricies == null) {
-						throw new InvalidOperationException();
-					}
+					if (effectMatricies == null)
+                    { throw new InvalidOperationException(); }
+
                     effectMatricies.World = sharedDrawBoneMatrices[mesh.ParentBone.Index] * world;
                     effectMatricies.View = view;
                     effectMatricies.Projection = projection;
+
+                    IEffectCamera effectCamera = effect as IEffectCamera;
+                    if (effectCamera != null)
+                    { effectCamera.CameraPosition = cameraPosition; }
                 }
 
                 mesh.Draw();

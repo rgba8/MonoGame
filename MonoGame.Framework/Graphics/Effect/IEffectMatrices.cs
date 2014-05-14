@@ -48,5 +48,10 @@ namespace Microsoft.Xna.Framework.Graphics
 		Matrix View { get; set; }
 		Matrix World { get; set; }
 	}
+
+    public interface IEffectCamera
+    {
+        Vector3 CameraPosition { get; set; }
+    }
 }
 

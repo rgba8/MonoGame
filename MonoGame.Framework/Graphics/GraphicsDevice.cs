@@ -76,6 +76,7 @@ using Windows.UI.Core;
 using SharpDX.DXGI;
 #elif WINDOWS
 using SharpDX.DXGI;
+using SharpDX.Direct3D11;
 #endif
 #elif PSM
 using Sce.PlayStation.Core.Graphics;
@@ -104,6 +105,7 @@ namespace Microsoft.Xna.Framework.Graphics
   
         private VertexBuffer _vertexBuffer;
         private bool _vertexBufferDirty;
+        private int _vertexBufferDirtyBaseVertex;
 
         private IndexBuffer _indexBuffer;
         private bool _indexBufferDirty;
@@ -206,7 +208,11 @@ namespace Microsoft.Xna.Framework.Graphics
         internal List<PssVertexBuffer> _availableVertexBuffers = new List<PssVertexBuffer>();
         internal List<PssVertexBuffer> _usedVertexBuffers = new List<PssVertexBuffer>();
 #endif
-        
+
+        public void ClearCache()
+        {
+            _programCache.Clear();
+        }
         // TODO Graphics Device events need implementing
         public event EventHandler<EventArgs> DeviceLost;
         public event EventHandler<EventArgs> DeviceReset;
@@ -432,6 +438,7 @@ namespace Microsoft.Xna.Framework.Graphics
             // Force set the buffers and shaders on next ApplyState() call
             _indexBufferDirty = true;
             _vertexBufferDirty = true;
+            _vertexBufferDirtyBaseVertex = -1;
             _vertexShaderDirty = true;
             _pixelShaderDirty = true;
 
@@ -1160,6 +1167,7 @@ namespace Microsoft.Xna.Framework.Graphics
             DepthStencilState = prevDepthStencilState;
             BlendState = prevBlendState;
 
+            //SamplerStates.Clear();
 #endif // OPENGL
         }
         
@@ -1624,7 +1632,7 @@ namespace Microsoft.Xna.Framework.Graphics
             // it is cleared before being rendered to.
             if (clearTarget)
             {
-                this.Clear(DiscardColor);
+                //this.Clear(DiscardColor);
             }
 
             this.Viewport = viewport;
@@ -2469,6 +2477,7 @@ namespace Microsoft.Xna.Framework.Graphics
             _blendStateDirty = true;
             _indexBufferDirty = true;
             _vertexBufferDirty = true;
+            _vertexBufferDirtyBaseVertex = -1;
             _pixelShaderDirty = true;
             _vertexShaderDirty = true;
             _rasterizerStateDirty = true;
@@ -2536,6 +2545,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             _vertexBuffer = vertexBuffer;
             _vertexBufferDirty = true;
+            _vertexBufferDirtyBaseVertex = -1;
         }
 
         private void SetIndexBuffer(IndexBuffer indexBuffer)
@@ -2585,6 +2595,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 _pixelConstantBuffers[slot] = buffer;
         }
 
+        internal void ClearVertexConstantBuffers()
+        { _vertexConstantBuffers.Clear(); }
+
+        internal void ClearPixelConstantBuffers()
+        { _pixelConstantBuffers.Clear(); }
 #if OPENGL
 
         /// <summary>
@@ -2731,6 +2746,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     GraphicsExtensions.CheckGLError();
                 }
 #endif
+                _vertexBufferDirty = false;
             }
 
             if (_vertexShader == null)
@@ -2902,6 +2918,9 @@ namespace Microsoft.Xna.Framework.Graphics
             
 #elif OPENGL
 
+            bool vertexBufferDirty = _vertexBufferDirty;
+            bool vertexShaderDirty = _vertexShaderDirty;
+
             ApplyState(true);
 
             var shortIndices = _indexBuffer.IndexElementSize == IndexElementSize.SixteenBits;
@@ -2911,9 +2930,14 @@ namespace Microsoft.Xna.Framework.Graphics
             var indexOffsetInBytes = (IntPtr)(startIndex * indexElementSize);
             var indexElementCount = GetElementCountArray(primitiveType, primitiveCount);
             var target = PrimitiveTypeGL(primitiveType);
-            var vertexOffset = (IntPtr)(_vertexBuffer.VertexDeclaration.VertexStride * baseVertex);
 
-            _vertexBuffer.VertexDeclaration.Apply(_vertexShader, vertexOffset);
+            if ((vertexBufferDirty || (baseVertex != _vertexBufferDirtyBaseVertex)) || vertexShaderDirty)
+            {
+                var vertexOffset = (IntPtr)(_vertexBuffer.VertexDeclaration.VertexStride * baseVertex);
+                _vertexBuffer.VertexDeclaration.Apply(_vertexShader, vertexOffset);
+                _vertexBufferDirtyBaseVertex = baseVertex;
+            }
+
 
             GL.DrawElements(target,
                                      indexElementCount,

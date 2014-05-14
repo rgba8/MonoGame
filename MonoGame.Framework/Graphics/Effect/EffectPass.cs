@@ -99,6 +99,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 device.VertexShader = _vertexShader;
 
                 // Update the constant buffers.
+                device.ClearVertexConstantBuffers();
                 for (var c = 0; c < _vertexShader.CBuffers.Length; c++)
                 {
                     var cb = _effect.ConstantBuffers[_vertexShader.CBuffers[c]];
@@ -128,6 +129,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
                 
                 // Update the constant buffers.
+                device.ClearPixelConstantBuffers();
                 for (var c = 0; c < _pixelShader.CBuffers.Length; c++)
                 {
                     var cb = _effect.ConstantBuffers[_pixelShader.CBuffers[c]];

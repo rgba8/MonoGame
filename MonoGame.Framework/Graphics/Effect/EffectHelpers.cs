@@ -152,15 +152,19 @@ namespace Microsoft.Xna.Framework.Graphics
             // Set the world and world inverse transpose matrices.
             if ((dirtyFlags & EffectDirtyFlags.World) != 0)
             {
-                Matrix worldTranspose;
-                Matrix worldInverseTranspose;
+                //Matrix worldTranspose;
+                //Matrix worldInverseTranspose;
                 
-                Matrix.Invert(ref world, out worldTranspose);
-                Matrix.Transpose(ref worldTranspose, out worldInverseTranspose);
+                //Matrix.Invert(ref world, out worldTranspose);
+                //Matrix.Transpose(ref worldTranspose, out worldInverseTranspose);
                 
+                //worldParam.SetValue(world);
+                //worldInverseTransposeParam.SetValue(worldInverseTranspose);
+                
+                //dirtyFlags &= ~EffectDirtyFlags.World;
+
                 worldParam.SetValue(world);
-                worldInverseTransposeParam.SetValue(worldInverseTranspose);
-                
+                worldInverseTransposeParam.SetValue(world);
                 dirtyFlags &= ~EffectDirtyFlags.World;
             }
 
