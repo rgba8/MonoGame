@@ -71,10 +71,14 @@ namespace Microsoft.Xna.Framework.Graphics
         internal TextureTarget glTarget;
         internal TextureUnit glTextureUnit = TextureUnit.Texture0;
         internal SamplerState[] glLastSamplerState = null;
+#endif
 
         public Texture(GraphicsDevice graphicsDevice)
-        { glLastSamplerState = new SamplerState[graphicsDevice.MaxTextureSlots]; }
+        {
+#if OPENGL
+            glLastSamplerState = new SamplerState[graphicsDevice.MaxTextureSlots];
 #endif
+        }
 
         public SurfaceFormat Format
         {

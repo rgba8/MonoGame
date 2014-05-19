@@ -49,9 +49,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		}
 
 		protected Texture3D (GraphicsDevice graphicsDevice, int width, int height, int depth, bool mipMap, SurfaceFormat format, bool renderTarget)
-#if OPENGL
             : base(graphicsDevice)
-#endif
 		{
             if (graphicsDevice == null)
                 throw new ArgumentNullException("graphicsDevice");
