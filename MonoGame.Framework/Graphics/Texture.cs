@@ -42,6 +42,7 @@ using System;
 using System.Diagnostics;
 
 #if OPENGL
+using System.Collections.Generic;
 #if MONOMAC
 using MonoMac.OpenGL;
 #elif WINDOWS || LINUX
@@ -70,7 +71,7 @@ namespace Microsoft.Xna.Framework.Graphics
         internal int glTexture = -1;
         internal TextureTarget glTarget;
         internal TextureUnit glTextureUnit = TextureUnit.Texture0;
-        internal SamplerState glLastSamplerState = null;
+        internal Dictionary<int, SamplerState> glLastSamplerStates = new Dictionary<int, SamplerState>();
 #endif
 
         public SurfaceFormat Format
@@ -144,7 +145,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 GL.DeleteTextures(1, ref glTexture);
                 GraphicsExtensions.CheckGLError();
                 glTexture = -1;
-                this.glLastSamplerState = null;
+                glLastSamplerStates.Clear();
             });
 #endif
         }
@@ -175,8 +176,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     GraphicsExtensions.CheckGLError();
                     glTexture = -1;
                 });
-
-                glLastSamplerState = null;
+                glLastSamplerStates.Clear();
 #endif
             }
             base.Dispose(disposing);
