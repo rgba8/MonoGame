@@ -353,12 +353,12 @@ namespace MonoGame.Tools.Pipeline
                                 _project.References.Add(hintPath);
                             }
                         }
-                        else if (buildAction.Equals("Content"))
+                        else if (buildAction.Equals("Content") || buildAction.Equals("None"))
                         {
                             string include, copyToOutputDirectory;
                             ReadIncludeContent(io, out include, out copyToOutputDirectory);
 
-                            if (!copyToOutputDirectory.Equals("Never"))
+                            if (!string.IsNullOrEmpty(copyToOutputDirectory) && !copyToOutputDirectory.Equals("Never"))
                             {
                                 var sourceFilePath = Path.GetDirectoryName(projectFilePath);
                                 sourceFilePath += "\\" + include;
@@ -501,7 +501,7 @@ namespace MonoGame.Tools.Pipeline
 
         private string FormatDivider(string label)
         {
-            const string commentFormat = "\n#----------------------------------------------------------------------------#\n";
+            var commentFormat = Environment.NewLine + "#----------------------------------------------------------------------------#" + Environment.NewLine;
 
             label = " " + label + " ";
             var src = commentFormat.Length / 2 - label.Length / 2;
