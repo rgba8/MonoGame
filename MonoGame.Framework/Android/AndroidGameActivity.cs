@@ -50,6 +50,12 @@ namespace Microsoft.Xna.Framework
 			base.OnConfigurationChanged (newConfig);
 		}
 
+        public override void OnBackPressed()
+        {
+            base.OnBackPressed();
+            this.MoveTaskToBack(true);
+        }
+
         protected override void OnPause()
         {
             base.OnPause();
