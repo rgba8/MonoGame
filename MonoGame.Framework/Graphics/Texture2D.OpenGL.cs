@@ -555,7 +555,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private void PlatformSaveAsJpeg(Stream stream, int width, int height)
         {
-#if MONOMAC
+#if MONOMAC || WINDOWS
 			SaveAsImage(stream, width, height, ImageFormat.Jpeg);
 #else
             throw new NotImplementedException();
@@ -564,12 +564,14 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private void PlatformSaveAsPng(Stream stream, int width, int height)
         {
-            // TODO: We need to find a simple stand alone
-            // PNG encoder if we want to support this.
+#if MONOMAC || WINDOWS
+            SaveAsImage(stream, width, height, ImageFormat.Png);
+#else
             throw new NotImplementedException();
+#endif
         }
 
-#if MONOMAC
+#if MONOMAC || WINDOWS
 		private void SaveAsImage(Stream stream, int width, int height, ImageFormat format)
 		{
 			if (stream == null)
