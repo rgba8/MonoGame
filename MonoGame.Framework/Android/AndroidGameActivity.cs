@@ -52,7 +52,6 @@ namespace Microsoft.Xna.Framework
 
         public override void OnBackPressed()
         {
-            base.OnBackPressed();
             this.MoveTaskToBack(true);
         }
 
