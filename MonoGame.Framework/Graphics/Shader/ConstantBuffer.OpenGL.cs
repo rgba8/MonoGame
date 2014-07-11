@@ -3,6 +3,7 @@
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
+using System.Collections.Generic;
 
 #if MONOMAC
 using MonoMac.OpenGL;
@@ -17,6 +18,7 @@ namespace Microsoft.Xna.Framework.Graphics
     internal partial class ConstantBuffer
     {
         private ShaderProgram _shaderProgram = null;
+        private Dictionary<ShaderProgram, Dictionary<string, int>> _locations = new Dictionary<ShaderProgram, Dictionary<string, int>>();
         private int _location;
 
         static ConstantBuffer _lastConstantBufferApplied = null;
@@ -44,6 +46,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             // Force the uniform location to be looked up again
             _shaderProgram = null;
+            _locations.Clear();
         }
 
         public unsafe void PlatformApply(GraphicsDevice device, ShaderProgram program)
@@ -55,14 +58,27 @@ namespace Microsoft.Xna.Framework.Graphics
             // uniform again and apply the state.
             if (_shaderProgram != program)
             {
-                var location = program.GetUniformLocation(_name);
-                if (location == -1)
-                    return;
+                Dictionary<string, int> locations = null;
+                if (_locations.TryGetValue(program, out locations) == false)
+                {
+                    locations = new Dictionary<string, int>();
+                    _locations[program] = locations;
+                }
+
+                int location = -1;
+                if (locations.TryGetValue(_name, out location) == false)
+                {
+                    location = program.GetUniformLocation(_name);
+                    locations[_name] = location;
+                }
 
                 _shaderProgram = program;
                 _location = location;
                 _dirty = true;
             }
+
+            if (_location == -1)
+                return;
 
             // If the shader program is the same, the effect may still be different and have different values in the buffer
             if (!Object.ReferenceEquals(this, _lastConstantBufferApplied))
