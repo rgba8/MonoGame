@@ -2,6 +2,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace TwoMGFX
 {
+    public enum ShaderPrecision
+    {
+        Low = 0,
+        Medium,
+        High
+    };
+
 	internal partial class ShaderData
 	{
 		public bool IsVertexShader;

@@ -16,6 +16,11 @@ namespace TwoMGFX
 
 		public bool Debug { get; private set; }
 
+        public ShaderPrecision VertexFloatPrecision { get; set; }
+        public ShaderPrecision VertexIntPrecision { get; set; }
+        public ShaderPrecision PixelFloatPrecision { get; set; }
+        public ShaderPrecision PixelIntPrecision { get; set; }
+
 		public List<TechniqueInfo> Techniques = new List<TechniqueInfo>();
         public Dictionary<string, SamplerStateInfo> SamplerStates = new Dictionary<string, SamplerStateInfo>();
 
