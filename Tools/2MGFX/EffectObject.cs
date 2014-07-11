@@ -823,7 +823,11 @@ namespace TwoMGFX
                 if (shaderInfo.Profile == ShaderProfile.DirectX_11)
                     shaderData = ShaderData.CreateHLSL(bytecode, isVertexShader, ConstantBuffers, Shaders.Count, shaderInfo.SamplerStates, shaderInfo.Debug);
                 else if (shaderInfo.Profile == ShaderProfile.OpenGL)
-                    shaderData = ShaderData.CreateGLSL(bytecode, isVertexShader, ConstantBuffers, Shaders.Count, shaderInfo.SamplerStates, shaderInfo.Debug);
+                {
+                    shaderData = ShaderData.CreateGLSL(bytecode, isVertexShader, ConstantBuffers, Shaders.Count, shaderInfo.SamplerStates, shaderInfo.Debug,
+                        isVertexShader ? shaderInfo.VertexFloatPrecision : shaderInfo.PixelFloatPrecision,
+                        isVertexShader ? shaderInfo.VertexIntPrecision : shaderInfo.PixelIntPrecision);
+                }
                 else if (shaderInfo.Profile == ShaderProfile.PlayStation4)
                     shaderData = ShaderData.CreatePSSL(bytecode, isVertexShader, ConstantBuffers, Shaders.Count, shaderInfo.SamplerStates, shaderInfo.Debug);
                 else

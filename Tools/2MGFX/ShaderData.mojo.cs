@@ -7,7 +7,8 @@ namespace TwoMGFX
 {
 	internal partial class ShaderData
 	{
-        public static ShaderData CreateGLSL(byte[] byteCode, bool isVertexShader, List<ConstantBufferData> cbuffers, int sharedIndex, Dictionary<string, SamplerStateInfo> samplerStates, bool debug)
+        public static ShaderData CreateGLSL(byte[] byteCode, bool isVertexShader, List<ConstantBufferData> cbuffers, int sharedIndex, Dictionary<string, SamplerStateInfo> samplerStates, bool debug,
+            ShaderPrecision floatPrecision, ShaderPrecision intPrecision)
 		{
 			var dxshader = new ShaderData ();
 			dxshader.SharedIndex = sharedIndex;
@@ -184,14 +185,23 @@ namespace TwoMGFX
 
 			// Add the required precision specifiers for GLES.
 
-            var floatPrecision = dxshader.IsVertexShader ? "precision highp float;\r\n" : "precision mediump float;\r\n";
+            string[] precisions = new string[3]
+            { "lowp", "mediump", "highp" };
 
-			glslCode = "#ifdef GL_ES\r\n" +
-                 floatPrecision +
-				"precision mediump int;\r\n" +
-				"#endif\r\n" +
-				glslCode;
+            string sFloatPrecision;
+            if (isVertexShader == false && floatPrecision == ShaderPrecision.High)
+            {
+                sFloatPrecision = "#ifdef GL_FRAGMENT_PRECISION_HIGH\r\n";
+                sFloatPrecision += "precision highp float;\r\n";
+                sFloatPrecision += "#else\r\n";
+                sFloatPrecision += "precision mediump float;\r\n";
+                sFloatPrecision += "#endif\r\n";
+            }
+            else
+            { sFloatPrecision = string.Format("precision {0} float;\r\n", precisions[(int)floatPrecision]); }
+            string sIntPrecision = string.Format("precision {0} int;\r\n", precisions[(int)intPrecision]);
 
+            glslCode = "#ifdef GL_ES\r\n" + sFloatPrecision + sIntPrecision + "#endif\r\n" + glslCode;
 			// Store the code for serialization.
 			dxshader.ShaderCode = Encoding.ASCII.GetBytes (glslCode);
 

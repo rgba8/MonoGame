@@ -9,12 +9,49 @@ using Microsoft.Xna.Framework.Graphics;
 using TwoMGFX;
 using System.IO;
 using System.Collections;
+using System.ComponentModel;
 
 namespace MonoGameContentProcessors.Processors
 {
     [ContentProcessor(DisplayName = "MonoGame Effect")]
     class MGEffectProcessor : EffectProcessor
     {
+        private ShaderPrecision vertexFloat = ShaderPrecision.Medium;
+        [DisplayName("Vertex Float Precision")]
+        [DefaultValue(ShaderPrecision.Medium)]
+        public ShaderPrecision VertexFloat
+        {
+            get { return this.vertexFloat; }
+            set { this.vertexFloat = value; }
+        }
+
+        private ShaderPrecision vertexInt = ShaderPrecision.Medium;
+        [DisplayName("Vertex Int Precision")]
+        [DefaultValue(ShaderPrecision.Medium)]
+        public ShaderPrecision VertexInt
+        {
+            get { return this.vertexInt; }
+            set { this.vertexInt = value; }
+        }
+
+        private ShaderPrecision pixelFloat = ShaderPrecision.Medium;
+        [DisplayName("Pixel Float Precision")]
+        [DefaultValue(ShaderPrecision.Medium)]
+        public ShaderPrecision PixelFloat
+        {
+            get { return this.pixelFloat; }
+            set { this.pixelFloat = value; }
+        }
+
+        private ShaderPrecision pixelInt = ShaderPrecision.Medium;
+        [DisplayName("Pixel Int Precision")]
+        [DefaultValue(ShaderPrecision.Medium)]
+        public ShaderPrecision PixelInt
+        {
+            get { return this.pixelInt; }
+            set { this.pixelInt = value; }
+        }
+
         public override CompiledEffectContent Process(EffectContent input, ContentProcessorContext context)
         {
             //System.Diagnostics.Debugger.Launch();
@@ -35,6 +72,11 @@ namespace MonoGameContentProcessors.Processors
             try
             {
                 shaderInfo = ShaderInfo.FromFile(options.SourceFile, options);
+                shaderInfo.VertexFloatPrecision = vertexFloat;
+                shaderInfo.VertexIntPrecision = vertexInt;
+                shaderInfo.PixelFloatPrecision = pixelFloat;
+                shaderInfo.PixelIntPrecision = pixelInt;
+
                 foreach (var dep in shaderInfo.Dependencies)
                     context.AddDependency(dep);
             }
