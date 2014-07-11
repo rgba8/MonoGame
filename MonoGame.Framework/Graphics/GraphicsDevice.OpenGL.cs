@@ -393,8 +393,6 @@ namespace Microsoft.Xna.Framework.Graphics
         {
 #if WINDOWS || LINUX || ANGLE
             Context.SwapBuffers();
-#else
-            GL.Flush();
 #endif
             GraphicsExtensions.CheckGLError();
 
