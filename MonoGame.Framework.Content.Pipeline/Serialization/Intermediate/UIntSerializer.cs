@@ -8,19 +8,19 @@ using System.Xml;
 namespace Microsoft.Xna.Framework.Content.Pipeline.Serialization.Intermediate
 {
     [ContentTypeSerializer]
-    class FloatSerializer : ElementSerializer<float>
+    class UIntSerializer : ElementSerializer<uint>
     {
-        public FloatSerializer() :
-            base("float", 1)
+        public UIntSerializer() :
+            base("int", 1)
         {
         }
 
-        protected internal override float Deserialize(string[] inputs, ref int index)
+        protected internal override uint Deserialize(string[] inputs, ref int index)
         {
-            return XmlConvert.ToSingle(inputs[index++]);
+            return XmlConvert.ToUInt32(inputs[index++]);
         }
 
-        protected internal override void Serialize(float value, List<string> results)
+        protected internal override void Serialize(uint value, List<string> results)
         {
             results.Add(XmlConvert.ToString(value));
         }
