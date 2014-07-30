@@ -55,7 +55,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         // GL.BindTexture(texture.glTarget, texture.glTexture);
                         // GraphicsExtensions.CheckGLError();
 
-                        sampler.Activate(texture.glTarget, texture.LevelCount > 1);
+                    	sampler.Activate(device, texture.glTarget, texture.LevelCount > 1);
                         texture.glLastSamplerStates[i] = sampler;
                     }
                 }
