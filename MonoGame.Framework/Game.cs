@@ -407,11 +407,11 @@ namespace Microsoft.Xna.Framework
 
             if (!_initialized) {
                 DoInitialize ();
+                _gameTimer = Stopwatch.StartNew();
                 _initialized = true;
             }
 
-            BeginRun();
-            _gameTimer = Stopwatch.StartNew();
+            BeginRun();            
 
             //Not quite right..
             Tick ();
@@ -707,7 +707,7 @@ namespace Microsoft.Xna.Framework
                 Update(gameTime);
 
                 //The TouchPanel needs to know the time for when touches arrive
-                TouchPanelState.Update(gameTime);
+                TouchPanelState.CurrentTimestamp = gameTime.TotalGameTime;
             }
         }
 
