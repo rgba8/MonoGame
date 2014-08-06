@@ -53,7 +53,7 @@ namespace Microsoft.Xna.Framework.Graphics
         // Use WeakReference for the global resources list as we do not know when a resource
         // may be disposed and collected. We do not want to prevent a resource from being
         // collected by holding a strong reference to it in this list.
-        static List<WeakReference> resources = new List<WeakReference>();
+        static HashSet<WeakReference> resources = new HashSet<WeakReference>();
 
         // The GraphicsDevice property should only be accessed in Dispose(bool) if the disposing
         // parameter is true. If disposing is false, the GraphicsDevice may or may not be
@@ -100,7 +100,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
 
                 // Remove references to resources that have been garbage collected.
-                resources.RemoveAll(wr => !wr.IsAlive);
+                resources.RemoveWhere(wr => !wr.IsAlive);
             }
         }
 
@@ -111,9 +111,11 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             lock (resourcesLock)
             {
-                foreach (var resource in resources.ToArray())
+                var resourceArray = new WeakReference[resources.Count];
+                resources.CopyTo(resourceArray);
+                for (var i = 0; i < resources.Count; ++i)
                 {
-                    var target = resource.Target;
+                    var target = resourceArray[i].Target;
                     if (target != null)
                         (target as IDisposable).Dispose();
                 }
