@@ -131,8 +131,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (tex != null)
                 {
                     _targets[i] = tex.glTarget;
-                    GL.BindTexture(tex.glTarget, tex.glTexture);
-                    GraphicsExtensions.CheckGLError();
+                    if (tex.glTexture != -1)
+                    {
+                        GL.BindTexture(tex.glTarget, tex.glTexture);
+                        GraphicsExtensions.CheckGLError();
+                    }
                 }
 #elif DIRECTX
                 if (_textures[i] == null || _textures[i].IsDisposed)

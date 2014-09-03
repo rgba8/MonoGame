@@ -37,7 +37,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 var sampler = _samplers[i];
                 var texture = device.Textures[i];
 
-                if (sampler != null && texture != null)
+                if (sampler != null && texture != null && texture.glTexture != -1)
                 {
                     SamplerState lastSampler = null;
                     texture.glLastSamplerStates.TryGetValue(i, out lastSampler);
