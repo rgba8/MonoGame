@@ -211,8 +211,8 @@ namespace Microsoft.Xna.Framework.Content
 								{
 									ushort pixel = BitConverter.ToUInt16(levelData, offset);
 									pixel = (ushort)(((pixel & 0x0FFF) << 4) | ((pixel & 0xF000) >> 12));
-									levelData[offset] = (byte)(pixel);
-									levelData[offset + 1] = (byte)(pixel >> 8);
+									levelData[offset] = (byte)(pixel & 0xFF);
+                                    levelData[offset + 1] = (byte)(pixel >> 8);
 									offset += 2;
 								}
 							}

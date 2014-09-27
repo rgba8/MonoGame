@@ -235,14 +235,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private void PlatformGetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
         {
-#if IOS
-
-            // Reading back a texture from GPU memory is unsupported
-            // in OpenGL ES 2.0 and no work around has been implemented.           
-            throw new NotSupportedException("OpenGL ES 2.0 does not support texture reads.");
-#endif
-#if ANDROID
-
+#if GLES
             Rectangle r;
             if (rect != null)
             {
@@ -357,8 +350,7 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 throw new NotImplementedException("GetData not implemented for type.");
             }
-#endif
-#if !GLES
+#else
             GL.BindTexture(TextureTarget.Texture2D, this.glTexture);
 
             if (glFormat == (GLPixelFormat)All.CompressedTextureFormats)
@@ -672,36 +664,18 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-#if ANDROID
+#if IOS || ANDROID
 		private byte[] GetTextureData(int ThreadPriorityLevel)
 		{
 			int framebufferId = -1;
-            int renderBufferID = -1;
-            
+
 			GL.GenFramebuffers(1, ref framebufferId);
             GraphicsExtensions.CheckGLError();
             GL.BindFramebuffer(All.Framebuffer, framebufferId);
             GraphicsExtensions.CheckGLError();
-            //renderBufferIDs = new int[currentRenderTargets];
-            GL.GenRenderbuffers(1, ref renderBufferID);
-            GraphicsExtensions.CheckGLError();
 
             // attach the texture to FBO color attachment point
-            GL.FramebufferTexture2D(All.Framebuffer, All.ColorAttachment0,
-                All.Texture2D, this.glTexture, 0);
-            GraphicsExtensions.CheckGLError();
-
-            // create a renderbuffer object to store depth info
-            GL.BindRenderbuffer(All.Renderbuffer, renderBufferID);
-            GraphicsExtensions.CheckGLError();
-
-			var glDepthFormat = GraphicsDevice.GraphicsCapabilities.SupportsDepth24 ? All.DepthComponent24Oes : GraphicsDevice.GraphicsCapabilities.SupportsDepthNonLinear ? (OpenTK.Graphics.ES20.All)0x8E2C /*GLDepthComponent16NonLinear */: All.DepthComponent16;
-			GL.RenderbufferStorage(All.Renderbuffer, glDepthFormat, Width, Height);
-            GraphicsExtensions.CheckGLError();
-
-            // attach the renderbuffer to depth attachment point
-            GL.FramebufferRenderbuffer(All.Framebuffer, All.DepthAttachment,
-                All.Renderbuffer, renderBufferID);
+            GL.FramebufferTexture2D(All.Framebuffer, All.ColorAttachment0, All.Texture2D, this.glTexture, 0);
             GraphicsExtensions.CheckGLError();
 
             All status = GL.CheckFramebufferStatus(All.Framebuffer);
@@ -736,11 +710,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     throw new NotSupportedException("Texture format");
             }
 
-			GL.ReadPixels(0,0,Width, Height, All.Rgba, All.UnsignedByte, imageInfo);
-            GraphicsExtensions.CheckGLError();
-            GL.FramebufferRenderbuffer(All.Framebuffer, All.DepthAttachment, All.Renderbuffer, 0);
-            GraphicsExtensions.CheckGLError();
-            GL.DeleteRenderbuffers(1, ref renderBufferID);
+			GL.ReadPixels(0, 0, Width, Height, All.Rgba, All.UnsignedByte, imageInfo);
             GraphicsExtensions.CheckGLError();
             GL.DeleteFramebuffers(1, ref framebufferId);
             GraphicsExtensions.CheckGLError();
