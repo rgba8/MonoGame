@@ -236,120 +236,30 @@ namespace Microsoft.Xna.Framework.Graphics
         private void PlatformGetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
         {
 #if GLES
-            Rectangle r;
-            if (rect != null)
-            {
-                r = rect.Value;
-            }
-            else
-            {
-                r = new Rectangle(0, 0, Width, Height);
-            }
-            			
-			// Get the Color values
-			if (typeof(T) == typeof(uint))
-			{
-				Color[] colors = new Color[elementCount];
-				GetData<Color>(level, rect, colors, startIndex, elementCount);
-				uint[] final = data as uint[];
-				for (int i = 0; i < final.Length; i++)
-				{
-					final[i] = (uint)
-					(
-						// use correct xna byte order (and remember to convert it yourself as needed)
-						colors[i].A << 24 |
-						colors[i].B << 16 |
-						colors[i].G << 8 |
-						colors[i].R
-					);
-				}
-			}
-            // Get the Color values
-            else if ((typeof(T) == typeof(Color)))
-            {
-				byte[] imageInfo = GetTextureData(0);
+            // TODO: check for data size and for non renderable formats (formats that can't be attached to FBO)
 
-                int rWidth = r.Width;
-                int rHeight = r.Height;
-                
-                // Loop through and extract the data but we need to load it 
-                var dataRowColOffset = 0;
-                var sz = 0;
-                var pixelOffset = 0;
-                for (int y = r.Top; y < rHeight; y++)
-                {
-                    for (int x = r.Left; x < rWidth; x++)
-                    {
-                        var result = new Color(0, 0, 0, 0);
-                        dataRowColOffset = ((y * r.Width) + x);
-                        switch (Format)
-                        {
-                            case SurfaceFormat.Color: //kTexture2DPixelFormat_RGBA8888
-                            case SurfaceFormat.Dxt3:
-                                sz = 4;
-                                pixelOffset = dataRowColOffset * sz;
-                                result.R = imageInfo[pixelOffset];
-                                result.G = imageInfo[pixelOffset + 1];
-                                result.B = imageInfo[pixelOffset + 2];
-                                result.A = imageInfo[pixelOffset + 3];
-                                break;
-                            case SurfaceFormat.Bgra4444: //kTexture2DPixelFormat_RGBA4444
-                                //								sz = 2;
-                                //								pos = ((y * imageSize.Width) + x) * sz;
-                                //								pixelOffset = new IntPtr (imageData.ToInt64 () + pos);
-                                //	
-                                //								Marshal.Copy (pixelOffset, pixel, 0, 4);	
-                                //	
-                                //								result.R = pixel [0];
-                                //								result.G = pixel [1];
-                                //								result.B = pixel [2];
-                                //								result.A = pixel [3];
-                                sz = 2;
-                                pixelOffset = dataRowColOffset * sz;
-                                result.R = imageInfo[pixelOffset];
-                                result.G = imageInfo[pixelOffset + 1];
-                                result.B = imageInfo[pixelOffset + 2];
-                                result.A = imageInfo[pixelOffset + 3];
-                                break;
-                            case SurfaceFormat.Bgra5551: //kTexture2DPixelFormat_RGB5A1
-                                //								sz = 2;
-                                //								pos = ((y * imageSize.Width) + x) * sz;
-                                //								pixelOffset = new IntPtr (imageData.ToInt64 () + pos);
-                                //								Marshal.Copy (pixelOffset, pixel, 0, 4);	
-                                //	
-                                //								result.R = pixel [0];
-                                //								result.G = pixel [1];
-                                //								result.B = pixel [2];
-                                //								result.A = pixel [3];
-                                sz = 2;
-                                pixelOffset = dataRowColOffset * sz;
-                                result.R = imageInfo[pixelOffset];
-                                result.G = imageInfo[pixelOffset + 1];
-                                result.B = imageInfo[pixelOffset + 2];
-                                result.A = imageInfo[pixelOffset + 3];
-                                break;
-                            case SurfaceFormat.Alpha8:  // kTexture2DPixelFormat_A8 
-                                //								sz = 1;
-                                //								pos = ((y * imageSize.Width) + x) * sz;
-                                //								pixelOffset = new IntPtr (imageData.ToInt64 () + pos);								
-                                //								Marshal.Copy (pixelOffset, pixel, 0, 4);	
-                                //	
-                                //								result.A = pixel [0];
-                                sz = 1;
-                                pixelOffset = dataRowColOffset * sz;
-                                result.A = imageInfo[pixelOffset];
-                                break;
-                            default:
-                                throw new NotSupportedException("Texture format");
-                        }
-                        data[dataRowColOffset] = (T)(object)result;
-                    }                    
-                }
-            }
-            else
+            var framebufferId = 0;
+            GL.GenFramebuffers(1, ref framebufferId);
+            GraphicsExtensions.CheckGLError();
+            GL.BindFramebuffer(All.Framebuffer, framebufferId);
+            GraphicsExtensions.CheckGLError();
+            GL.FramebufferTexture2D(All.Framebuffer, All.ColorAttachment0, All.Texture2D, this.glTexture, 0);
+            GraphicsExtensions.CheckGLError();
+            var x = 0;
+            var y = 0;
+            var width = this.width;
+            var height = this.height;
+            if (rect.HasValue)
             {
-                throw new NotImplementedException("GetData not implemented for type.");
+                x = rect.Value.X;
+                y = rect.Value.Y;
+                width = this.Width;
+                height = this.Height;
             }
+            GL.ReadPixels(x, y, width, height, this.glFormat, this.glType, data);
+            GraphicsExtensions.CheckGLError();
+            GL.DeleteFramebuffers(1, ref framebufferId);
+            GraphicsExtensions.CheckGLError();
 #else
             GL.BindTexture(TextureTarget.Texture2D, this.glTexture);
 
@@ -663,62 +573,6 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
             }
         }
-
-#if IOS || ANDROID
-		private byte[] GetTextureData(int ThreadPriorityLevel)
-		{
-			int framebufferId = -1;
-
-			GL.GenFramebuffers(1, ref framebufferId);
-            GraphicsExtensions.CheckGLError();
-            GL.BindFramebuffer(All.Framebuffer, framebufferId);
-            GraphicsExtensions.CheckGLError();
-
-            // attach the texture to FBO color attachment point
-            GL.FramebufferTexture2D(All.Framebuffer, All.ColorAttachment0, All.Texture2D, this.glTexture, 0);
-            GraphicsExtensions.CheckGLError();
-
-            All status = GL.CheckFramebufferStatus(All.Framebuffer);
-
-            if (status != All.FramebufferComplete)
-                throw new Exception("Error creating framebuffer: " + status);	
-			byte[] imageInfo;
-            int sz = 0;
-
-            switch (this.Format)
-            {
-                case SurfaceFormat.Color: //kTexture2DPixelFormat_RGBA8888
-                case SurfaceFormat.Dxt3:
-
-                    sz = 4;
-                    imageInfo = new byte[(Width * Height) * sz];
-                    break;
-                case SurfaceFormat.Bgra4444: //kTexture2DPixelFormat_RGBA4444
-                    sz = 2;
-                    imageInfo = new byte[(Width * Height) * sz];
-
-                    break;
-                case SurfaceFormat.Bgra5551: //kTexture2DPixelFormat_RGB5A1
-                    sz = 2;
-                    imageInfo = new byte[(Width * Height) * sz];
-                    break;
-                case SurfaceFormat.Alpha8:  // kTexture2DPixelFormat_A8 
-                    sz = 1;
-                    imageInfo = new byte[(Width * Height) * sz];
-                    break;
-                default:
-                    throw new NotSupportedException("Texture format");
-            }
-
-			GL.ReadPixels(0, 0, Width, Height, All.Rgba, All.UnsignedByte, imageInfo);
-            GraphicsExtensions.CheckGLError();
-            GL.DeleteFramebuffers(1, ref framebufferId);
-            GraphicsExtensions.CheckGLError();
-            GL.BindFramebuffer(All.Framebuffer, 0);
-            GraphicsExtensions.CheckGLError();
-            return imageInfo;
-		}
-#endif
     }
 }
 
