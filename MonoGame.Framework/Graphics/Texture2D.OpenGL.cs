@@ -324,38 +324,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 InInputShareable = true,
             }))
             {
-                var width = image.Width;
-                var height = image.Height;
-
-                int[] pixels = new int[width * height];
-                if ((width != image.Width) || (height != image.Height))
-                {
-                    using (Bitmap imagePadded = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888))
-                    {
-                        Canvas canvas = new Canvas(imagePadded);
-                        canvas.DrawARGB(0, 0, 0, 0);
-                        canvas.DrawBitmap(image, 0, 0, null);
-                        imagePadded.GetPixels(pixels, 0, width, 0, 0, width, height);
-                        imagePadded.Recycle();
-                    }
-                }
-                else
-                {
-                    image.GetPixels(pixels, 0, width, 0, 0, width, height);
-                }
-                image.Recycle();
-
-                // Convert from ARGB to ABGR
-                ConvertToABGR(height, width, pixels);
-
-                Texture2D texture = null;
-                Threading.BlockOnUIThread(() =>
-                {
-                    texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Color);
-                    texture.SetData<int>(pixels);
-                });
-
-                return texture;
+                return PlatformFromStream(graphicsDevice, image);
             }
 #endif
 #if WINDOWS || LINUX || ANGLE
@@ -393,6 +362,14 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             return PlatformFromStream(graphicsDevice, uiImage.CGImage);
         }
+#elif ANDROID
+        [CLSCompliant(false)]
+        public static Texture2D FromStream(GraphicsDevice graphicsDevice, Bitmap bitmap)
+        {
+            var texture = PlatformFromStream(graphicsDevice, bitmap);
+            bitmap.Recycle();
+            return texture;
+        }
 #endif
 
 #if MONOMAC
@@ -405,8 +382,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
 
 #if IOS || MONOMAC
-        [CLSCompliant(false)]
-        public static Texture2D PlatformFromStream(GraphicsDevice graphicsDevice, CGImage cgImage)
+        private static Texture2D PlatformFromStream(GraphicsDevice graphicsDevice, CGImage cgImage)
         {
             var width = cgImage.Width;
             var height = cgImage.Height;
@@ -424,6 +400,42 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Color);
                 texture.SetData(data);
+            });
+
+            return texture;
+        }
+#elif ANDROID
+        private static Texture2D PlatformFromStream(GraphicsDevice graphicsDevice, Bitmap image)
+        {
+            var width = image.Width;
+            var height = image.Height;
+
+            int[] pixels = new int[width * height];
+            if ((width != image.Width) || (height != image.Height))
+            {
+                using (Bitmap imagePadded = Bitmap.CreateBitmap(width, height, Bitmap.Config.Argb8888))
+                {
+                    Canvas canvas = new Canvas(imagePadded);
+                    canvas.DrawARGB(0, 0, 0, 0);
+                    canvas.DrawBitmap(image, 0, 0, null);
+                    imagePadded.GetPixels(pixels, 0, width, 0, 0, width, height);
+                    imagePadded.Recycle();
+                }
+            }
+            else
+            {
+                image.GetPixels(pixels, 0, width, 0, 0, width, height);
+            }
+            image.Recycle();
+
+            // Convert from ARGB to ABGR
+            ConvertToABGR(height, width, pixels);
+
+            Texture2D texture = null;
+            Threading.BlockOnUIThread(() =>
+            {
+                texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Color);
+                texture.SetData<int>(pixels);
             });
 
             return texture;

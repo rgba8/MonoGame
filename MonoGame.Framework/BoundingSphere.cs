@@ -1,17 +1,18 @@
-﻿// MonoGame - Copyright (C) The MonoGame Team
+﻿// MIT License - Copyright (C) The Mono.Xna Team
 // This file is subject to the terms and conditions defined in
 // file 'LICENSE.txt', which is part of this source code package.
 
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.ComponentModel;
 using System.Runtime.Serialization;
+using System.Diagnostics;
 
 namespace Microsoft.Xna.Framework
 {
- 
+
     [DataContract]
+    [DebuggerDisplay("{DebugDisplayString,nq}")]
     public struct BoundingSphere : IEquatable<BoundingSphere>
     {
         #region Public Fields
@@ -247,6 +248,27 @@ namespace Microsoft.Xna.Framework
             
             var center = (min + max) * 0.5f;
             var radius = Vector3.Distance(max, center);
+            
+            // Test every point and expand the sphere.
+            // The current bounding sphere is just a good approximation and may not enclose all points.            
+            // From: Mathematics for 3D Game Programming and Computer Graphics, Eric Lengyel, Third Edition.
+            // Page 218
+            float sqRadius = radius * radius;
+            foreach (var pt in points)
+            {
+                Vector3 diff = (pt-center);
+                float sqDist = diff.LengthSquared();
+                if (sqDist > sqRadius)
+                {
+                    float distance = (float)Math.Sqrt(sqDist); // equal to diff.Length();
+                    Vector3 direction = diff / distance;
+                    Vector3 G = center - radius * direction;
+                    center = (G + pt) / 2;
+                    radius = Vector3.Distance(pt, center);
+                    sqRadius = radius * radius;
+                }
+            }
+
             return new BoundingSphere(center, radius);
         }
 
@@ -371,9 +393,20 @@ namespace Microsoft.Xna.Framework
             return !a.Equals(b);
         }
 
+        internal string DebugDisplayString
+        {
+            get
+            {
+                return string.Concat(
+                    "Pos( ", this.Center.DebugDisplayString, " )  \r\n",
+                    "Radius( ", this.Radius.ToString(), " )"
+                    );
+            }
+        }
+
         public override string ToString()
         {
-            return string.Format(CultureInfo.CurrentCulture, "{{Center:{0} Radius:{1}}}", this.Center.ToString(), this.Radius.ToString());
+            return "{{Center:" + this.Center.ToString() + " Radius:" + this.Radius.ToString() + "}}";
         }
 
         #endregion Public Methods
