@@ -61,7 +61,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         static readonly float[] _posFixup = new float[4];
 
-        internal static readonly List<int> _enabledVertexAttributes = new List<int>();
+        private bool[] _enabledVertexAttributes = null;
 
 #if GLES
         const FramebufferTarget GLFramebuffer = FramebufferTarget.Framebuffer;
@@ -97,17 +97,22 @@ namespace Microsoft.Xna.Framework.Graphics
 
         internal void SetVertexAttributeArray(bool[] attrs)
         {
-            for(int x = 0; x < attrs.Length; x++)
+            int length = attrs.Length;
+            for(int x = 0; x < length; x++)
             {
-                if (attrs[x] && !_enabledVertexAttributes.Contains(x))
+                bool enabled = _enabledVertexAttributes[x];
+                if (attrs[x])
                 {
-                    _enabledVertexAttributes.Add(x);
-                    GL.EnableVertexAttribArray(x);
-                    GraphicsExtensions.CheckGLError();
+                    if (!enabled)
+                    {
+                        _enabledVertexAttributes[x] = true;
+                        GL.EnableVertexAttribArray(x);
+                        GraphicsExtensions.CheckGLError();
+                    }
                 }
-                else if (!attrs[x] && _enabledVertexAttributes.Contains(x))
+                else if (enabled)
                 {
-                    _enabledVertexAttributes.Remove(x);
+                    _enabledVertexAttributes[x] = false;
                     GL.DisableVertexAttribArray(x);
                     GraphicsExtensions.CheckGLError();
                 }
@@ -219,6 +224,8 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
 #endif
             _extensions = GetGLExtensions();
+
+            _enabledVertexAttributes = new bool[MaxVertexAttributes];
         }
 
         List<string> GetGLExtensions()
@@ -255,7 +262,8 @@ namespace Microsoft.Xna.Framework.Graphics
             _viewport = new Viewport(0, 0, PresentationParameters.BackBufferWidth, PresentationParameters.BackBufferHeight);
 
             // Ensure the vertex attributes are reset
-            _enabledVertexAttributes.Clear();
+            for (int i = 0; i < _enabledVertexAttributes.Length; ++i)
+            { _enabledVertexAttributes[i] = false; }
 
             // Free all the cached shader programs. 
             _programCache.Clear();
