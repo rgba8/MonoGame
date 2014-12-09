@@ -765,7 +765,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
 
             var posFixupLoc = shaderProgram.GetUniformLocation("posFixup");
-            if (posFixupLoc == -1)
+            if (posFixupLoc == null)
                 return;
 
             // Apply vertex shader fix:
@@ -807,7 +807,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 _posFixup[3] *= -1.0f;
             }
 
-            GL.Uniform4(posFixupLoc, 1, _posFixup);
+            GL.Uniform4(posFixupLoc.location, 1, _posFixup);
             GraphicsExtensions.CheckGLError();
         }
 
