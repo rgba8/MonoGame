@@ -880,6 +880,9 @@ namespace Microsoft.Xna.Framework.Graphics
 
             Textures.SetTextures(this);
             SamplerStates.PlatformSetSamplers(this);
+
+            _vertexConstantBuffers.Clear();
+            _pixelConstantBuffers.Clear();
         }
 
         private void PlatformDrawIndexedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount)

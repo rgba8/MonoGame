@@ -55,14 +55,13 @@ namespace Microsoft.Xna.Framework.Graphics
             // uniform again and apply the state.
             if (_shaderProgram != program)
             {
-                var location = program.GetUniformLocation(_name);
-                if (location == -1)
-                    return;
-
+                _location = program.GetUniformLocation(_name);
                 _shaderProgram = program;
-                _location = location;
                 _dirty = true;
             }
+
+            if (_location == -1)
+                return;
 
             // If the shader program is the same, the effect may still be different and have different values in the buffer
             if (!Object.ReferenceEquals(this, _lastConstantBufferApplied))
