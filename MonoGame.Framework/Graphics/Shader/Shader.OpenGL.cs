@@ -74,29 +74,12 @@ namespace Microsoft.Xna.Framework.Graphics
             GraphicsExtensions.CheckGLError();
 
             var compiled = 0;
-#if GLES && !ANGLE && !ANDROID
-			GL.GetShader(_shaderHandle, ShaderParameter.CompileStatus, ref compiled);
-#else
-            GL.GetShader(_shaderHandle, ShaderParameter.CompileStatus, out compiled);
-#endif
+
+            GL.GetShader(_shaderHandle, ShaderParameter.CompileStatus, ref compiled);
             GraphicsExtensions.CheckGLError();
             if (compiled == (int)All.False)
             {
-#if GLES && !ANGLE && !ANDROID
-                string log = "";
-                int length = 0;
-				GL.GetShader(_shaderHandle, ShaderParameter.InfoLogLength, ref length);
-                GraphicsExtensions.CheckGLError();
-                if (length > 0)
-                {
-                    var logBuilder = new StringBuilder(length);
-					GL.GetShaderInfoLog(_shaderHandle, length, ref length, logBuilder);
-                    GraphicsExtensions.CheckGLError();
-                    log = logBuilder.ToString();
-                }
-#else
                 var log = GL.GetShaderInfoLog(_shaderHandle);
-#endif
                 Console.WriteLine(log);
 
                 if (GL.IsShader(_shaderHandle))

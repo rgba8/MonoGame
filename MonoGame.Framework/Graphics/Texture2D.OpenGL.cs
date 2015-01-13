@@ -239,11 +239,8 @@ namespace Microsoft.Xna.Framework.Graphics
             // TODO: check for data size and for non renderable formats (formats that can't be attached to FBO)
 
             var framebufferId = 0;
-#if !ANDROID
-            GL.GenFramebuffers(1, ref framebufferId);
-#else
+
             GL.GenFramebuffers(1, out framebufferId);
-#endif
             GraphicsExtensions.CheckGLError();
             GL.BindFramebuffer(All.Framebuffer, framebufferId);
             GraphicsExtensions.CheckGLError();
@@ -562,11 +559,8 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             if (this.glTexture < 0)
             {
-#if IOS
-                GL.GenTextures(1, ref this.glTexture);
-#else
+
                 GL.GenTextures(1, out this.glTexture);
-#endif
                 GraphicsExtensions.CheckGLError();
 
                 // For best compatibility and to keep the default wrap mode of XNA, only set ClampToEdge if either
