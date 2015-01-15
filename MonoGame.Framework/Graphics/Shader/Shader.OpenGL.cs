@@ -79,7 +79,25 @@ namespace Microsoft.Xna.Framework.Graphics
             GraphicsExtensions.CheckGLError();
             if (compiled == (int)All.False)
             {
+#if GLES && !ANGLE && !ANDROID
+                string log = "";
+                int length = 0;
+				GL.GetShader(_shaderHandle, ShaderParameter.InfoLogLength, ref length);
+                GraphicsExtensions.CheckGLError();
+                if (length > 0)
+                {
+                    var logBuilder = new StringBuilder(length);
+					#if IOS
+					GL.GetShaderInfoLog(_shaderHandle, length, out length, logBuilder);
+					#else
+					GL.GetShaderInfoLog(_shaderHandle, length, ref length, logBuilder);
+					#endif
+                    GraphicsExtensions.CheckGLError();
+                    log = logBuilder.ToString();
+                }
+#else
                 var log = GL.GetShaderInfoLog(_shaderHandle);
+#endif
                 Console.WriteLine(log);
 
                 if (GL.IsShader(_shaderHandle))
@@ -146,7 +164,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             if (!IsDisposed)
             {
-                GraphicsDevice.AddDisposeAction(() =>
+                Threading.BlockOnUIThread(() =>
                 {
                     if (_shaderHandle != -1)
                     {
