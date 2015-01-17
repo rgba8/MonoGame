@@ -125,7 +125,7 @@ namespace MonoGame.Tools.Pipeline
 				a.RetVal = true;
 		}
 
-		#region IView implements
+#region IView implements
 
 		public void Attach (IController controller)
 		{
@@ -171,6 +171,9 @@ namespace MonoGame.Tools.Pipeline
 
 			var result = (filechooser.Run() == (int)ResponseType.Accept) ? true : false;
 			filePath = filechooser.Filename;
+
+            if (filechooser.Filter == MonoGameContentProjectFileFilter)
+                filePath += ".mgcb";
 
 			filechooser.Destroy ();
 			return result;
@@ -250,7 +253,7 @@ namespace MonoGame.Tools.Pipeline
 
 		public void AddTreeItem (IProjectItem item)
 		{
-			projectview1.AddItem (projectview1.GetBaseIter(), item.OriginalPath);
+			projectview1.AddItem (projectview1.GetBaseIter(), item.OriginalPath, item.Exists);
 		}
 
 		public void RemoveTreeItem (ContentItem contentItem)
@@ -260,7 +263,7 @@ namespace MonoGame.Tools.Pipeline
 
 		public void UpdateTreeItem (IProjectItem item)
 		{
-			//throw new NotImplementedException();
+
 		}
 
 		public void EndTreeUpdate ()
@@ -314,11 +317,12 @@ namespace MonoGame.Tools.Pipeline
 
 		public void OnTemplateDefined(ContentItemTemplate item)
 		{
+
 		}
 
-		private string ReplaceCharacters(string fileName)
+		public void ItemExistanceChanged(IProjectItem item)
 		{
-			return fileName.Replace (" ", "\\ ").Replace ("(", "\\(").Replace (")", "\\)");
+			projectview1.RefreshItem(projectview1.GetBaseIter(), item.OriginalPath, item.Exists);
 		}
 
 		public Process CreateProcess(string exe, string commands)
@@ -335,6 +339,7 @@ namespace MonoGame.Tools.Pipeline
 
 			return _buildProcess;
 		}
+#endregion
 
 		protected void OnNewActionActivated (object sender, EventArgs e)
 		{
@@ -398,10 +403,10 @@ namespace MonoGame.Tools.Pipeline
 				if (paths.Length == 1) {
 					if (icons [0] == projectview1.ICON_FOLDER)
 						location = paths [0];
-					else if (icons [0] == projectview1.ICON_OTHER)
-						location = System.IO.Path.GetDirectoryName (paths [0]);
-					else
+					else if (icons[0] == projectview1.ICON_BASE)
 						location = _controller.GetFullPath ("");
+					else
+						location = System.IO.Path.GetDirectoryName (paths [0]);
 				}
 				else
 					location = _controller.GetFullPath ("");
@@ -419,10 +424,10 @@ namespace MonoGame.Tools.Pipeline
 			if (paths.Length == 1) {
 				if (icons [0] == projectview1.ICON_FOLDER)
 					_controller.Include (paths [0]);
-				else if (icons [0] == projectview1.ICON_OTHER)
-					_controller.Include (System.IO.Path.GetDirectoryName (paths [0]));
-				else
+				else if (icons[0] == projectview1.ICON_BASE)
 					_controller.Include (_controller.GetFullPath (""));
+				else
+					_controller.Include (System.IO.Path.GetDirectoryName (paths [0]));
 			}
 			else
 				_controller.Include (_controller.GetFullPath (""));
@@ -528,6 +533,8 @@ namespace MonoGame.Tools.Pipeline
 				recentMenu.Submenu = m;
 				m.ShowAll ();
 			}
+
+            recentMenu.Sensitive = nop > 0;
 			menubar1.ShowAll ();
 		}
 
@@ -546,7 +553,6 @@ namespace MonoGame.Tools.Pipeline
 		{
 			UpdateMenus ();
 		}
-		#endregion
 	}
 }
 
