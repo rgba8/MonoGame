@@ -524,7 +524,7 @@ namespace Microsoft.Xna.Framework.Content
 						
 						/* fill all possible lookups of this symbol with the symbol itself */
 						fill = bit_mask;
-						while(fill-- > 0) table[leaf++] = sym;
+						unchecked { while(fill-- > 0) table[leaf++] = sym; }
 					}
 				}
 				bit_mask >>= 1;
@@ -603,12 +603,12 @@ namespace Microsoft.Xna.Framework.Content
 				if(z == 17)
 				{
 					y = bitbuf.ReadBits(4); y += 4;
-					while(y-- != 0) lens[x++] = 0;
+					unchecked { while(y-- != 0) lens[x++] = 0; }
 				}
 				else if(z == 18)
 				{
 					y = bitbuf.ReadBits(5); y += 20;
-					while(y-- != 0) lens[x++] = 0;
+					unchecked { while(y-- != 0) lens[x++] = 0; }
 				}
 				else if(z == 19)
 				{
@@ -616,7 +616,7 @@ namespace Microsoft.Xna.Framework.Content
 					z = (int)ReadHuffSym(m_state.PRETREE_table, m_state.PRETREE_len,
 				                LzxConstants.PRETREE_MAXSYMBOLS, LzxConstants.PRETREE_TABLEBITS, bitbuf);
 					z = lens[x] - z; if(z < 0) z += 17;
-					while(y-- != 0) lens[x++] = (byte)z;
+					unchecked { while(y-- != 0) lens[x++] = (byte)z; }
 				}
 				else
 				{
@@ -670,7 +670,7 @@ namespace Microsoft.Xna.Framework.Content
 					int lo = (byte)byteStream.ReadByte();
 					int hi = (byte)byteStream.ReadByte();
                     //int amount2shift = sizeof(uint)*8 - 16 - bitsleft;
-					buffer |= (uint)(((hi << 8) | lo) << (sizeof(uint)*8 - 16 - bitsleft));
+					unchecked { buffer |= (uint)(((hi << 8) | lo) << (sizeof(uint)*8 - 16 - bitsleft)); }
 					bitsleft += 16;
 				}
 			}
