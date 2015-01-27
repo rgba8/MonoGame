@@ -20,12 +20,11 @@ namespace Microsoft.Xna.Framework.Graphics
         internal PixelInternalFormat glInternalFormat;
         internal PixelFormat glFormat;
         internal PixelType glType;
-        internal System.Collections.Generic.Dictionary<int, SamplerState> glLastSamplerStates = new System.Collections.Generic.Dictionary<int, SamplerState>();
+        internal SamplerState[] glLastSamplerStates = null;
 
         private void PlatformGraphicsDeviceResetting()
         {
             DeleteGLTexture();
-            glLastSamplerStates.Clear();
         }
 
         protected override void Dispose(bool disposing)
@@ -33,7 +32,6 @@ namespace Microsoft.Xna.Framework.Graphics
             if (!IsDisposed)
             {
                 DeleteGLTexture();
-                glLastSamplerStates.Clear();
             }
 
             base.Dispose(disposing);
@@ -41,6 +39,8 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private void DeleteGLTexture()
         {
+            System.Array.Clear(glLastSamplerStates, 0, glLastSamplerStates.Length);
+
             if (glTexture > 0)
             {
                 int texture = glTexture;
