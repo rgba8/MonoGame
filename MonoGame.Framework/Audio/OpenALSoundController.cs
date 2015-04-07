@@ -20,6 +20,7 @@ using Android.Media;
 
 #if IOS
 using AudioToolbox;
+using AVFoundation;
 #endif
 
 namespace Microsoft.Xna.Framework.Audio
@@ -177,15 +178,14 @@ namespace Microsoft.Xna.Framework.Audio
                     0
                 };
 #elif IOS
-                AudioSession.Initialize();
 
-                AudioSession.Interrupted += (sender, e) => {
-                    AudioSession.SetActive(false);
+                AVAudioSession.SharedInstance().BeginInterruption += (sender, e) => {
+                    AVAudioSession.SharedInstance().SetActive(false);
                     Alc.MakeContextCurrent(ContextHandle.Zero);
                     Alc.SuspendContext(_context);
                 };
-                AudioSession.Resumed += (sender, e) => {
-                    AudioSession.SetActive(true);
+                AVAudioSession.SharedInstance().EndInterruption += (sender, e) => {
+                    AVAudioSession.SharedInstance().SetActive(true);
                     Alc.MakeContextCurrent(_context);
                     Alc.ProcessContext(_context);
                 };
