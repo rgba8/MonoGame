@@ -2,13 +2,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace TwoMGFX
 {
-    public enum ShaderPrecision
-    {
-        Low = 0,
-        Medium,
-        High
-    };
-
 	internal partial class ShaderData
 	{
 		public bool IsVertexShader;
@@ -41,7 +34,7 @@ namespace TwoMGFX
 
 		public Attribute[] _attributes;
 
-		public byte[] ShaderCode { get; private set; }
+		public byte[] ShaderCode { get; set; }
 
 
 #region Non-Serialized Stuff
