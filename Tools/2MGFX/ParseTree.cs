@@ -420,7 +420,7 @@ namespace TwoMGFX
 
         protected virtual object EvalStart(ParseTree tree, params object[] paramlist)
         {
-            var shader = new ShaderInfo();
+            var shader = paramlist[0] as ShaderInfo;
         
            foreach (var node in Nodes)
               node.Eval(tree, shader);
@@ -441,8 +441,20 @@ namespace TwoMGFX
            // Make sure we have at least one pass.
            if (technique.Passes.Count > 0)
            {
-              var shaderInfo = paramlist[0] as ShaderInfo;
-              shaderInfo.Techniques.Add(technique);
+                var shaderInfo = paramlist[0] as ShaderInfo;
+                bool found = false;
+                foreach (var t in shaderInfo.Techniques)
+                {
+                    if (t.name == technique.name)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+                if (found == false)
+                {
+                    shaderInfo.Techniques.Add(technique);
+                }
            }
         
            return null;
