@@ -678,6 +678,23 @@ namespace Microsoft.Xna.Framework.Graphics
 				glInternalFormat = (PixelInternalFormat)All.CompressedRgbaPvrtc4Bppv1Img;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
+            case SurfaceFormat.Vector2:
+                glInternalFormat = PixelInternalFormat.LuminanceAlpha;
+                glFormat = PixelFormat.LuminanceAlpha;
+                glType = (PixelType)5126;
+                break;
+
+            case SurfaceFormat.Vector3:
+                glInternalFormat = PixelInternalFormat.Rgb;
+                glFormat = PixelFormat.Rgb;
+                glType = (PixelType)5126;
+                break;
+
+            case SurfaceFormat.Vector4:
+                glInternalFormat = PixelInternalFormat.Rgba;
+                glFormat = PixelFormat.Rgba;
+                glType = (PixelType)5126;
+                break;
 #endif
 			default:
 				throw new NotSupportedException();
