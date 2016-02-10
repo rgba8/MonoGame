@@ -68,6 +68,8 @@ namespace Microsoft.Xna.Framework.Graphics
         Bgr32 = 20,     // B8G8R8X8
         Bgra32 = 21,    // B8G8R8A8
         Vector3 = 22,
+
+        HalfVector3 = 23,
         
 		// Good explanation of compressed formats for mobile devices (aimed at Android, but describes PVRTC)
 		// http://developer.motorola.com/docstools/library/understanding-texture-compression/
