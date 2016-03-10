@@ -159,6 +159,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 case VertexElementFormat.NormalizedShort4:
                     return VertexAttribPointerType.Short;
                 
+
 #if MONOMAC || WINDOWS || LINUX
                case VertexElementFormat.HalfVector2:
                     return VertexAttribPointerType.HalfFloat;
@@ -571,6 +572,12 @@ namespace Microsoft.Xna.Framework.Graphics
 				glType = PixelType.HalfFloat;
                 break;
 
+            case SurfaceFormat.HalfVector3:
+                glInternalFormat = PixelInternalFormat.Rgb16f;
+                glFormat = PixelFormat.Rgb;
+                glType = PixelType.HalfFloat;
+                break;
+
             // HdrBlendable implemented as HalfVector4 (see http://blogs.msdn.com/b/shawnhar/archive/2010/07/09/surfaceformat-hdrblendable.aspx)
             case SurfaceFormat.HdrBlendable:
             case SurfaceFormat.HalfVector4:
@@ -588,6 +595,12 @@ namespace Microsoft.Xna.Framework.Graphics
             case SurfaceFormat.Vector2:
                 glInternalFormat = PixelInternalFormat.Rg32f;
                 glFormat = PixelFormat.Rg;
+                glType = PixelType.Float;
+                break;
+
+            case SurfaceFormat.Vector3:
+                glInternalFormat = PixelInternalFormat.Rgb32f;
+                glFormat = PixelFormat.Rgb;
                 glType = PixelType.Float;
                 break;
 
@@ -672,6 +685,52 @@ namespace Microsoft.Xna.Framework.Graphics
 				glInternalFormat = (PixelInternalFormat)All.CompressedRgbaPvrtc4Bppv1Img;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
+            case SurfaceFormat.Vector2:
+                glInternalFormat = PixelInternalFormat.LuminanceAlpha;
+                glFormat = PixelFormat.LuminanceAlpha;
+                glType = (PixelType)5126;
+                break;
+
+            case SurfaceFormat.Vector3:
+                glInternalFormat = PixelInternalFormat.Rgb;
+                glFormat = PixelFormat.Rgb;
+                glType = (PixelType)5126;
+                break;
+
+            case SurfaceFormat.Vector4:
+                glInternalFormat = PixelInternalFormat.Rgba;
+                glFormat = PixelFormat.Rgba;
+                glType = (PixelType)5126;
+                break;
+
+            case SurfaceFormat.HalfSingle:
+                glInternalFormat = (PixelInternalFormat)0x822D;
+                glFormat = PixelFormat.Luminance;
+                glType = (PixelType)0x8D61;
+                break;
+
+            case SurfaceFormat.HalfVector2:
+                glInternalFormat = (PixelInternalFormat)0x822F;
+                glFormat = PixelFormat.LuminanceAlpha;
+                glType = (PixelType)0x8D61;
+                break;
+
+
+            case SurfaceFormat.HalfVector3:
+                glInternalFormat = (PixelInternalFormat)0x881B;
+                glFormat = PixelFormat.Rgb;
+                glType = (PixelType)0x8D61;
+                break;
+
+
+            case SurfaceFormat.HalfVector4:
+                //glInternalFormat = (PixelInternalFormat)0x881A;
+                glInternalFormat = PixelInternalFormat.Rgba;
+                glFormat = PixelFormat.Rgba;
+                glType = (PixelType)0x8D61;
+                break;
+
+
 #endif
 			default:
 				throw new NotSupportedException();
@@ -733,6 +792,10 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.Rgba64:
                 case SurfaceFormat.Vector2:
                     return 8;
+                case SurfaceFormat.HalfVector3:
+                    return 6;
+                case SurfaceFormat.Vector3:
+                    return 12;
                 case SurfaceFormat.Vector4:
                     return 16;
                 default:

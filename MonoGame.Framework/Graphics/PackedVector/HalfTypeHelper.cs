@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.Xna.Framework.Graphics.PackedVector
 {
-    internal class HalfTypeHelper
+    public class HalfTypeHelper
     {
         [StructLayout(LayoutKind.Explicit)]
         private struct uif
@@ -20,14 +20,14 @@ namespace Microsoft.Xna.Framework.Graphics.PackedVector
             public uint u;
         }
 
-        internal static UInt16 Convert(float f)
+        public static UInt16 Convert(float f)
         {
             uif uif = new uif();
             uif.f = f;
             return Convert(uif.i);
         }
 
-        internal static UInt16 Convert(int i)
+        public static UInt16 Convert(int i)
         {
             int s = (i >> 16) & 0x00008000;
             int e = ((i >> 23) & 0x000000ff) - (127 - 15);
@@ -81,7 +81,7 @@ namespace Microsoft.Xna.Framework.Graphics.PackedVector
             }
         }
 
-        internal static float Convert(ushort value)
+        public static float Convert(ushort value)
         {
             uint rst;
             uint mantissa = (uint)(value & 1023);
