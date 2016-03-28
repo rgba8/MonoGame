@@ -20,14 +20,14 @@ namespace TwoMGFX
         public int CurrentColumn;
         public int CurrentPosition;
         public List<Token> Skipped; // tokens that were skipped
-        public Dictionary<TokenType, Xeger> Patterns;
+        public Dictionary<TokenType, RegexWrapper> Patterns;
 
         private Token LookAheadToken;
         private List<TokenType> Tokens;
         private List<TokenType> SkipList; // tokens to be skipped
         private readonly TokenType FileAndLine;
 
-        public class Xeger
+        public class RegexWrapper
         {
             Regex regex = null;
             Options options = Options.None;
@@ -44,18 +44,18 @@ namespace TwoMGFX
                 Or,
             };
 
-            public Xeger(string pattern, RegexOptions options)
+            public RegexWrapper(string pattern, RegexOptions options)
             {
                 this.regex = new Regex(pattern, options);
             }
 
-            public Xeger(string pattern, Options options)
+            public RegexWrapper(string pattern, Options options)
             {
                 this.pattern = pattern;
                 this.options = options;
             }
 
-            public Xeger(string[] patterns, Options options)
+            public RegexWrapper(string[] patterns, Options options)
             {
                 foreach (var pattern in patterns)
                 {
@@ -154,7 +154,7 @@ namespace TwoMGFX
                                     index = scanToken;
                                     break;
                                 }
-                            }       
+                            }
                         }
                     }
                 }
@@ -163,8 +163,8 @@ namespace TwoMGFX
 
         public Scanner()
         {
-            Xeger regex;
-            Patterns = new Dictionary<TokenType, Xeger>();
+            RegexWrapper regex;
+            Patterns = new Dictionary<TokenType, RegexWrapper>();
             Tokens = new List<TokenType>();
             LookAheadToken = null;
             Skipped = new List<Token>();
@@ -176,355 +176,355 @@ namespace TwoMGFX
             SkipList.Add(TokenType.LinePragma);
             FileAndLine = TokenType.LinePragma;
 
-            regex = new Xeger(@"/\*([^*]|\*[^/])*\*/", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"/\*([^*]|\*[^/])*\*/", RegexOptions.Compiled);
             Patterns.Add(TokenType.BlockComment, regex);
             Tokens.Add(TokenType.BlockComment);
 
-            regex = new Xeger(@"//[^\n\r]*", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"//[^\n\r]*", RegexOptions.Compiled);
             Patterns.Add(TokenType.Comment, regex);
             Tokens.Add(TokenType.Comment);
 
-            regex = new Xeger(@"[ \t\n\r]+", Xeger.Options.Whitespace);
+            regex = new RegexWrapper(@"[ \t\n\r]+", RegexWrapper.Options.Whitespace);
             Patterns.Add(TokenType.Whitespace, regex);
             Tokens.Add(TokenType.Whitespace);
 
-            regex = new Xeger(@"^[ \t]*#line[ \t]*(?<Line>\d*)[ \t]*(\""(?<File>[^\""\\]*(?:\\.[^\""\\]*)*)\"")?\n", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"^[ \t]*#line[ \t]*(?<Line>\d*)[ \t]*(\""(?<File>[^\""\\]*(?:\\.[^\""\\]*)*)\"")?\n", RegexOptions.Compiled);
             Patterns.Add(TokenType.LinePragma, regex);
             Tokens.Add(TokenType.LinePragma);
 
-            regex = new Xeger(@"pass", Xeger.Options.None);
+            regex = new RegexWrapper(@"pass", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Pass, regex);
             Tokens.Add(TokenType.Pass);
 
-            regex = new Xeger(@"technique", Xeger.Options.None);
+            regex = new RegexWrapper(@"technique", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Technique, regex);
             Tokens.Add(TokenType.Technique);
 
-            regex = new Xeger(new string[]{ @"sampler1D", @"sampler2D" , @"sampler3D", @"samplerCUBE", @"SamplerState" , @"sampler"} , Xeger.Options.Or);
+            regex = new RegexWrapper(new string[] { @"sampler1D", @"sampler2D", @"sampler3D", @"samplerCUBE", @"SamplerState", @"sampler" }, RegexWrapper.Options.Or);
             Patterns.Add(TokenType.Sampler, regex);
             Tokens.Add(TokenType.Sampler);
 
-            regex = new Xeger(@"sampler_state", Xeger.Options.None);
+            regex = new RegexWrapper(@"sampler_state", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.SamplerState, regex);
             Tokens.Add(TokenType.SamplerState);
 
-            regex = new Xeger(@"VertexShader", Xeger.Options.None);
+            regex = new RegexWrapper(@"VertexShader", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.VertexShader, regex);
             Tokens.Add(TokenType.VertexShader);
 
-            regex = new Xeger(@"PixelShader", Xeger.Options.None);
+            regex = new RegexWrapper(@"PixelShader", RegexWrapper.Options.None);
             Patterns.Add(TokenType.PixelShader, regex);
             Tokens.Add(TokenType.PixelShader);
 
-            regex = new Xeger(@"register", Xeger.Options.None);
+            regex = new RegexWrapper(@"register", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Register, regex);
             Tokens.Add(TokenType.Register);
 
-            regex = new Xeger(@"true|false|0|1", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"true|false|0|1", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             Patterns.Add(TokenType.Boolean, regex);
             Tokens.Add(TokenType.Boolean);
 
-            regex = new Xeger(@"[+-]? ?[0-9]?\.?[0-9]+[fF]?", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[+-]? ?[0-9]?\.?[0-9]+[fF]?", RegexOptions.Compiled);
             Patterns.Add(TokenType.Number, regex);
             Tokens.Add(TokenType.Number);
 
-            regex = new Xeger(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
             Patterns.Add(TokenType.Identifier, regex);
             Tokens.Add(TokenType.Identifier);
 
-            regex = new Xeger(@"{", Xeger.Options.None);
+            regex = new RegexWrapper(@"{", RegexWrapper.Options.None);
             Patterns.Add(TokenType.OpenBracket, regex);
             Tokens.Add(TokenType.OpenBracket);
 
-            regex = new Xeger(@"}", Xeger.Options.None);
+            regex = new RegexWrapper(@"}", RegexWrapper.Options.None);
             Patterns.Add(TokenType.CloseBracket, regex);
             Tokens.Add(TokenType.CloseBracket);
 
-            regex = new Xeger(@"=", Xeger.Options.None);
+            regex = new RegexWrapper(@"=", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Equals, regex);
             Tokens.Add(TokenType.Equals);
 
-            regex = new Xeger(@":", Xeger.Options.None);
+            regex = new RegexWrapper(@":", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Colon, regex);
             Tokens.Add(TokenType.Colon);
 
-            regex = new Xeger(@",", Xeger.Options.None);
+            regex = new RegexWrapper(@",", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Comma, regex);
             Tokens.Add(TokenType.Comma);
 
-            regex = new Xeger(@";", Xeger.Options.None);
+            regex = new RegexWrapper(@";", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Semicolon, regex);
             Tokens.Add(TokenType.Semicolon);
 
-            regex = new Xeger(@"|", Xeger.Options.None);
+            regex = new RegexWrapper(@"|", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Or, regex);
             Tokens.Add(TokenType.Or);
 
-            regex = new Xeger(@"(", Xeger.Options.None);
+            regex = new RegexWrapper(@"(", RegexWrapper.Options.None);
             Patterns.Add(TokenType.OpenParenthesis, regex);
             Tokens.Add(TokenType.OpenParenthesis);
 
-            regex = new Xeger(@")", Xeger.Options.None);
+            regex = new RegexWrapper(@")", RegexWrapper.Options.None);
             Patterns.Add(TokenType.CloseParenthesis, regex);
             Tokens.Add(TokenType.CloseParenthesis);
 
-            regex = new Xeger(@"[", Xeger.Options.None);
+            regex = new RegexWrapper(@"[", RegexWrapper.Options.None);
             Patterns.Add(TokenType.OpenSquareBracket, regex);
             Tokens.Add(TokenType.OpenSquareBracket);
 
-            regex = new Xeger(@"]", Xeger.Options.None);
+            regex = new RegexWrapper(@"]", RegexWrapper.Options.None);
             Patterns.Add(TokenType.CloseSquareBracket, regex);
             Tokens.Add(TokenType.CloseSquareBracket);
 
-            regex = new Xeger(@"<", Xeger.Options.None);
+            regex = new RegexWrapper(@"<", RegexWrapper.Options.None);
             Patterns.Add(TokenType.LessThan, regex);
             Tokens.Add(TokenType.LessThan);
 
-            regex = new Xeger(@">", Xeger.Options.None);
+            regex = new RegexWrapper(@">", RegexWrapper.Options.None);
             Patterns.Add(TokenType.GreaterThan, regex);
             Tokens.Add(TokenType.GreaterThan);
 
-            regex = new Xeger(@"compile", Xeger.Options.None);
+            regex = new RegexWrapper(@"compile", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Compile, regex);
             Tokens.Add(TokenType.Compile);
 
-            regex = new Xeger(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
             Patterns.Add(TokenType.ShaderModel, regex);
             Tokens.Add(TokenType.ShaderModel);
 
-            regex = new Xeger(@"[\S]+", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[\S]+", RegexOptions.Compiled);
             Patterns.Add(TokenType.Code, regex);
             Tokens.Add(TokenType.Code);
 
-            regex = new Xeger(@"^$", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"^$", RegexOptions.Compiled);
             Patterns.Add(TokenType.EndOfFile, regex);
             Tokens.Add(TokenType.EndOfFile);
 
-            regex = new Xeger(@"MinFilter", Xeger.Options.None);
+            regex = new RegexWrapper(@"MinFilter", RegexWrapper.Options.None);
             Patterns.Add(TokenType.MinFilter, regex);
             Tokens.Add(TokenType.MinFilter);
 
-            regex = new Xeger(@"MagFilter", Xeger.Options.None);
+            regex = new RegexWrapper(@"MagFilter", RegexWrapper.Options.None);
             Patterns.Add(TokenType.MagFilter, regex);
             Tokens.Add(TokenType.MagFilter);
 
-            regex = new Xeger(@"MipFilter", Xeger.Options.None);
+            regex = new RegexWrapper(@"MipFilter", RegexWrapper.Options.None);
             Patterns.Add(TokenType.MipFilter, regex);
             Tokens.Add(TokenType.MipFilter);
 
-            regex = new Xeger(@"Filter", Xeger.Options.None);
+            regex = new RegexWrapper(@"Filter", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Filter, regex);
             Tokens.Add(TokenType.Filter);
 
-            regex = new Xeger(@"Texture", Xeger.Options.None);
+            regex = new RegexWrapper(@"Texture", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Texture, regex);
             Tokens.Add(TokenType.Texture);
 
-            regex = new Xeger(@"AddressU", Xeger.Options.None);
+            regex = new RegexWrapper(@"AddressU", RegexWrapper.Options.None);
             Patterns.Add(TokenType.AddressU, regex);
             Tokens.Add(TokenType.AddressU);
 
-            regex = new Xeger(@"AddressV", Xeger.Options.None);
+            regex = new RegexWrapper(@"AddressV", RegexWrapper.Options.None);
             Patterns.Add(TokenType.AddressV, regex);
             Tokens.Add(TokenType.AddressV);
 
-            regex = new Xeger(@"AddressW", Xeger.Options.None);
+            regex = new RegexWrapper(@"AddressW", RegexWrapper.Options.None);
             Patterns.Add(TokenType.AddressW, regex);
             Tokens.Add(TokenType.AddressW);
 
-            regex = new Xeger(@"MaxAnisotropy", Xeger.Options.None);
+            regex = new RegexWrapper(@"MaxAnisotropy", RegexWrapper.Options.None);
             Patterns.Add(TokenType.MaxAnisotropy, regex);
             Tokens.Add(TokenType.MaxAnisotropy);
 
-            regex = new Xeger(@"MaxMipLevel|MaxLod", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MaxMipLevel|MaxLod", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             Patterns.Add(TokenType.MaxMipLevel, regex);
             Tokens.Add(TokenType.MaxMipLevel);
 
-            regex = new Xeger(@"MipLodBias", Xeger.Options.None);
+            regex = new RegexWrapper(@"MipLodBias", RegexWrapper.Options.None);
             Patterns.Add(TokenType.MipLodBias, regex);
             Tokens.Add(TokenType.MipLodBias);
 
-            regex = new Xeger(@"Clamp", Xeger.Options.None);
+            regex = new RegexWrapper(@"Clamp", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Clamp, regex);
             Tokens.Add(TokenType.Clamp);
 
-            regex = new Xeger(@"Wrap", Xeger.Options.None);
+            regex = new RegexWrapper(@"Wrap", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Wrap, regex);
             Tokens.Add(TokenType.Wrap);
 
-            regex = new Xeger(@"Mirror", Xeger.Options.None);
+            regex = new RegexWrapper(@"Mirror", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Mirror, regex);
             Tokens.Add(TokenType.Mirror);
 
-            regex = new Xeger(@"None", Xeger.Options.None);
+            regex = new RegexWrapper(@"None", RegexWrapper.Options.None);
             Patterns.Add(TokenType.None, regex);
             Tokens.Add(TokenType.None);
 
-            regex = new Xeger(@"Linear", Xeger.Options.None);
+            regex = new RegexWrapper(@"Linear", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Linear, regex);
             Tokens.Add(TokenType.Linear);
 
-            regex = new Xeger(@"Point", Xeger.Options.None);
+            regex = new RegexWrapper(@"Point", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Point, regex);
             Tokens.Add(TokenType.Point);
 
-            regex = new Xeger(@"Anisotropic", Xeger.Options.None);
+            regex = new RegexWrapper(@"Anisotropic", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Anisotropic, regex);
             Tokens.Add(TokenType.Anisotropic);
 
-            regex = new Xeger(@"AlphaBlendEnable", Xeger.Options.None);
+            regex = new RegexWrapper(@"AlphaBlendEnable", RegexWrapper.Options.None);
             Patterns.Add(TokenType.AlphaBlendEnable, regex);
             Tokens.Add(TokenType.AlphaBlendEnable);
 
-            regex = new Xeger(@"SrcBlend", Xeger.Options.None);
+            regex = new RegexWrapper(@"SrcBlend", RegexWrapper.Options.None);
             Patterns.Add(TokenType.SrcBlend, regex);
             Tokens.Add(TokenType.SrcBlend);
 
-            regex = new Xeger(@"DestBlend", Xeger.Options.None);
+            regex = new RegexWrapper(@"DestBlend", RegexWrapper.Options.None);
             Patterns.Add(TokenType.DestBlend, regex);
             Tokens.Add(TokenType.DestBlend);
 
-            regex = new Xeger(@"BlendOp", Xeger.Options.None);
+            regex = new RegexWrapper(@"BlendOp", RegexWrapper.Options.None);
             Patterns.Add(TokenType.BlendOp, regex);
             Tokens.Add(TokenType.BlendOp);
 
-            regex = new Xeger(@"ColorWriteEnable", Xeger.Options.None);
+            regex = new RegexWrapper(@"ColorWriteEnable", RegexWrapper.Options.None);
             Patterns.Add(TokenType.ColorWriteEnable, regex);
             Tokens.Add(TokenType.ColorWriteEnable);
 
-            regex = new Xeger(@"ZEnable", Xeger.Options.None);
+            regex = new RegexWrapper(@"ZEnable", RegexWrapper.Options.None);
             Patterns.Add(TokenType.ZEnable, regex);
             Tokens.Add(TokenType.ZEnable);
 
-            regex = new Xeger(@"ZWriteEnable", Xeger.Options.None);
+            regex = new RegexWrapper(@"ZWriteEnable", RegexWrapper.Options.None);
             Patterns.Add(TokenType.ZWriteEnable, regex);
             Tokens.Add(TokenType.ZWriteEnable);
 
-            regex = new Xeger(@"DepthBias", Xeger.Options.None);
+            regex = new RegexWrapper(@"DepthBias", RegexWrapper.Options.None);
             Patterns.Add(TokenType.DepthBias, regex);
             Tokens.Add(TokenType.DepthBias);
 
-            regex = new Xeger(@"CullMode", Xeger.Options.None);
+            regex = new RegexWrapper(@"CullMode", RegexWrapper.Options.None);
             Patterns.Add(TokenType.CullMode, regex);
             Tokens.Add(TokenType.CullMode);
 
-            regex = new Xeger(@"FillMode", Xeger.Options.None);
+            regex = new RegexWrapper(@"FillMode", RegexWrapper.Options.None);
             Patterns.Add(TokenType.FillMode, regex);
             Tokens.Add(TokenType.FillMode);
 
-            regex = new Xeger(@"MultiSampleAntiAlias", Xeger.Options.None);
+            regex = new RegexWrapper(@"MultiSampleAntiAlias", RegexWrapper.Options.None);
             Patterns.Add(TokenType.MultiSampleAntiAlias, regex);
             Tokens.Add(TokenType.MultiSampleAntiAlias);
 
-            regex = new Xeger(@"SlopeScaleDepthBias", Xeger.Options.None);
+            regex = new RegexWrapper(@"SlopeScaleDepthBias", RegexWrapper.Options.None);
             Patterns.Add(TokenType.SlopeScaleDepthBias, regex);
             Tokens.Add(TokenType.SlopeScaleDepthBias);
 
-            regex = new Xeger(@"Red", Xeger.Options.None);
+            regex = new RegexWrapper(@"Red", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Red, regex);
             Tokens.Add(TokenType.Red);
 
-            regex = new Xeger(@"Green", Xeger.Options.None);
+            regex = new RegexWrapper(@"Green", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Green, regex);
             Tokens.Add(TokenType.Green);
 
-            regex = new Xeger(@"Blue", Xeger.Options.None);
+            regex = new RegexWrapper(@"Blue", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Blue, regex);
             Tokens.Add(TokenType.Blue);
 
-            regex = new Xeger(@"Alpha", Xeger.Options.None);
+            regex = new RegexWrapper(@"Alpha", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Alpha, regex);
             Tokens.Add(TokenType.Alpha);
 
-            regex = new Xeger(@"All", Xeger.Options.None);
+            regex = new RegexWrapper(@"All", RegexWrapper.Options.None);
             Patterns.Add(TokenType.All, regex);
             Tokens.Add(TokenType.All);
 
-            regex = new Xeger(@"Cw", Xeger.Options.None);
+            regex = new RegexWrapper(@"Cw", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Cw, regex);
             Tokens.Add(TokenType.Cw);
 
-            regex = new Xeger(@"Ccw", Xeger.Options.None);
+            regex = new RegexWrapper(@"Ccw", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Ccw, regex);
             Tokens.Add(TokenType.Ccw);
 
-            regex = new Xeger(@"Solid", Xeger.Options.None);
+            regex = new RegexWrapper(@"Solid", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Solid, regex);
             Tokens.Add(TokenType.Solid);
 
-            regex = new Xeger(@"WireFrame", Xeger.Options.None);
+            regex = new RegexWrapper(@"WireFrame", RegexWrapper.Options.None);
             Patterns.Add(TokenType.WireFrame, regex);
             Tokens.Add(TokenType.WireFrame);
 
-            regex = new Xeger(@"Add", Xeger.Options.None);
+            regex = new RegexWrapper(@"Add", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Add, regex);
             Tokens.Add(TokenType.Add);
 
-            regex = new Xeger(@"Subtract", Xeger.Options.None);
+            regex = new RegexWrapper(@"Subtract", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Subtract, regex);
             Tokens.Add(TokenType.Subtract);
 
-            regex = new Xeger(@"RevSubtract", Xeger.Options.None);
+            regex = new RegexWrapper(@"RevSubtract", RegexWrapper.Options.None);
             Patterns.Add(TokenType.RevSubtract, regex);
             Tokens.Add(TokenType.RevSubtract);
 
-            regex = new Xeger(@"Min", Xeger.Options.None);
+            regex = new RegexWrapper(@"Min", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Min, regex);
             Tokens.Add(TokenType.Min);
 
-            regex = new Xeger(@"Max", Xeger.Options.None);
+            regex = new RegexWrapper(@"Max", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Max, regex);
             Tokens.Add(TokenType.Max);
 
-            regex = new Xeger(@"Zero", Xeger.Options.None);
+            regex = new RegexWrapper(@"Zero", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Zero, regex);
             Tokens.Add(TokenType.Zero);
 
-            regex = new Xeger(@"One", Xeger.Options.None);
+            regex = new RegexWrapper(@"One", RegexWrapper.Options.None);
             Patterns.Add(TokenType.One, regex);
             Tokens.Add(TokenType.One);
 
-            regex = new Xeger(@"SrcColor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"SrcColor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             Patterns.Add(TokenType.SrcColor, regex);
             Tokens.Add(TokenType.SrcColor);
 
-            regex = new Xeger(@"InvSrcColor", Xeger.Options.None);
+            regex = new RegexWrapper(@"InvSrcColor", RegexWrapper.Options.None);
             Patterns.Add(TokenType.InvSrcColor, regex);
             Tokens.Add(TokenType.InvSrcColor);
 
-            regex = new Xeger(@"SrcAlpha", Xeger.Options.None);
+            regex = new RegexWrapper(@"SrcAlpha", RegexWrapper.Options.None);
             Patterns.Add(TokenType.SrcAlpha, regex);
             Tokens.Add(TokenType.SrcAlpha);
 
-            regex = new Xeger(@"InvSrcAlpha", Xeger.Options.None);
+            regex = new RegexWrapper(@"InvSrcAlpha", RegexWrapper.Options.None);
             Patterns.Add(TokenType.InvSrcAlpha, regex);
             Tokens.Add(TokenType.InvSrcAlpha);
 
-            regex = new Xeger(@"DestAlpha", Xeger.Options.None);
+            regex = new RegexWrapper(@"DestAlpha", RegexWrapper.Options.None);
             Patterns.Add(TokenType.DestAlpha, regex);
             Tokens.Add(TokenType.DestAlpha);
 
-            regex = new Xeger(@"InvDestAlpha", Xeger.Options.None);
+            regex = new RegexWrapper(@"InvDestAlpha", RegexWrapper.Options.None);
             Patterns.Add(TokenType.InvDestAlpha, regex);
             Tokens.Add(TokenType.InvDestAlpha);
 
-            regex = new Xeger(@"DestColor", Xeger.Options.None);
+            regex = new RegexWrapper(@"DestColor", RegexWrapper.Options.None);
             Patterns.Add(TokenType.DestColor, regex);
             Tokens.Add(TokenType.DestColor);
 
-            regex = new Xeger(@"InvDestColor", Xeger.Options.None);
+            regex = new RegexWrapper(@"InvDestColor", RegexWrapper.Options.None);
             Patterns.Add(TokenType.InvDestColor, regex);
             Tokens.Add(TokenType.InvDestColor);
 
-            regex = new Xeger(@"SrcAlphaSat", Xeger.Options.None);
+            regex = new RegexWrapper(@"SrcAlphaSat", RegexWrapper.Options.None);
             Patterns.Add(TokenType.SrcAlphaSat, regex);
             Tokens.Add(TokenType.SrcAlphaSat);
 
-            regex = new Xeger(@"BlendFactor", Xeger.Options.None);
+            regex = new RegexWrapper(@"BlendFactor", RegexWrapper.Options.None);
             Patterns.Add(TokenType.BlendFactor, regex);
             Tokens.Add(TokenType.BlendFactor);
 
-            regex = new Xeger(@"InvBlendFactor", Xeger.Options.None);
+            regex = new RegexWrapper(@"InvBlendFactor", RegexWrapper.Options.None);
             Patterns.Add(TokenType.InvBlendFactor, regex);
             Tokens.Add(TokenType.InvBlendFactor);
 
@@ -623,7 +623,7 @@ namespace TwoMGFX
                     {
                         ++hitCount[scantokens[i]];
                     }
-                    Xeger r = Patterns[scantokens[i]];
+                    RegexWrapper r = Patterns[scantokens[i]];
                     r.Match(input, scantokens[i], ref len, ref index);
                 }
 
