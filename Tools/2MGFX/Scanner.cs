@@ -20,17 +20,174 @@ namespace TwoMGFX
         public int CurrentColumn;
         public int CurrentPosition;
         public List<Token> Skipped; // tokens that were skipped
-        public Dictionary<TokenType, Regex> Patterns;
+        public Dictionary<TokenType, RegexWrapper> Patterns;
 
         private Token LookAheadToken;
         private List<TokenType> Tokens;
         private List<TokenType> SkipList; // tokens to be skipped
         private readonly TokenType FileAndLine;
 
+        public class RegexWrapper
+        {
+            public Regex regex = null;
+            Options options = Options.None;
+            string pattern = string.Empty;
+            Dictionary<string, bool> patterns = new Dictionary<string,bool>();
+            string[] patternArray = null;
+            int minLen = int.MaxValue;
+            int maxLen = int.MinValue;
+            public enum Options
+            {
+                None,
+                IgnoreCase,
+                Whitespace,
+                Or,
+            };
+
+            public RegexWrapper(string pattern, RegexOptions options)
+            {
+                this.regex = new Regex(pattern, options);
+            }
+
+            public RegexWrapper(string pattern, Options options)
+            {
+                if (options == Options.IgnoreCase)
+                {
+                    this.pattern = pattern.ToLower();
+                }
+                else
+                {
+                    this.pattern = pattern;
+                }
+                this.options = options;
+            }
+
+            public RegexWrapper(string[] patterns, Options options)
+            {
+                foreach (var pattern in patterns)
+                {
+                    minLen = Math.Min(minLen, pattern.Length);
+                    maxLen = Math.Max(maxLen, pattern.Length);
+                    this.patterns[pattern] = true;
+                }
+                this.patternArray = patterns;
+                this.options = options;
+            }
+
+            public void Match(string input, TokenType scanToken, ref int len, ref TokenType index)
+            {
+                if (regex != null)
+                {
+                    Match m = regex.Match(input);
+                    if (m.Success && m.Index == 0 && ((m.Length> len) || (scanToken < index && m.Length == len)))
+                    {
+                        len = m.Length;
+                        index = scanToken;
+                    }
+                }
+                else
+                {
+                    if (this.options == Options.None)
+                    {
+                        int patternLen = pattern.Length;
+                        int inputLen = input.Length;
+                        if (inputLen >= patternLen)
+                        {
+                            for (int i = 0; i < patternLen; ++i)
+                            {
+                                if (pattern[i] != input[i])
+                                { return; }
+                            }
+
+                            if (patternLen > len || (scanToken < index && patternLen == len))
+                            {
+                                len = patternLen;
+                                index = scanToken;
+                            }
+                        }
+                    }
+                    else if (this.options == Options.IgnoreCase)
+                    {
+                        int patternLen = pattern.Length;
+                        int inputLen = input.Length;
+                        if (inputLen >= patternLen)
+                        {
+                            for (int i = 0; i < patternLen; ++i)
+                            {
+                                if (pattern[i] != char.ToLower(input[i]))
+                                { return; }
+                            }
+
+                            if (patternLen > len || (scanToken < index && patternLen == len))
+                            {
+                                len = patternLen;
+                                index = scanToken;
+                            }
+                        }
+                    }
+                    else if (this.options == Options.Whitespace)
+                    {
+                        int whiteCount = 0;
+                        while (whiteCount < input.Length)
+                        {
+                            char current = input[whiteCount];
+                            if (current == ' ' ||
+                                current == '\t' ||
+                                current == '\n' ||
+                                current == '\r')
+                            {
+                                ++whiteCount;
+                            }
+                            else
+                            { break; }
+                        }
+                        if (whiteCount > 0)
+                        {
+                            len = whiteCount;
+                            index = scanToken;
+                        }
+                    }
+                    else if (this.options == Options.Or)
+                    {
+                        int count = this.patternArray.Length;
+                        for (int i = 0; i < count; ++i)
+                        {
+                            string pattern = this.patternArray[i];
+
+                            int patternLen = pattern.Length;
+                            int inputLen = input.Length;
+                            if (inputLen >= patternLen)
+                            {
+                                bool bContinue = false;
+                                for (int p = 0; p < patternLen; ++p)
+                                {
+                                    if (pattern[p] != input[p])
+                                    {
+                                        bContinue = true;
+                                        break;
+                                    }
+                                }
+
+                                if (bContinue)
+                                { continue; }
+
+                                if (patternLen > len || (scanToken < index && patternLen == len))
+                                {
+                                    len = patternLen;
+                                    index = scanToken;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         public Scanner()
         {
-            Regex regex;
-            Patterns = new Dictionary<TokenType, Regex>();
+            RegexWrapper regex;
+            Patterns = new Dictionary<TokenType, RegexWrapper>();
             Tokens = new List<TokenType>();
             LookAheadToken = null;
             Skipped = new List<Token>();
@@ -42,355 +199,355 @@ namespace TwoMGFX
             SkipList.Add(TokenType.LinePragma);
             FileAndLine = TokenType.LinePragma;
 
-            regex = new Regex(@"/\*([^*]|\*[^/])*\*/", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"/\*([^*]|\*[^/])*\*/", RegexOptions.Compiled);
             Patterns.Add(TokenType.BlockComment, regex);
             Tokens.Add(TokenType.BlockComment);
 
-            regex = new Regex(@"//[^\n\r]*", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"//[^\n\r]*", RegexOptions.Compiled);
             Patterns.Add(TokenType.Comment, regex);
             Tokens.Add(TokenType.Comment);
 
-            regex = new Regex(@"[ \t\n\r]+", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[ \t\n\r]+", RegexWrapper.Options.Whitespace);
             Patterns.Add(TokenType.Whitespace, regex);
             Tokens.Add(TokenType.Whitespace);
 
-            regex = new Regex(@"^[ \t]*#line[ \t]*(?<Line>\d*)[ \t]*(\""(?<File>[^\""\\]*(?:\\.[^\""\\]*)*)\"")?\n", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"^[ \t]*#line[ \t]*(?<Line>\d*)[ \t]*(\""(?<File>[^\""\\]*(?:\\.[^\""\\]*)*)\"")?\n", RegexOptions.Compiled);
             Patterns.Add(TokenType.LinePragma, regex);
             Tokens.Add(TokenType.LinePragma);
 
-            regex = new Regex(@"pass", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"pass", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Pass, regex);
             Tokens.Add(TokenType.Pass);
 
-            regex = new Regex(@"technique", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"technique", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Technique, regex);
             Tokens.Add(TokenType.Technique);
 
-            regex = new Regex(@"sampler1D|sampler2D|sampler3D|samplerCUBE|SamplerState|sampler", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(new string[] { @"sampler1D", @"sampler2D", @"sampler3D", @"samplerCUBE", @"SamplerState", @"sampler" }, RegexWrapper.Options.Or);
             Patterns.Add(TokenType.Sampler, regex);
             Tokens.Add(TokenType.Sampler);
 
-            regex = new Regex(@"sampler_state", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"sampler_state", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.SamplerState, regex);
             Tokens.Add(TokenType.SamplerState);
 
-            regex = new Regex(@"VertexShader", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"VertexShader", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.VertexShader, regex);
             Tokens.Add(TokenType.VertexShader);
 
-            regex = new Regex(@"PixelShader", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"PixelShader", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.PixelShader, regex);
             Tokens.Add(TokenType.PixelShader);
 
-            regex = new Regex(@"register", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"register", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Register, regex);
             Tokens.Add(TokenType.Register);
 
-            regex = new Regex(@"true|false|0|1", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"true|false|0|1", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             Patterns.Add(TokenType.Boolean, regex);
             Tokens.Add(TokenType.Boolean);
 
-            regex = new Regex(@"[+-]? ?[0-9]?\.?[0-9]+[fF]?", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[+-]? ?[0-9]?\.?[0-9]+[fF]?", RegexOptions.Compiled);
             Patterns.Add(TokenType.Number, regex);
             Tokens.Add(TokenType.Number);
 
-            regex = new Regex(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
             Patterns.Add(TokenType.Identifier, regex);
             Tokens.Add(TokenType.Identifier);
 
-            regex = new Regex(@"{", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"{", RegexWrapper.Options.None);
             Patterns.Add(TokenType.OpenBracket, regex);
             Tokens.Add(TokenType.OpenBracket);
 
-            regex = new Regex(@"}", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"}", RegexWrapper.Options.None);
             Patterns.Add(TokenType.CloseBracket, regex);
             Tokens.Add(TokenType.CloseBracket);
 
-            regex = new Regex(@"=", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"=", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Equals, regex);
             Tokens.Add(TokenType.Equals);
 
-            regex = new Regex(@":", RegexOptions.Compiled);
+            regex = new RegexWrapper(@":", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Colon, regex);
             Tokens.Add(TokenType.Colon);
 
-            regex = new Regex(@",", RegexOptions.Compiled);
+            regex = new RegexWrapper(@",", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Comma, regex);
             Tokens.Add(TokenType.Comma);
 
-            regex = new Regex(@";", RegexOptions.Compiled);
+            regex = new RegexWrapper(@";", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Semicolon, regex);
             Tokens.Add(TokenType.Semicolon);
 
-            regex = new Regex(@"\|", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"|", RegexWrapper.Options.None);
             Patterns.Add(TokenType.Or, regex);
             Tokens.Add(TokenType.Or);
 
-            regex = new Regex(@"\(", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"(", RegexWrapper.Options.None);
             Patterns.Add(TokenType.OpenParenthesis, regex);
             Tokens.Add(TokenType.OpenParenthesis);
 
-            regex = new Regex(@"\)", RegexOptions.Compiled);
+            regex = new RegexWrapper(@")", RegexWrapper.Options.None);
             Patterns.Add(TokenType.CloseParenthesis, regex);
             Tokens.Add(TokenType.CloseParenthesis);
 
-            regex = new Regex(@"\[", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[", RegexWrapper.Options.None);
             Patterns.Add(TokenType.OpenSquareBracket, regex);
             Tokens.Add(TokenType.OpenSquareBracket);
 
-            regex = new Regex(@"\]", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"]", RegexWrapper.Options.None);
             Patterns.Add(TokenType.CloseSquareBracket, regex);
             Tokens.Add(TokenType.CloseSquareBracket);
 
-            regex = new Regex(@"<", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"<", RegexWrapper.Options.None);
             Patterns.Add(TokenType.LessThan, regex);
             Tokens.Add(TokenType.LessThan);
 
-            regex = new Regex(@">", RegexOptions.Compiled);
+            regex = new RegexWrapper(@">", RegexWrapper.Options.None);
             Patterns.Add(TokenType.GreaterThan, regex);
             Tokens.Add(TokenType.GreaterThan);
 
-            regex = new Regex(@"compile", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"compile", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Compile, regex);
             Tokens.Add(TokenType.Compile);
 
-            regex = new Regex(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[A-Za-z_][A-Za-z0-9_]*", RegexOptions.Compiled);
             Patterns.Add(TokenType.ShaderModel, regex);
             Tokens.Add(TokenType.ShaderModel);
 
-            regex = new Regex(@"[\S]+", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"[\S]+", RegexOptions.Compiled);
             Patterns.Add(TokenType.Code, regex);
             Tokens.Add(TokenType.Code);
 
-            regex = new Regex(@"^$", RegexOptions.Compiled);
+            regex = new RegexWrapper(@"^$", RegexOptions.Compiled);
             Patterns.Add(TokenType.EndOfFile, regex);
             Tokens.Add(TokenType.EndOfFile);
 
-            regex = new Regex(@"MinFilter", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MinFilter", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.MinFilter, regex);
             Tokens.Add(TokenType.MinFilter);
 
-            regex = new Regex(@"MagFilter", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MagFilter", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.MagFilter, regex);
             Tokens.Add(TokenType.MagFilter);
 
-            regex = new Regex(@"MipFilter", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MipFilter", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.MipFilter, regex);
             Tokens.Add(TokenType.MipFilter);
 
-            regex = new Regex(@"Filter", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Filter", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Filter, regex);
             Tokens.Add(TokenType.Filter);
 
-            regex = new Regex(@"Texture", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Texture", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Texture, regex);
             Tokens.Add(TokenType.Texture);
 
-            regex = new Regex(@"AddressU", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"AddressU", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.AddressU, regex);
             Tokens.Add(TokenType.AddressU);
 
-            regex = new Regex(@"AddressV", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"AddressV", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.AddressV, regex);
             Tokens.Add(TokenType.AddressV);
 
-            regex = new Regex(@"AddressW", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"AddressW", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.AddressW, regex);
             Tokens.Add(TokenType.AddressW);
 
-            regex = new Regex(@"MaxAnisotropy", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MaxAnisotropy", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.MaxAnisotropy, regex);
             Tokens.Add(TokenType.MaxAnisotropy);
 
-            regex = new Regex(@"MaxMipLevel|MaxLod", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MaxMipLevel|MaxLod", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             Patterns.Add(TokenType.MaxMipLevel, regex);
             Tokens.Add(TokenType.MaxMipLevel);
 
-            regex = new Regex(@"MipLodBias", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MipLodBias", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.MipLodBias, regex);
             Tokens.Add(TokenType.MipLodBias);
 
-            regex = new Regex(@"Clamp", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Clamp", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Clamp, regex);
             Tokens.Add(TokenType.Clamp);
 
-            regex = new Regex(@"Wrap", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Wrap", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Wrap, regex);
             Tokens.Add(TokenType.Wrap);
 
-            regex = new Regex(@"Mirror", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Mirror", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Mirror, regex);
             Tokens.Add(TokenType.Mirror);
 
-            regex = new Regex(@"None", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"None", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.None, regex);
             Tokens.Add(TokenType.None);
 
-            regex = new Regex(@"Linear", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Linear", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Linear, regex);
             Tokens.Add(TokenType.Linear);
 
-            regex = new Regex(@"Point", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Point", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Point, regex);
             Tokens.Add(TokenType.Point);
 
-            regex = new Regex(@"Anisotropic", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Anisotropic", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Anisotropic, regex);
             Tokens.Add(TokenType.Anisotropic);
 
-            regex = new Regex(@"AlphaBlendEnable", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"AlphaBlendEnable", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.AlphaBlendEnable, regex);
             Tokens.Add(TokenType.AlphaBlendEnable);
 
-            regex = new Regex(@"SrcBlend", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"SrcBlend", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.SrcBlend, regex);
             Tokens.Add(TokenType.SrcBlend);
 
-            regex = new Regex(@"DestBlend", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"DestBlend", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.DestBlend, regex);
             Tokens.Add(TokenType.DestBlend);
 
-            regex = new Regex(@"BlendOp", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"BlendOp", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.BlendOp, regex);
             Tokens.Add(TokenType.BlendOp);
 
-            regex = new Regex(@"ColorWriteEnable", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"ColorWriteEnable", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.ColorWriteEnable, regex);
             Tokens.Add(TokenType.ColorWriteEnable);
 
-            regex = new Regex(@"ZEnable", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"ZEnable", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.ZEnable, regex);
             Tokens.Add(TokenType.ZEnable);
 
-            regex = new Regex(@"ZWriteEnable", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"ZWriteEnable", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.ZWriteEnable, regex);
             Tokens.Add(TokenType.ZWriteEnable);
 
-            regex = new Regex(@"DepthBias", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"DepthBias", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.DepthBias, regex);
             Tokens.Add(TokenType.DepthBias);
 
-            regex = new Regex(@"CullMode", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"CullMode", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.CullMode, regex);
             Tokens.Add(TokenType.CullMode);
 
-            regex = new Regex(@"FillMode", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"FillMode", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.FillMode, regex);
             Tokens.Add(TokenType.FillMode);
 
-            regex = new Regex(@"MultiSampleAntiAlias", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"MultiSampleAntiAlias", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.MultiSampleAntiAlias, regex);
             Tokens.Add(TokenType.MultiSampleAntiAlias);
 
-            regex = new Regex(@"SlopeScaleDepthBias", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"SlopeScaleDepthBias", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.SlopeScaleDepthBias, regex);
             Tokens.Add(TokenType.SlopeScaleDepthBias);
 
-            regex = new Regex(@"Red", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Red", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Red, regex);
             Tokens.Add(TokenType.Red);
 
-            regex = new Regex(@"Green", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Green", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Green, regex);
             Tokens.Add(TokenType.Green);
 
-            regex = new Regex(@"Blue", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Blue", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Blue, regex);
             Tokens.Add(TokenType.Blue);
 
-            regex = new Regex(@"Alpha", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Alpha", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Alpha, regex);
             Tokens.Add(TokenType.Alpha);
 
-            regex = new Regex(@"All", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"All", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.All, regex);
             Tokens.Add(TokenType.All);
 
-            regex = new Regex(@"Cw", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Cw", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Cw, regex);
             Tokens.Add(TokenType.Cw);
 
-            regex = new Regex(@"Ccw", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Ccw", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Ccw, regex);
             Tokens.Add(TokenType.Ccw);
 
-            regex = new Regex(@"Solid", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Solid", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Solid, regex);
             Tokens.Add(TokenType.Solid);
 
-            regex = new Regex(@"WireFrame", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"WireFrame", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.WireFrame, regex);
             Tokens.Add(TokenType.WireFrame);
 
-            regex = new Regex(@"Add", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Add", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Add, regex);
             Tokens.Add(TokenType.Add);
 
-            regex = new Regex(@"Subtract", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Subtract", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Subtract, regex);
             Tokens.Add(TokenType.Subtract);
 
-            regex = new Regex(@"RevSubtract", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"RevSubtract", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.RevSubtract, regex);
             Tokens.Add(TokenType.RevSubtract);
 
-            regex = new Regex(@"Min", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Min", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Min, regex);
             Tokens.Add(TokenType.Min);
 
-            regex = new Regex(@"Max", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Max", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Max, regex);
             Tokens.Add(TokenType.Max);
 
-            regex = new Regex(@"Zero", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"Zero", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.Zero, regex);
             Tokens.Add(TokenType.Zero);
 
-            regex = new Regex(@"One", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"One", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.One, regex);
             Tokens.Add(TokenType.One);
 
-            regex = new Regex(@"SrcColor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"SrcColor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
             Patterns.Add(TokenType.SrcColor, regex);
             Tokens.Add(TokenType.SrcColor);
 
-            regex = new Regex(@"InvSrcColor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"InvSrcColor", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.InvSrcColor, regex);
             Tokens.Add(TokenType.InvSrcColor);
 
-            regex = new Regex(@"SrcAlpha", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"SrcAlpha", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.SrcAlpha, regex);
             Tokens.Add(TokenType.SrcAlpha);
 
-            regex = new Regex(@"InvSrcAlpha", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"InvSrcAlpha", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.InvSrcAlpha, regex);
             Tokens.Add(TokenType.InvSrcAlpha);
 
-            regex = new Regex(@"DestAlpha", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"DestAlpha", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.DestAlpha, regex);
             Tokens.Add(TokenType.DestAlpha);
 
-            regex = new Regex(@"InvDestAlpha", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"InvDestAlpha", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.InvDestAlpha, regex);
             Tokens.Add(TokenType.InvDestAlpha);
 
-            regex = new Regex(@"DestColor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"DestColor", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.DestColor, regex);
             Tokens.Add(TokenType.DestColor);
 
-            regex = new Regex(@"InvDestColor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"InvDestColor", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.InvDestColor, regex);
             Tokens.Add(TokenType.InvDestColor);
 
-            regex = new Regex(@"SrcAlphaSat", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"SrcAlphaSat", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.SrcAlphaSat, regex);
             Tokens.Add(TokenType.SrcAlphaSat);
 
-            regex = new Regex(@"BlendFactor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"BlendFactor", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.BlendFactor, regex);
             Tokens.Add(TokenType.BlendFactor);
 
-            regex = new Regex(@"InvBlendFactor", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            regex = new RegexWrapper(@"InvBlendFactor", RegexWrapper.Options.IgnoreCase);
             Patterns.Add(TokenType.InvBlendFactor, regex);
             Tokens.Add(TokenType.InvBlendFactor);
 
@@ -478,13 +635,8 @@ namespace TwoMGFX
 
                 for (i = 0; i < scantokens.Count; i++)
                 {
-                    Regex r = Patterns[scantokens[i]];
-                    Match m = r.Match(input);
-                    if (m.Success && m.Index == 0 && ((m.Length > len) || (scantokens[i] < index && m.Length == len )))
-                    {
-                        len = m.Length;
-                        index = scantokens[i];  
-                    }
+                    RegexWrapper r = Patterns[scantokens[i]];
+                    r.Match(input, scantokens[i], ref len, ref index);
                 }
 
                 if (index >= 0 && len >= 0)
@@ -526,7 +678,7 @@ namespace TwoMGFX
                 // alter the file and line number.
                 if (tok.Type == FileAndLine)
                 {
-                    var match = Patterns[tok.Type].Match(tok.Text);
+                    var match = Patterns[tok.Type].regex.Match(tok.Text);
                     var fileMatch = match.Groups["File"];
                     if (fileMatch.Success)
                         currentFile = fileMatch.Value.Replace("\\\\", "\\");
