@@ -8,18 +8,13 @@ namespace TwoMGFX
 	{
 		public string FilePath { get; private set; }
 
-		public string FileContent { get; private set; }
+		public string FileContent { get; set; }
 
 		public ShaderProfile Profile { get; private set; }
 
 		public string OutputFilePath { get; private set; }
 
 		public bool Debug { get; private set; }
-
-        public ShaderPrecision VertexFloatPrecision { get; set; }
-        public ShaderPrecision VertexIntPrecision { get; set; }
-        public ShaderPrecision PixelFloatPrecision { get; set; }
-        public ShaderPrecision PixelIntPrecision { get; set; }
 
 		public List<TechniqueInfo> Techniques = new List<TechniqueInfo>();
         public Dictionary<string, SamplerStateInfo> SamplerStates = new Dictionary<string, SamplerStateInfo>();
@@ -35,8 +30,18 @@ namespace TwoMGFX
 		}
 
 		static public ShaderInfo FromString(string effectSource, string filePath, Options options)
-		{
-			var macros = new List<SharpDX.Direct3D.ShaderMacro>();
+        {
+            ShaderInfo shaderInfo = null;
+            FromString(ref shaderInfo, effectSource, filePath, options);
+            return shaderInfo;
+        }
+
+        static public void FromString(ref ShaderInfo result, string effectSource, string filePath, Options options)
+        {
+            if (result == null)
+            { result = new ShaderInfo();  }
+
+            var macros = new List<SharpDX.Direct3D.ShaderMacro>();
 			macros.Add(new SharpDX.Direct3D.ShaderMacro("MGFX", 1));
 
 			// Under the DX11 profile we pass a few more macros.
@@ -79,7 +84,7 @@ namespace TwoMGFX
 			}
 
             // Evaluate the results of the parse tree.
-            var result = tree.Eval() as ShaderInfo;
+            tree.Eval(new object []{result});
             result.Dependencies = dependencies;
             result.FilePath = fullPath;
             result.FileContent = newFile;
@@ -122,8 +127,6 @@ namespace TwoMGFX
 
 			result.Profile = options.Profile;
 			result.Debug = options.Debug;
-
-			return result;
 		}
 
 	}
