@@ -362,7 +362,7 @@ namespace Microsoft.Xna.Framework {
             if (gds == null || gds.GraphicsDevice == null)
                 return;
 
-			if (_framebuffer + _colorbuffer + _depthbuffer != 0)
+			if (_framebuffer != 0)
 				DestroyFramebuffer ();
 			if (__renderbuffergraphicsContext == null)
 				CreateContext();
@@ -379,7 +379,7 @@ namespace Microsoft.Xna.Framework {
                 
                 if (__renderbuffergraphicsContext == null)
                     CreateContext ();
-                if (_framebuffer * _colorbuffer * _depthbuffer == 0)
+                if (_framebuffer == 0)
                     CreateFramebuffer ();
             }
 		}
