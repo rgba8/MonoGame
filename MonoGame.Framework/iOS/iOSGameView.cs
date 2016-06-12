@@ -157,25 +157,6 @@ namespace Microsoft.Xna.Framework {
 		{
 			AssertNotDisposed ();
 
-            // RetainedBacking controls if the content of the colorbuffer should be preserved after being displayed
-            // This is the XNA equivalent to set PreserveContent when initializing the GraphicsDevice
-            // (should be false by default for better performance)
-			Layer.DrawableProperties = NSDictionary.FromObjectsAndKeys (
-				new NSObject [] {
-					NSNumber.FromBoolean (false), 
-					EAGLColorFormat.RGBA8
-				},
-				new NSObject [] {
-					EAGLDrawableProperty.RetainedBacking,
-					EAGLDrawableProperty.ColorFormat
-				});
-
-			Layer.ContentsScale = Window.Screen.Scale;
-
-			//var strVersion = OpenTK.Graphics.ES11.GL.GetString (OpenTK.Graphics.ES11.All.Version);
-			//strVersion = OpenTK.Graphics.ES20.GL.GetString (OpenTK.Graphics.ES20.All.Version);
-			//var version = Version.Parse (strVersion);
-
 			try {
 				__renderbuffergraphicsContext = new GraphicsContext (null, null, 2, 0, GraphicsContextFlags.Embedded);
 				_glapi = new Gles20Api ();
@@ -212,54 +193,84 @@ namespace Microsoft.Xna.Framework {
 			//        here and then force the state into
 			//        GraphicsDevice.  However, that change is a
 			//        ways off, yet.
-            int viewportHeight = (int)Math.Round(Layer.Bounds.Size.Height * Layer.ContentsScale);
-            int viewportWidth = (int)Math.Round(Layer.Bounds.Size.Width * Layer.ContentsScale);
 
-			_glapi.GenFramebuffers (1, ref _framebuffer);
-			_glapi.BindFramebuffer (All.Framebuffer, _framebuffer);
-
-			// Create our Depth buffer. Color buffer must be the last one bound
+            var depthBufferFormat = All.None;
+            var colorFormat = EAGLColorFormat.RGBA8;
             var gdm = _platform.Game.Services.GetService(
                 typeof(IGraphicsDeviceManager)) as GraphicsDeviceManager;
             if (gdm != null)
             {
-                var preferredDepthFormat = gdm.PreferredDepthStencilFormat;
-                if (preferredDepthFormat != DepthFormat.None)
+                switch (gdm.PreferredDepthStencilFormat)
                 {
-                    GL.GenRenderbuffers(1, out _depthbuffer);
-                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthbuffer);
-                    var internalFormat = All.DepthComponent16;
-                    if (preferredDepthFormat == DepthFormat.Depth24)
-                        internalFormat = All.DepthComponent24Oes;
-                    else if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
-                        internalFormat = All.Depth24Stencil8Oes;
-                    GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, (RenderbufferInternalFormat)internalFormat, viewportWidth, viewportHeight);
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
-                    if (preferredDepthFormat == DepthFormat.Depth24Stencil8)
-                        GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.StencilAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
+                    case DepthFormat.Depth16: depthBufferFormat = All.DepthComponent16; break;
+                    case DepthFormat.Depth24: depthBufferFormat = All.DepthComponent24Oes; break;
+                    case DepthFormat.Depth24Stencil8: depthBufferFormat = All.Depth24Stencil8Oes; break;
+                }
+
+                switch (gdm.PreferredBackBufferFormat)
+                {
+                    case SurfaceFormat.Color: colorFormat = EAGLColorFormat.RGBA8; break;
+                    case SurfaceFormat.Bgr565: colorFormat = EAGLColorFormat.RGB565; break;
+                    default: throw new ArgumentOutOfRangeException("The BackBufferFormat requested is invalid.");
                 }
             }
 
-			_glapi.GenRenderbuffers(1, ref _colorbuffer);
-			_glapi.BindRenderbuffer(All.Renderbuffer, _colorbuffer);
+            // RetainedBacking controls if the content of the colorbuffer should be preserved after being displayed
+            // This is the XNA equivalent to set PreserveContent when initializing the GraphicsDevice
+            // (should be false by default for better performance)
 
-			var ctx = ((IGraphicsContextInternal) __renderbuffergraphicsContext).Implementation as iPhoneOSGraphicsContext;
+            Layer.ContentsScale = Window.Screen.Scale;
+            Layer.Opaque = true;
+            Layer.DrawableProperties = NSDictionary.FromObjectsAndKeys(
+                new NSObject[] {
+					NSNumber.FromBoolean (false), 
+					colorFormat
+				},
+                new NSObject[] {
+					EAGLDrawableProperty.RetainedBacking,
+					EAGLDrawableProperty.ColorFormat
+				});
 
-			// TODO: EAGLContext.RenderBufferStorage returns false
-			//       on all but the first call.  Nevertheless, it
-			//       works.  Still, it would be nice to know why it
-			//       claims to have failed.
-			ctx.EAGLContext.RenderBufferStorage ((uint) All.Renderbuffer, Layer);
-			
-			_glapi.FramebufferRenderbuffer (All.Framebuffer, All.ColorAttachment0, All.Renderbuffer, _colorbuffer);
-			
+			GL.GenFramebuffers(1, out _framebuffer);
+			GL.BindFramebuffer(FramebufferTarget.Framebuffer, _framebuffer);
+
+            GL.GenRenderbuffers(1, out _colorbuffer);
+            GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _colorbuffer);
+
+            var ctx = ((IGraphicsContextInternal)__renderbuffergraphicsContext).Implementation as iPhoneOSGraphicsContext;
+            ctx.EAGLContext.RenderBufferStorage((uint)All.Renderbuffer, Layer);
+            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.ColorAttachment0, RenderbufferTarget.Renderbuffer, _colorbuffer);
+
+            var viewportWidth = 0;
+            var viewportHeight = 0;
+            GL.GetRenderbufferParameter(RenderbufferTarget.Renderbuffer, RenderbufferParameterName.RenderbufferWidth, out viewportWidth);
+            GL.GetRenderbufferParameter(RenderbufferTarget.Renderbuffer, RenderbufferParameterName.RenderbufferHeight, out viewportHeight);
+
+            var renderbufferInternalFormat = 0;
+            GL.GetRenderbufferParameter(RenderbufferTarget.Renderbuffer, RenderbufferParameterName.RenderbufferInternalFormat, out renderbufferInternalFormat);
+
+            var renderbufferDepthSize = 0;
+            var renderbufferStencilSize = 0;
+            if (depthBufferFormat != All.None)
+            {
+                GL.GenRenderbuffers(1, out _depthbuffer);
+                GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthbuffer);
+                GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, (RenderbufferInternalFormat)depthBufferFormat, viewportWidth, viewportHeight);
+                GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
+                if (depthBufferFormat == All.Depth24Stencil8Oes)
+                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.StencilAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
+
+                GL.GetRenderbufferParameter(RenderbufferTarget.Renderbuffer, RenderbufferParameterName.RenderbufferDepthSize, out renderbufferDepthSize);
+                GL.GetRenderbufferParameter(RenderbufferTarget.Renderbuffer, RenderbufferParameterName.RenderbufferStencilSize, out renderbufferStencilSize);
+            }
+
 			var status = GL.CheckFramebufferStatus(FramebufferTarget.Framebuffer);
 			if (status != FramebufferErrorCode.FramebufferComplete)
 				throw new InvalidOperationException (
 					"Framebuffer was not created correctly: " + status);
 
-			_glapi.Viewport(0, 0, viewportWidth, viewportHeight);
-            _glapi.Scissor(0, 0, viewportWidth, viewportHeight);
+			GL.Viewport(0, 0, viewportWidth, viewportHeight);
+            GL.Scissor(0, 0, viewportWidth, viewportHeight);
 
 			var gds = _platform.Game.Services.GetService(
                 typeof (IGraphicsDeviceService)) as IGraphicsDeviceService;
@@ -287,6 +298,10 @@ namespace Microsoft.Xna.Framework {
 
                 pp.BackBufferHeight = height;
                 pp.BackBufferWidth = width;
+                // We assume we got what we requested since iOS support is consistent accross gles 2.0+ devices
+                // Unsupported backbuffer format will throw an exception before getting here.
+                pp.BackBufferFormat = gdm.PreferredBackBufferFormat;
+                pp.DepthStencilFormat = gdm.PreferredDepthStencilFormat;
 
 				gds.GraphicsDevice.Viewport = new Viewport(
 					0, 0,
@@ -309,15 +324,15 @@ namespace Microsoft.Xna.Framework {
 
 			__renderbuffergraphicsContext.MakeCurrent (null);
 
-			_glapi.DeleteFramebuffers (1, ref _framebuffer);
+			GL.DeleteFramebuffers (1, ref _framebuffer);
 			_framebuffer = 0;
 
-			_glapi.DeleteRenderbuffers (1, ref _colorbuffer);
+			GL.DeleteRenderbuffers (1, ref _colorbuffer);
 			_colorbuffer = 0;
 			
             if (_depthbuffer != 0)
             {
-			    _glapi.DeleteRenderbuffers (1, ref _depthbuffer);
+			    GL.DeleteRenderbuffers (1, ref _depthbuffer);
 			    _depthbuffer = 0;
             }
 		}

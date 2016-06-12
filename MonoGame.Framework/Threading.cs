@@ -188,7 +188,7 @@ namespace Microsoft.Xna.Framework
                 // Execute the action
                 action();
                 // Must flush the GL calls so the GPU asset is ready for the main context to use it
-                GL.Flush();
+                GL.Finish();
                 GraphicsExtensions.CheckGLError();
             }
 #elif WINDOWS || LINUX || ANGLE
@@ -199,7 +199,7 @@ namespace Microsoft.Xna.Framework
                 // Execute the action
                 action();
                 // Must flush the GL calls so the texture is ready for the main context to use
-                GL.Flush();
+                GL.Finish();
                 GraphicsExtensions.CheckGLError();
                 // Must make the context not current on this thread or the next thread will get error 170 from the MakeCurrent call
                 BackgroundContext.MakeCurrent(null);
