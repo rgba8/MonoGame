@@ -12,7 +12,7 @@ namespace TwoMGFX
 	{
 
         private const string Header = "MGFX";
-        private const int Version = 6;
+        private const int Version = 7;
 
         /// <summary>
         /// Writes the effect for loading later.
@@ -46,7 +46,7 @@ namespace TwoMGFX
                 WriteParameters(memWriter, Parameters, Parameters.Length);
 
             // Write the techniques.
-                memWriter.Write((byte)Techniques.Length);
+                memWriter.Write((UInt16)Techniques.Length);
             foreach (var technique in Techniques)
             {
                     memWriter.Write(technique.name);

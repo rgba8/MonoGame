@@ -33,7 +33,7 @@ namespace Microsoft.Xna.Framework.Graphics
             /// We should avoid supporting old versions for very long if at all 
             /// as users should be rebuilding content when packaging their game.
             /// </remarks>
-            public const int MGFXVersion = 6;
+            public const int MGFXVersion = 7;
 
             public int Signature;
             public int Version;
@@ -110,7 +110,7 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 // Create one.
                 cloneSource = new Effect(graphicsDevice);
-                    cloneSource.ReadEffect(reader);
+                    cloneSource.ReadEffect(reader, header.Version);
 
                 // Cache the effect for later in its original unmodified state.
                     EffectCache.Add(effectKey, cloneSource);
@@ -134,7 +134,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             if (header.Signature != MGFXHeader.MGFXSignature)
                 throw new Exception("This does not appear to be a MonoGame MGFX file!");
-            if (header.Version < MGFXHeader.MGFXVersion)
+            if (header.Version < MGFXHeader.MGFXVersion && header.Version < 6) // KJ: we diverged at version 6, don't throw when version 6 effects are loaded (BasicEffect)
                 throw new Exception("This MGFX effect is for an older release of MonoGame and needs to be rebuilt.");
             if (header.Version > MGFXHeader.MGFXVersion)
                 throw new Exception("This MGFX effect seems to be for a newer release of MonoGame.");
@@ -259,7 +259,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 #if !PSM
 
-		private void ReadEffect (BinaryReader reader)
+		private void ReadEffect (BinaryReader reader, int version)
 		{
 			// TODO: Maybe we should be reading in a string 
 			// table here to save some bytes in the file.
@@ -306,7 +306,16 @@ namespace Microsoft.Xna.Framework.Graphics
             Parameters = ReadParameters(reader);
 
             // Read the techniques.
-            var techniqueCount = (int)reader.ReadByte();
+            var techniqueCount = 0;
+            if (version < 7)
+            {
+                techniqueCount = (int)reader.ReadByte();
+            }
+            else
+            {
+                techniqueCount = (int)reader.ReadUInt16();
+            }
+
             var techniques = new EffectTechnique[techniqueCount];
             for (var t = 0; t < techniqueCount; t++)
             {
