@@ -647,68 +647,84 @@ namespace TwoMGFX
             }
         }
 
+        static public EffectObject CreateEffect()
+        {
+            var effect = new EffectObject();
+
+            effect.ConstantBuffers = new List<ConstantBufferData>();
+            effect.Shaders = new List<ShaderData>();
+            effect.TechniqueList = new List<d3dx_technique>();
+
+            return effect;
+        }
 
         static public EffectObject CompileEffect(ShaderInfo shaderInfo, out string errorsAndWarnings)
         {
-            var effect = new EffectObject();
             errorsAndWarnings = string.Empty;
 
-            // These are filled out as we process stuff.
-            effect.ConstantBuffers = new List<ConstantBufferData>();
-            effect.Shaders = new List<ShaderData>();
+            var effect = CreateEffect();
 
-            // Go thru the techniques and that will find all the 
-            // shaders and constant buffers.
-            effect.Techniques = new d3dx_technique[shaderInfo.Techniques.Count];
-            for (var t = 0; t < shaderInfo.Techniques.Count; t++)
+            foreach (var technique in shaderInfo.Techniques)
+            { CompileTechnique(effect, shaderInfo, technique, ref errorsAndWarnings); }
+
+            LinkEffect(effect);
+            return effect;
+        }
+
+        static public void CompileTechnique(EffectObject effect, ShaderInfo shaderInfo, TechniqueInfo tinfo, ref string errorsAndWarnings)
+        {
+            var technique = new d3dx_technique();
+            technique.name = tinfo.name;
+            technique.pass_count = (uint)tinfo.Passes.Count;
+            technique.pass_handles = new d3dx_pass[tinfo.Passes.Count];
+
+            for (var p = 0; p < tinfo.Passes.Count; p++)
             {
-                var tinfo = shaderInfo.Techniques[t]; ;
+                var pinfo = tinfo.Passes[p];
 
-                var technique = new d3dx_technique();
-                technique.name = tinfo.name;
-                technique.pass_count = (uint)tinfo.Passes.Count;
-                technique.pass_handles = new d3dx_pass[tinfo.Passes.Count];
+                var pass = new d3dx_pass();
+                pass.name = pinfo.name ?? string.Empty;
 
-                for (var p = 0; p < tinfo.Passes.Count; p++)
+                pass.blendState = pinfo.blendState;
+                pass.depthStencilState = pinfo.depthStencilState;
+                pass.rasterizerState = pinfo.rasterizerState;
+
+                pass.state_count = 0;
+                var tempstate = new d3dx_state[2];
+
+                pinfo.ValidateShaderModels(shaderInfo.Profile);
+
+                if (!string.IsNullOrEmpty(pinfo.psFunction))
                 {
-                    var pinfo = tinfo.Passes[p];
-
-                    var pass = new d3dx_pass();
-                    pass.name = pinfo.name ?? string.Empty;
-
-                    pass.blendState = pinfo.blendState;
-                    pass.depthStencilState = pinfo.depthStencilState;
-                    pass.rasterizerState = pinfo.rasterizerState;
-
-                    pass.state_count = 0;
-                    var tempstate = new d3dx_state[2];
-
-                    pinfo.ValidateShaderModels(shaderInfo.Profile);
-
-                    if (!string.IsNullOrEmpty(pinfo.psFunction))
-                    {
-                        pass.state_count += 1;
-                        tempstate[pass.state_count - 1] = effect.CreateShader(shaderInfo, pinfo.psFunction, pinfo.psModel, false, ref errorsAndWarnings);
-                    }
-
-                    if (!string.IsNullOrEmpty(pinfo.vsFunction))
-                    {
-                        pass.state_count += 1;
-                        tempstate[pass.state_count - 1] = effect.CreateShader(shaderInfo, pinfo.vsFunction, pinfo.vsModel, true, ref errorsAndWarnings);
-                    }
-
-                    pass.states = new d3dx_state[pass.state_count];
-                    for (var s = 0; s < pass.state_count; s++)
-                        pass.states[s] = tempstate[s];
-
-                    technique.pass_handles[p] = pass;
+                    pass.state_count += 1;
+                    tempstate[pass.state_count - 1] = effect.CreateShader(shaderInfo, pinfo.psFunction, pinfo.psModel, false, ref errorsAndWarnings);
                 }
 
-                effect.Techniques[t] = technique;
+                if (!string.IsNullOrEmpty(pinfo.vsFunction))
+                {
+                    pass.state_count += 1;
+                    tempstate[pass.state_count - 1] = effect.CreateShader(shaderInfo, pinfo.vsFunction, pinfo.vsModel, true, ref errorsAndWarnings);
+                }
+
+                pass.states = new d3dx_state[pass.state_count];
+                for (var s = 0; s < pass.state_count; s++)
+                    pass.states[s] = tempstate[s];
+
+                technique.pass_handles[p] = pass;
             }
 
+            effect.TechniqueList.Add(technique);
+        }
+
+        static public void LinkEffect(EffectObject effect)
+        {
             // Make the list of parameters by combining all the
             // constant buffers ignoring the buffer offsets.
+
+            effect.Techniques = new d3dx_technique[effect.TechniqueList.Count];
+            for (int t = 0; t < effect.TechniqueList.Count; ++t)
+            { effect.Techniques[t] = effect.TechniqueList[t]; }
+
             var parameters = new List<d3dx_parameter>();
             for (var c = 0; c < effect.ConstantBuffers.Count; c++)
             {
@@ -787,10 +803,7 @@ namespace TwoMGFX
             // in our mgfx parser if we want them back.
 
             effect.Parameters = parameters.ToArray();
-
-            return effect;
         }
-
 
         private d3dx_state CreateShader(ShaderInfo shaderInfo, string shaderFunction, string shaderProfile, bool isVertexShader, ref string errorsAndWarnings)
         {
@@ -874,6 +887,8 @@ namespace TwoMGFX
         public d3dx_technique[] Techniques { get; private set; }
 
         public List<ShaderData> Shaders { get; private set; }
+
+        public List<d3dx_technique> TechniqueList { get; private set; }
 
         public List<ConstantBufferData> ConstantBuffers { get; private set; }
 	}

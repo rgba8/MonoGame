@@ -23,24 +23,22 @@ namespace TwoMGFX
 
         public List<string> AdditionalOutputFiles { get; private set; }
 
-		static public ShaderInfo FromFile(string path, Options options)
-		{
-			var effectSource = File.ReadAllText(path);
-			return FromString(effectSource, path, options);
-		}
-
-		static public ShaderInfo FromString(string effectSource, string filePath, Options options)
+        static public ShaderInfo FromFile(string path, Options options)
         {
-            ShaderInfo shaderInfo = null;
-            FromString(ref shaderInfo, effectSource, filePath, options);
-            return shaderInfo;
+            ShaderInfo result = new ShaderInfo();
+            var effectSource = File.ReadAllText(path);
+            FromString(result, effectSource, path, options);
+            return result;
         }
 
-        static public void FromString(ref ShaderInfo result, string effectSource, string filePath, Options options)
-        {
-            if (result == null)
-            { result = new ShaderInfo();  }
+		static public void FromFile(ShaderInfo result, string path, Options options)
+		{
+			var effectSource = File.ReadAllText(path);
+		    FromString(result, effectSource, path, options);
+		}
 
+        static public void FromString(ShaderInfo result, string effectSource, string filePath, Options options)
+        {
             var macros = new List<SharpDX.Direct3D.ShaderMacro>();
 			macros.Add(new SharpDX.Direct3D.ShaderMacro("MGFX", 1));
 
