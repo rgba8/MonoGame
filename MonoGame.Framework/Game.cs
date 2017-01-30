@@ -46,7 +46,7 @@ namespace Microsoft.Xna.Framework
         private IGraphicsDeviceService _graphicsDeviceService;
 
         private bool _initialized = false;
-        private bool _isFixedTimeStep = true;
+        //private bool _isFixedTimeStep = true;
 
         private TimeSpan _targetElapsedTime = TimeSpan.FromTicks(166667); // 60fps
         private TimeSpan _inactiveSleepTime = TimeSpan.FromSeconds(0.02);
@@ -246,8 +246,8 @@ namespace Microsoft.Xna.Framework
 
         public bool IsFixedTimeStep
         {
-            get { return _isFixedTimeStep; }
-            set { _isFixedTimeStep = value; }
+            get { return false; }// _isFixedTimeStep; }
+            set { /*_isFixedTimeStep = value*/; }
         }
 
         public GameServiceContainer Services {

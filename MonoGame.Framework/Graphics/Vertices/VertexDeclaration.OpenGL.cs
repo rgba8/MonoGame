@@ -18,7 +18,8 @@ namespace Microsoft.Xna.Framework.Graphics
     public partial class VertexDeclaration
     {
         Dictionary<int, VertexDeclarationAttributeInfo> shaderAttributeInfo = new Dictionary<int, VertexDeclarationAttributeInfo>();
-
+        static VertexDeclarationAttributeInfo currentAttribInfo = null;
+        static IntPtr currentOffset = (IntPtr)int.MaxValue;
 		internal void Apply(Shader shader, IntPtr offset)
 		{
             VertexDeclarationAttributeInfo attrInfo;
@@ -48,6 +49,22 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 shaderAttributeInfo.Add(shaderHash, attrInfo);
             }
+
+            //if (currentAttribInfo == attrInfo)
+            //{
+            //    if (currentOffset == offset)
+            //    {
+            //        return;
+            //    }
+            //    else
+            //    {
+            //        int kk = 0;
+            //        kk++;
+            //    }
+            //}
+
+            //currentAttribInfo = attrInfo;
+            //currentOffset = offset;
 
             // Apply the vertex attribute info
             foreach (var element in attrInfo.Elements)
