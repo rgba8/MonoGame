@@ -289,7 +289,14 @@ namespace Microsoft.Xna.Framework
 
         public override bool Equals(object obj)
         {
-            return (obj is Vector4) ? this == (Vector4)obj : false;
+            if (!(obj is Vector4))
+                return false;
+
+            var other = (Vector4)obj;
+            return this.W == other.W
+                && this.X == other.X
+                && this.Y == other.Y
+                && this.Z == other.Z;
         }
 
         public bool Equals(Vector4 other)
@@ -598,7 +605,10 @@ namespace Microsoft.Xna.Framework
 
         public static bool operator !=(Vector4 value1, Vector4 value2)
         {
-            return !(value1 == value2);
+            return value1.W != value2.W
+                || value1.X != value2.X
+                || value1.Y != value2.Y
+                || value1.Z != value2.Z;
         }
 
         public static Vector4 operator +(Vector4 value1, Vector4 value2)

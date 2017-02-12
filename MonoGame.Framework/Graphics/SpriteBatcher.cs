@@ -39,6 +39,7 @@
 // #endregion License
 // 
 
+using System;
 using System.Collections.Generic;
 
 namespace Microsoft.Xna.Framework.Graphics
@@ -72,12 +73,11 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <summary>
         /// The list of batch items to process.
         /// </summary>
-	    private readonly List<SpriteBatchItem> _batchItemList;
-
+        private SpriteBatchItem[] _batchItemList;
         /// <summary>
-        /// The available SpriteBatchItem queue so that we reuse these objects when we can.
+        /// Index pointer to the next available SpriteBatchItem in _batchItemList.
         /// </summary>
-        private readonly Queue<SpriteBatchItem> _freeBatchItemQueue;
+        private int _batchItemCount;
 
         /// <summary>
         /// The target graphics device.
@@ -95,8 +95,11 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
             _device = device;
 
-			_batchItemList = new List<SpriteBatchItem>(InitialBatchSize);
-			_freeBatchItemQueue = new Queue<SpriteBatchItem>(InitialBatchSize);
+            _batchItemList = new SpriteBatchItem[InitialBatchSize];
+            _batchItemCount = 0;
+
+            for (int i = 0; i < InitialBatchSize; i++)
+                _batchItemList[i] = new SpriteBatchItem();
 
             EnsureArrayCapacity(InitialBatchSize);
 		}
@@ -108,12 +111,18 @@ namespace Microsoft.Xna.Framework.Graphics
         /// <returns></returns>
         public SpriteBatchItem CreateBatchItem()
         {
-            SpriteBatchItem item;
-            if (_freeBatchItemQueue.Count > 0)
-                item = _freeBatchItemQueue.Dequeue();
-            else
-                item = new SpriteBatchItem();
-            _batchItemList.Add(item);
+            if (_batchItemCount >= _batchItemList.Length)
+            {
+                var oldSize = _batchItemList.Length;
+                var newSize = oldSize + oldSize / 2; // grow by x1.5
+                newSize = (newSize + 63) & (~63); // grow in chunks of 64.
+                Array.Resize(ref _batchItemList, newSize);
+                for (int i = oldSize; i < newSize; i++)
+                    _batchItemList[i] = new SpriteBatchItem();
+
+                EnsureArrayCapacity(Math.Min(newSize, MaxBatchSize));
+            }
+            var item = _batchItemList[_batchItemCount++];
             return item;
         }
 
@@ -202,29 +211,25 @@ namespace Microsoft.Xna.Framework.Graphics
         /// </summary>
         /// <param name="sortMode">The type of depth sorting desired for the rendering.</param>
         /// <param name="effect">The custom effect to apply to the drawn geometry</param>
-        public void DrawBatch(SpriteSortMode sortMode, Effect effect)
+        public unsafe void DrawBatch(SpriteSortMode sortMode, Effect effect)
 		{
 			// nothing to do
-			if ( _batchItemList.Count == 0 )
+			if ( _batchItemCount == 0 )
 				return;
 			
 			// sort the batch items
 			switch ( sortMode )
 			{
 			case SpriteSortMode.Texture :
-				_batchItemList.Sort( CompareTexture );
-				break;
 			case SpriteSortMode.FrontToBack :
-				_batchItemList.Sort ( CompareDepth );
-				break;
 			case SpriteSortMode.BackToFront :
-				_batchItemList.Sort ( CompareReverseDepth );
+                Array.Sort(_batchItemList, 0, _batchItemCount);
 				break;
 			}
 
             // Determine how many iterations through the drawing code we need to make
             int batchIndex = 0;
-            int batchCount = _batchItemList.Count;
+            int batchCount = _batchItemCount;
             // Iterate through the batches, doing short.MaxValue sets of vertices only.
             while(batchCount > 0)
             {
@@ -239,47 +244,55 @@ namespace Microsoft.Xna.Framework.Graphics
                     numBatchesToProcess = MaxBatchSize;
                 }
                 EnsureArrayCapacity(numBatchesToProcess);
-                // Draw the batches
-                for(int i = 0; i < numBatchesToProcess; i++, batchIndex++) 
+                // Avoid the array checking overhead by using pointer indexing!
+                fixed (VertexPositionColorTexture* vertexArrayFixedPtr = _vertexArray)
                 {
-                    SpriteBatchItem item = _batchItemList[batchIndex];
-                    // if the texture changed, we need to flush and bind the new texture
-                    var shouldFlush = !ReferenceEquals(item.Texture, tex);
-                    if (shouldFlush)
+                    var vertexArrayPtr = vertexArrayFixedPtr;
+
+                    // Draw the batches
+                    for (int i = 0; i < numBatchesToProcess; i++, batchIndex++, index += 4, vertexArrayPtr += 4)
                     {
-                        FlushVertexArray(startIndex, index, effect);
+                        SpriteBatchItem item = _batchItemList[batchIndex];
+                        // if the texture changed, we need to flush and bind the new texture
+                        var shouldFlush = !ReferenceEquals(item.Texture, tex);
+                        if (shouldFlush)
+                        {
+                            FlushVertexArray(startIndex, index, effect, tex);
 
-                        tex = item.Texture;
-                        startIndex = index = 0;
-                        _device.Textures[0] = tex;
+                            tex = item.Texture;
+                            startIndex = index = 0;
+                            vertexArrayPtr = vertexArrayFixedPtr;
+                            _device.Textures[0] = tex;
+                        }
+
+                        // store the SpriteBatchItem data in our vertexArray
+                        *(vertexArrayPtr + 0) = item.vertexTL;
+                        *(vertexArrayPtr + 1) = item.vertexTR;
+                        *(vertexArrayPtr + 2) = item.vertexBL;
+                        *(vertexArrayPtr + 3) = item.vertexBR;
+
+                        // Release the texture.
+                        item.Texture = null;
                     }
-
-                    // store the SpriteBatchItem data in our vertexArray
-                    _vertexArray[index++] = item.vertexTL;
-                    _vertexArray[index++] = item.vertexTR;
-                    _vertexArray[index++] = item.vertexBL;
-                    _vertexArray[index++] = item.vertexBR;
-
-                    // Release the texture and return the item to the queue.
-                    item.Texture = null;
-                    _freeBatchItemQueue.Enqueue(item);
                 }
                 // flush the remaining vertexArray data
-                FlushVertexArray(startIndex, index, effect);
+                FlushVertexArray(startIndex, index, effect, tex);
                 // Update our batch count to continue the process of culling down
                 // large batches
                 batchCount -= numBatchesToProcess;
             }
-			_batchItemList.Clear();
+            // return items to the pool. 
+            _batchItemCount = 0;
 		}
-				
+
         /// <summary>
         /// Sends the triangle list to the graphics device. Here is where the actual drawing starts.
         /// </summary>
         /// <param name="start">Start index of vertices to draw. Not used except to compute the count of vertices to draw.</param>
         /// <param name="end">End index of vertices to draw. Not used except to compute the count of vertices to draw.</param>
         /// <param name="effect">The custom effect to apply to the geometry</param>
-        private void FlushVertexArray(int start, int end, Effect effect)
+        /// <param name="texture">The texture to draw.</param>
+        private void FlushVertexArray(int start, int end, Effect effect, Texture texture)
         {
             if (start == end)
                 return;
@@ -293,6 +306,10 @@ namespace Microsoft.Xna.Framework.Graphics
                 foreach (var pass in passes)
                 {
                     pass.Apply();
+
+                    // Whatever happens in pass.Apply, make sure the texture being drawn
+                    // ends up in Textures[0].
+                    _device.Textures[0] = texture;
 
                     _device.DrawUserIndexedPrimitives(
                         PrimitiveType.TriangleList,

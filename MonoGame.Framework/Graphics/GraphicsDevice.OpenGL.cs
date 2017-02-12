@@ -632,15 +632,18 @@ namespace Microsoft.Xna.Framework.Graphics
                     {
                         this.framebufferHelper.FramebufferTexture2D((int)(FramebufferAttachment.ColorAttachment0 + i), (int)renderTarget.glTarget, renderTarget.glTexture);
                     }
-                    this.glResolveFramebuffers.Add(this._currentRenderTargetBindings, glResolveFramebuffer);
+                    this.glResolveFramebuffers.Add((RenderTargetBinding[])this._currentRenderTargetBindings.Clone(), glResolveFramebuffer);
                 }
                 else
                 {
                     this.framebufferHelper.BindFramebuffer(glResolveFramebuffer);
                 }
                 // The only fragment operations which affect the resolve are the pixel ownership test, the scissor test, and dithering.
-                GL.Disable(EnableCap.ScissorTest);
-                GraphicsExtensions.CheckGLError();
+                if (this._lastRasterizerState.ScissorTestEnable)
+                {
+                    GL.Disable(EnableCap.ScissorTest);
+                    GraphicsExtensions.CheckGLError();
+                }
                 var glFramebuffer = this.glFramebuffers[this._currentRenderTargetBindings];
                 this.framebufferHelper.BindReadFramebuffer(glFramebuffer);
                 for (var i = 0; i < this._currentRenderTargetCount; ++i)
@@ -651,7 +654,11 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
                 if (renderTarget.RenderTargetUsage == RenderTargetUsage.DiscardContents && this.framebufferHelper.SupportsInvalidateFramebuffer)
                     this.framebufferHelper.InvalidateReadFramebuffer();
-                this._depthStencilStateDirty = true;
+                if (this._lastRasterizerState.ScissorTestEnable)
+                {
+                    GL.Enable(EnableCap.ScissorTest);
+                    GraphicsExtensions.CheckGLError();
+                }
             }
             for (var i = 0; i < this._currentRenderTargetCount; ++i)
             {

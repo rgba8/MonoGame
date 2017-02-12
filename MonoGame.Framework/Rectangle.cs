@@ -210,7 +210,7 @@ namespace Microsoft.Xna.Framework
         /// <returns><c>true</c> if the instances are not equal; <c>false</c> otherwise.</returns>
         public static bool operator !=(Rectangle a, Rectangle b)
         {
-            return !(a == b);
+            return ((a.X != b.X) || (a.Y != b.Y) || (a.Width != b.Width) || (a.Height != b.Height));
         }
 
         #endregion
@@ -306,7 +306,14 @@ namespace Microsoft.Xna.Framework
         /// <returns><c>true</c> if the instances are equal; <c>false</c> otherwise.</returns>
         public override bool Equals(object obj)
         {
-            return (obj is Rectangle) && this == ((Rectangle)obj);
+            if (!(obj is Rectangle))
+                return false;
+
+            var other = (Rectangle)obj;
+            return this.X == other.X
+                && this.Y == other.Y
+                && this.Width == other.Width
+                && this.Height == other.Height;
         }
 
         /// <summary>
@@ -316,7 +323,10 @@ namespace Microsoft.Xna.Framework
         /// <returns><c>true</c> if the instances are equal; <c>false</c> otherwise.</returns>
         public bool Equals(Rectangle other)
         {
-            return this == other;
+            return this.X == other.X 
+                && this.Y == other.Y
+                && this.Width == other.Width
+                && this.Height == other.Height;
         }
 
         /// <summary>
