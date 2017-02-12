@@ -156,7 +156,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #else
                 GL.DeleteProgram(program);
 #endif
-                throw new InvalidOperationException("Unable to link effect program");
+                throw new InvalidOperationException("Unable to link effect program" + (String.IsNullOrEmpty(log) ? "" : (": " + log)));
             }
 
             ShaderProgram shaderProgram = new ShaderProgram(program);

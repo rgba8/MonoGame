@@ -55,9 +55,6 @@ namespace Microsoft.Xna.Framework.Graphics
             
             Threading.BlockOnUIThread(() =>
             {
-                // Store the current bound texture.
-                var prevTexture = GraphicsExtensions.GetBoundTexture2D();
-
                 GenerateGLTextureIfRequired();
 
                 format.GetGLFormat(out glInternalFormat, out glFormat, out glType);
@@ -98,10 +95,6 @@ namespace Microsoft.Xna.Framework.Graphics
                         glFormat, glType, IntPtr.Zero);
                     GraphicsExtensions.CheckGLError();
                 }
-
-                // Restore the bound texture.
-                GL.BindTexture(TextureTarget.Texture2D, prevTexture);
-                GraphicsExtensions.CheckGLError();
             });
         }
 
@@ -147,10 +140,6 @@ namespace Microsoft.Xna.Framework.Graphics
                                 h = (h + 3) & ~3;
                     }
                 }
-
-                    // Store the current bound texture.
-                    var prevTexture = GraphicsExtensions.GetBoundTexture2D();
-
                     GenerateGLTextureIfRequired();
 
                     GL.BindTexture(TextureTarget.Texture2D, this.glTexture);
@@ -189,25 +178,11 @@ namespace Microsoft.Xna.Framework.Graphics
                         // Return to default pixel alignment
                         GL.PixelStore(PixelStoreParameter.UnpackAlignment, 4);
                     }
-
-#if !ANDROID
-                    GL.Finish();
-                    GraphicsExtensions.CheckGLError();
-#endif
-                    // Restore the bound texture.
-                    GL.BindTexture(TextureTarget.Texture2D, prevTexture);
-                    GraphicsExtensions.CheckGLError();
             }
             finally
             {
                 dataHandle.Free();
             }
-
-#if !ANDROID
-                // Required to make sure that any texture uploads on a thread are completed
-                // before the main thread tries to use the texture.
-                GL.Finish();
-#endif
             });
         }
 
