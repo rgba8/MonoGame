@@ -33,7 +33,7 @@ namespace Microsoft.Xna.Framework.Graphics
             /// We should avoid supporting old versions for very long if at all 
             /// as users should be rebuilding content when packaging their game.
             /// </remarks>
-            public const int MGFXVersion = 7;
+            public const int MGFXVersion = 8;
 
             public int Signature;
             public int Version;
@@ -297,7 +297,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
 
             // Read in all the shader objects.
-            var shaders = (int)reader.ReadByte();
+            var shaders = version < 7 ? (int)reader.ReadByte() : (int)reader.ReadUInt16();
             _shaders = new Shader[shaders];
             for (var s = 0; s < shaders; s++)
                 _shaders[s] = new Shader(GraphicsDevice, reader);
@@ -323,7 +323,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 var annotations = ReadAnnotations(reader);
 
-                var passes = ReadPasses(reader, this, _shaders);
+                var passes = ReadPasses(reader, this, _shaders, version);
 
                 techniques[t] = new EffectTechnique(this, name, passes, annotations);
             }
@@ -345,7 +345,7 @@ namespace Microsoft.Xna.Framework.Graphics
             return new EffectAnnotationCollection(annotations);
         }
 
-        private static EffectPassCollection ReadPasses(BinaryReader reader, Effect effect, Shader[] shaders)
+        private static EffectPassCollection ReadPasses(BinaryReader reader, Effect effect, Shader[] shaders, int version)
         {
             var count = (int)reader.ReadByte();
             var passes = new EffectPass[count];
@@ -355,17 +355,26 @@ namespace Microsoft.Xna.Framework.Graphics
                 var name = reader.ReadString();
                 var annotations = ReadAnnotations(reader);
 
-                // Get the vertex shader.
                 Shader vertexShader = null;
-                var shaderIndex = (int)reader.ReadByte();
-                if (shaderIndex != 255)
+                Shader pixelShader = null;
+
+                if (version < 8)
+                {
+                    // Get the vertex shader.
+                    var shaderIndex = (int)reader.ReadByte();
+                    if (shaderIndex != 255)
                     vertexShader = shaders[shaderIndex];
 
-                // Get the pixel shader.
-                Shader pixelShader = null;
-                shaderIndex = (int)reader.ReadByte();
-                if (shaderIndex != 255)
+                    // Get the pixel shader.
+                    shaderIndex = (int)reader.ReadByte();
+                    if (shaderIndex != 255)
                     pixelShader = shaders[shaderIndex];
+                }
+                else
+                {
+                    vertexShader = shaders[reader.ReadUInt16()];
+                    pixelShader = shaders[reader.ReadUInt16()];
+                }
 
 				BlendState blend = null;
 				DepthStencilState depth = null;
