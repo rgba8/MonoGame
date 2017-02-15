@@ -12,7 +12,7 @@ namespace TwoMGFX
 	{
 
         private const string Header = "MGFX";
-        private const int Version = 7;
+        private const int Version = 8;
 
         /// <summary>
         /// Writes the effect for loading later.
@@ -38,7 +38,7 @@ namespace TwoMGFX
                     cbuffer.Write(memWriter, options);
 
             // Write all the shaders.
-                memWriter.Write((byte)Shaders.Count);
+                memWriter.Write((UInt16)Shaders.Count);
             foreach (var shader in Shaders)
                     shader.Write(memWriter, options);
 
@@ -64,8 +64,8 @@ namespace TwoMGFX
                     // Write the index for the vertex and pixel shaders.
                     var vertexShader = GetShaderIndex(STATE_CLASS.VERTEXSHADER, pass.states);
                     var pixelShader = GetShaderIndex(STATE_CLASS.PIXELSHADER, pass.states);
-                        memWriter.Write((byte)vertexShader);
-                        memWriter.Write((byte)pixelShader);
+                        memWriter.Write((UInt16)vertexShader);
+                        memWriter.Write((UInt16)pixelShader);
 
                     // Write the state objects too!
 					if (pass.blendState != null)

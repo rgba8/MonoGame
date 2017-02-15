@@ -647,13 +647,13 @@ namespace TwoMGFX
             }
         }
 
-        static public EffectObject CreateEffect()
+        static public EffectObject CreateEffect(int techniqueCount)
         {
             var effect = new EffectObject();
 
             effect.ConstantBuffers = new List<ConstantBufferData>();
             effect.Shaders = new List<ShaderData>();
-            effect.TechniqueList = new List<d3dx_technique>();
+            effect.Techniques = new d3dx_technique[techniqueCount];
 
             return effect;
         }
@@ -662,16 +662,17 @@ namespace TwoMGFX
         {
             errorsAndWarnings = string.Empty;
 
-            var effect = CreateEffect();
+            int techniqueCount = shaderInfo.Techniques.Count;
+            var effect = CreateEffect(techniqueCount);
 
-            foreach (var technique in shaderInfo.Techniques)
-            { CompileTechnique(effect, shaderInfo, technique, ref errorsAndWarnings); }
+            for (int i = 0; i < techniqueCount; ++i)
+            { CompileTechnique(effect, shaderInfo, i, shaderInfo.Techniques[i], ref errorsAndWarnings); }
 
             LinkEffect(effect);
             return effect;
         }
 
-        static public void CompileTechnique(EffectObject effect, ShaderInfo shaderInfo, TechniqueInfo tinfo, ref string errorsAndWarnings)
+        static public void CompileTechnique(EffectObject effect, ShaderInfo shaderInfo, int techniqueIndex, TechniqueInfo tinfo, ref string errorsAndWarnings)
         {
             var technique = new d3dx_technique();
             technique.name = tinfo.name;
@@ -713,17 +714,13 @@ namespace TwoMGFX
                 technique.pass_handles[p] = pass;
             }
 
-            effect.TechniqueList.Add(technique);
+            effect.Techniques[techniqueIndex] = technique;
         }
 
         static public void LinkEffect(EffectObject effect)
         {
             // Make the list of parameters by combining all the
             // constant buffers ignoring the buffer offsets.
-
-            effect.Techniques = new d3dx_technique[effect.TechniqueList.Count];
-            for (int t = 0; t < effect.TechniqueList.Count; ++t)
-            { effect.Techniques[t] = effect.TechniqueList[t]; }
 
             var parameters = new List<d3dx_parameter>();
             for (var c = 0; c < effect.ConstantBuffers.Count; c++)
@@ -887,8 +884,6 @@ namespace TwoMGFX
         public d3dx_technique[] Techniques { get; private set; }
 
         public List<ShaderData> Shaders { get; private set; }
-
-        public List<d3dx_technique> TechniqueList { get; private set; }
 
         public List<ConstantBufferData> ConstantBuffers { get; private set; }
 	}
