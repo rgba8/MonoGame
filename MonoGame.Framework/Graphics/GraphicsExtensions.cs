@@ -673,9 +673,14 @@ namespace Microsoft.Xna.Framework.Graphics
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
             case SurfaceFormat.HalfVector4:
-                glInternalFormat = PixelInternalFormat.Rgba;
+                glInternalFormat = (PixelInternalFormat)0x881A; // GL_RGBA_16F
+                glType = (PixelType)0x140B; // GL_HALF_FLOAT
                 glFormat = PixelFormat.Rgba;
-                glType = (PixelType)0x8D61;
+                break;
+            case SurfaceFormat.HalfVector4Oes:
+                glInternalFormat = PixelInternalFormat.Rgba;
+                glType = (PixelType)0x8D61; // GL_HALF_FLOAT_OES
+                glFormat = PixelFormat.Rgba;
                 break;
             case SurfaceFormat.Vector4:
                 glInternalFormat = PixelInternalFormat.Rgba;
@@ -683,7 +688,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 glType = (PixelType)5126;
                 break;
 #endif
-			default:
+            default:
 				throw new NotSupportedException();
 			}
 		}
@@ -740,6 +745,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.Bgr32:
                     return 4;
                 case SurfaceFormat.HalfVector4:
+                case SurfaceFormat.HalfVector4Oes:
                 case SurfaceFormat.Rgba64:
                 case SurfaceFormat.Vector2:
                     return 8;
