@@ -416,8 +416,12 @@ namespace Microsoft.Xna.Framework
         private long _previousTicks = 0;
         private int _updateFrameLag;
 
+        public virtual void BeginTick() {}
+        public virtual void EndTick() { }
         public void Tick()
         {
+            BeginTick();
+
             // NOTE: This code is very sensitive and can break very badly
             // with even what looks like a safe change.  Be sure to test 
             // any change fully in both the fixed and variable timestep 
@@ -507,6 +511,8 @@ namespace Microsoft.Xna.Framework
             {
                 DoDraw(_gameTime);
             }
+
+            EndTick();
         }
 
         #endregion
