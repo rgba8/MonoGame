@@ -920,6 +920,28 @@ namespace Microsoft.Xna.Framework.Graphics
             vbHandle.Free();
         }
 
+        private void PlatformDrawUserPrimitives(PrimitiveType primitiveType, IntPtr vertexDataPtr, int vertexOffset, VertexDeclaration vertexDeclaration, int vertexCount)
+        {
+            PlatformApplyState(true);
+
+            // Unbind current VBOs.
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GraphicsExtensions.CheckGLError();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            GraphicsExtensions.CheckGLError();
+            _vertexBufferDirty = _indexBufferDirty = true;
+
+            var vertexAddr = (IntPtr)(vertexDataPtr.ToInt64() + vertexDeclaration.VertexStride * vertexOffset);
+
+            // Setup the vertex declaration to point at the VB data.
+            vertexDeclaration.GraphicsDevice = this;
+            vertexDeclaration.Apply(_vertexShader, vertexAddr);
+
+            //Draw
+            GL.DrawArrays(PrimitiveTypeGL(primitiveType), vertexOffset, vertexCount);
+            GraphicsExtensions.CheckGLError();
+        }
+
         private void PlatformDrawPrimitives(PrimitiveType primitiveType, int vertexStart, int vertexCount)
         {
             PlatformApplyState(true);
@@ -996,6 +1018,31 @@ namespace Microsoft.Xna.Framework.Graphics
             // Release the handles.
             ibHandle.Free();
             vbHandle.Free();
+        }
+
+        private void PlatformDrawUserIndexedPrimitives(PrimitiveType primitiveType, IntPtr vertexDataPtr, int vertexOffset, int numVertices, IndexElementSize indexSize, IntPtr indexDataPtr, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration)
+        {
+            PlatformApplyState(true);
+
+            // Unbind current VBOs.
+            GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+            GraphicsExtensions.CheckGLError();
+            GL.BindBuffer(BufferTarget.ElementArrayBuffer, 0);
+            GraphicsExtensions.CheckGLError();
+            _vertexBufferDirty = _indexBufferDirty = true;
+
+            var vertexAddr = (IntPtr)(vertexDataPtr.ToInt64() + vertexDeclaration.VertexStride * vertexOffset);
+
+            // Setup the vertex declaration to point at the VB data.
+            vertexDeclaration.GraphicsDevice = this;
+            vertexDeclaration.Apply(_vertexShader, vertexAddr);
+
+            //Draw
+            GL.DrawElements(PrimitiveTypeGL(primitiveType),
+                                GetElementCountArray(primitiveType, primitiveCount),
+                                indexSize == IndexElementSize.SixteenBits ? DrawElementsType.UnsignedShort : DrawElementsType.UnsignedInt,
+                                (IntPtr)(indexDataPtr.ToInt64() + (indexOffset * (indexSize == IndexElementSize.SixteenBits ? 2 : 4))));
+            GraphicsExtensions.CheckGLError();
         }
 
         private static GraphicsProfile PlatformGetHighestSupportedGraphicsProfile(GraphicsDevice graphicsDevice)

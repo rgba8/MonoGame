@@ -646,6 +646,13 @@ namespace Microsoft.Xna.Framework.Graphics
             PlatformDrawUserPrimitives<T>(primitiveType, vertexData, vertexOffset, vertexDeclaration, vertexCount);
         }
 
+        public void DrawUserPrimitives(PrimitiveType primitiveType, IntPtr vertexDataPtr, int vertexOffset, int primitiveCount, VertexDeclaration vertexDeclaration)
+        {
+            var vertexCount = GetElementCountArray(primitiveType, primitiveCount);
+
+            PlatformDrawUserPrimitives(primitiveType, vertexDataPtr, vertexOffset, vertexDeclaration, vertexCount);
+        }
+
         public void DrawPrimitives(PrimitiveType primitiveType, int vertexStart, int primitiveCount)
         {
             Debug.Assert(_vertexBuffer != null, "The vertex buffer is null!");
@@ -679,6 +686,11 @@ namespace Microsoft.Xna.Framework.Graphics
             Debug.Assert(indexData != null && indexData.Length > 0, "The indexData must not be null or zero length!");
 
             PlatformDrawUserIndexedPrimitives<T>(primitiveType, vertexData, vertexOffset, numVertices, indexData, indexOffset, primitiveCount, vertexDeclaration);
+        }
+
+        public void DrawUserIndexedPrimitives(PrimitiveType primitiveType, IntPtr vertexDataPtr, int vertexOffset, int numVertices, IndexElementSize indexSize, IntPtr indexDataPtr, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration)
+        {
+            PlatformDrawUserIndexedPrimitives(primitiveType, vertexDataPtr, vertexOffset, numVertices, indexSize, indexDataPtr, indexOffset, primitiveCount, vertexDeclaration);
         }
 
         private static int GetElementCountArray(PrimitiveType primitiveType, int primitiveCount)
