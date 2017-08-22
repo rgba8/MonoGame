@@ -722,6 +722,8 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             switch (primitiveType)
             {
+                case PrimitiveType.PointList:
+                    return GLPrimitiveType.Points;
                 case PrimitiveType.LineList:
                     return GLPrimitiveType.Lines;
                 case PrimitiveType.LineStrip:
@@ -734,6 +736,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             throw new ArgumentException();
         }
+
 
         /// <summary>
         /// Activates the Current Vertex/Pixel shader pair into a program.         
