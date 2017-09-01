@@ -10,7 +10,7 @@ using MonoMac.OpenGL;
 #elif WINDOWS || LINUX
 using OpenTK.Graphics.OpenGL;
 #else
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #endif
 
 namespace Microsoft.Xna.Framework.Graphics

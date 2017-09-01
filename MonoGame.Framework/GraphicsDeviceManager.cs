@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework.Input.Touch;
 #if MONOMAC
 using MonoMac.OpenGL;
 #elif GLES
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #elif OPENGL
 using OpenTK.Graphics.OpenGL;
 #elif WINDOWS_STOREAPP

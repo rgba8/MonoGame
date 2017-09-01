@@ -31,8 +31,8 @@ using GLPixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 #endif
 
 #if GLES
-using OpenTK.Graphics.ES20;
-using GLPixelFormat = OpenTK.Graphics.ES20.PixelFormat;
+using OpenTK.Graphics.ES30;
+using GLPixelFormat = OpenTK.Graphics.ES30.PixelFormat;
 #endif
 
 #if ANDROID

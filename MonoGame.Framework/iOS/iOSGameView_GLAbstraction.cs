@@ -66,12 +66,13 @@ non-infringement.
 */
 #endregion License
 
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using System;
-using All = OpenTK.Graphics.ES20.All;
+using All = OpenTK.Graphics.ES30.All;
 using All11 = OpenTK.Graphics.ES11.All;
 using GLES11 = OpenTK.Graphics.ES11.GL;
 using GLES20 = OpenTK.Graphics.ES20.GL;
+using GLES30 = OpenTK.Graphics.ES30.GL;
 
 namespace Microsoft.Xna.Framework {
 	partial class iOSGameView {
@@ -148,63 +149,64 @@ namespace Microsoft.Xna.Framework {
 			}
 		}
 
-		private class Gles20Api : IOpenGLApi {
-			public All CheckFramebufferStatus (All target)
-			{
-				return (All)GLES20.CheckFramebufferStatus ((FramebufferTarget)target);
-			}
+        private class Gles30Api : IOpenGLApi
+        {
+            public All CheckFramebufferStatus(All target)
+            {
+                return (All)GLES30.CheckFramebufferStatus((FramebufferTarget)target);
+            }
 
-			public void BindFramebuffer (All target, int framebuffer)
-			{
-                GLES20.BindFramebuffer((FramebufferTarget)target, framebuffer);
-			}
+            public void BindFramebuffer(All target, int framebuffer)
+            {
+                GLES30.BindFramebuffer((FramebufferTarget)target, framebuffer);
+            }
 
-			public void BindRenderbuffer (All target, int renderbuffer)
-			{
-				GLES20.BindRenderbuffer ((RenderbufferTarget)target, renderbuffer);
-			}
+            public void BindRenderbuffer(All target, int renderbuffer)
+            {
+                GLES30.BindRenderbuffer((RenderbufferTarget)target, renderbuffer);
+            }
 
-			public void DeleteFramebuffers (int n, ref int framebuffers)
-			{
-				GLES20.DeleteFramebuffers (n, ref framebuffers);
-			}
+            public void DeleteFramebuffers(int n, ref int framebuffers)
+            {
+                GLES30.DeleteFramebuffers(n, ref framebuffers);
+            }
 
-			public void DeleteRenderbuffers (int n, ref int renderbuffers)
-			{
-				GLES20.DeleteRenderbuffers (n, ref renderbuffers);
-			}
+            public void DeleteRenderbuffers(int n, ref int renderbuffers)
+            {
+                GLES30.DeleteRenderbuffers(n, ref renderbuffers);
+            }
 
-			public void FramebufferRenderbuffer (
-				All target, All attachment, All renderbuffertarget, int renderbuffer)
-			{
-				GLES20.FramebufferRenderbuffer ((FramebufferTarget)target, (FramebufferSlot)attachment, (RenderbufferTarget)renderbuffertarget, renderbuffer);
-			}
+            public void FramebufferRenderbuffer(
+                All target, All attachment, All renderbuffertarget, int renderbuffer)
+            {
+                GLES30.FramebufferRenderbuffer((FramebufferTarget)target, (FramebufferSlot)attachment, (RenderbufferTarget)renderbuffertarget, renderbuffer);
+            }
 
-			public void GenFramebuffers (int n, ref int framebuffers)
-			{
-				GLES20.GenFramebuffers (n, out framebuffers);
-			}
+            public void GenFramebuffers(int n, ref int framebuffers)
+            {
+                GLES30.GenFramebuffers(n, out framebuffers);
+            }
 
-			public void GenRenderbuffers (int n, ref int renderbuffers)
-			{
-				GLES20.GenRenderbuffers (n, out renderbuffers);
-			}
+            public void GenRenderbuffers(int n, ref int renderbuffers)
+            {
+                GLES30.GenRenderbuffers(n, out renderbuffers);
+            }
 
-			public void GetInteger (All name, ref int value)
-			{
-				GLES20.GetInteger ((GetPName)name, out value);
-			}
+            public void GetInteger(All name, ref int value)
+            {
+                GLES30.GetInteger((GetPName)name, out value);
+            }
 
-			public void Scissor (int x, int y, int width, int height)
-			{
-				GLES20.Scissor (x, y, width, height);
-			}
+            public void Scissor(int x, int y, int width, int height)
+            {
+                GLES30.Scissor(x, y, width, height);
+            }
 
-			public void Viewport (int x, int y, int width, int height)
-			{
-				GLES20.Viewport (x, y, width, height);
-			}
-		}
+            public void Viewport(int x, int y, int width, int height)
+            {
+                GLES30.Viewport(x, y, width, height);
+            }
+        }
 	}
 }
 

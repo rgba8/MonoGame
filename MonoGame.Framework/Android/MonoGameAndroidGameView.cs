@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Input.Touch;
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using OpenTK.Platform.Android;
 
 namespace Microsoft.Xna.Framework
@@ -213,7 +213,7 @@ namespace Microsoft.Xna.Framework
         {
             Android.Util.Log.Debug("MonoGame", "MonoGameAndroidGameView.CreateFrameBuffer");
 
-            ContextRenderingApi = GLVersion.ES2;
+            ContextRenderingApi = GLVersion.ES3;
             int depth = 0;
             int stencil = 0;
             switch (_game.graphicsDeviceManager.PreferredDepthStencilFormat)

@@ -10,7 +10,7 @@ using MonoMac.OpenGL;
 #elif WINDOWS || LINUX
 using OpenTK.Graphics.OpenGL;
 #elif GLES
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #endif
 
 namespace Microsoft.Xna.Framework.Graphics
@@ -18,8 +18,8 @@ namespace Microsoft.Xna.Framework.Graphics
   public partial class SamplerState
   {
 #if GLES
-        private const TextureParameterName TextureParameterNameTextureMaxAnisotropy = (TextureParameterName)All.TextureMaxAnisotropyExt;
-        private const TextureParameterName TextureParameterNameTextureMaxLevel = (TextureParameterName)0x813D;
+        private const TextureParameterName TextureParameterNameTextureMaxAnisotropy = (TextureParameterName)OpenTK.Graphics.ES20.All.TextureMaxAnisotropyExt;
+        private const TextureParameterName TextureParameterNameTextureMaxLevel = TextureParameterName.TextureMaxLevel;
 #else
         private const TextureParameterName TextureParameterNameTextureMaxAnisotropy = (TextureParameterName)ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt;
         private const TextureParameterName TextureParameterNameTextureMaxLevel = TextureParameterName.TextureMaxLevel;

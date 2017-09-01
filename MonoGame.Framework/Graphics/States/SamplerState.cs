@@ -8,7 +8,7 @@ using MonoMac.OpenGL;
 #elif WINDOWS || LINUX
 using OpenTK.Graphics.OpenGL;
 #elif GLES
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #endif
 #endif
 

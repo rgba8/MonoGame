@@ -49,7 +49,7 @@ using OpenGLES;
 #if ES11
 using OpenTK.Graphics.ES11;
 #else
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #endif
 #elif WINDOWS || LINUX || ANGLE
 using OpenTK.Graphics;

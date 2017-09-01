@@ -11,9 +11,9 @@ using OpenTK.Graphics.OpenGL;
 #elif WINRT
 
 #else
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #if IOS || ANDROID
-using GetProgramParameterName = OpenTK.Graphics.ES20.ProgramParameter;
+using GetProgramParameterName = OpenTK.Graphics.ES30.ProgramParameter;
 #endif
 #endif
 

@@ -23,10 +23,10 @@ using OpenTK.Graphics;
 #endif
 
 #if GLES
-using OpenTK.Graphics.ES20;
-using FramebufferAttachment = OpenTK.Graphics.ES20.All;
-using RenderbufferStorage = OpenTK.Graphics.ES20.All;
-using GLPrimitiveType = OpenTK.Graphics.ES20.BeginMode;
+using OpenTK.Graphics.ES30;
+using FramebufferAttachment = OpenTK.Graphics.ES30.All;
+using RenderbufferStorage = OpenTK.Graphics.ES30.All;
+using GLPrimitiveType = OpenTK.Graphics.ES30.BeginMode;
 #endif
 
 
@@ -481,7 +481,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 this.framebufferHelper.GenRenderbuffer(out color);
                 this.framebufferHelper.BindRenderbuffer(color);
 #if GLES
-                this.framebufferHelper.RenderbufferStorageMultisample(preferredMultiSampleCount, (int)RenderbufferStorage.Rgba8Oes, width, height);
+                this.framebufferHelper.RenderbufferStorageMultisample(preferredMultiSampleCount, (int)RenderbufferStorage.Rgba8, width, height);
 #else
                 this.framebufferHelper.RenderbufferStorageMultisample(preferredMultiSampleCount, (int)RenderbufferStorage.Rgba8, width, height);
 #endif
@@ -498,7 +498,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #if GLES
                     case DepthFormat.Depth24:
                         if (GraphicsCapabilities.SupportsDepth24)
-                            depthInternalFormat = RenderbufferStorage.DepthComponent24Oes;
+                            depthInternalFormat = RenderbufferStorage.DepthComponent;
                         else if (GraphicsCapabilities.SupportsDepthNonLinear)
                             depthInternalFormat = (RenderbufferStorage)0x8E2C;
                         else
@@ -506,11 +506,11 @@ namespace Microsoft.Xna.Framework.Graphics
                         break;
                     case DepthFormat.Depth24Stencil8:
                         if (GraphicsCapabilities.SupportsPackedDepthStencil)
-                            depthInternalFormat = RenderbufferStorage.Depth24Stencil8Oes;
+                            depthInternalFormat = RenderbufferStorage.Depth24Stencil8;
                         else
                         {
                             if (GraphicsCapabilities.SupportsDepth24)
-                                depthInternalFormat = RenderbufferStorage.DepthComponent24Oes;
+                                depthInternalFormat = RenderbufferStorage.DepthComponent;
                             else if (GraphicsCapabilities.SupportsDepthNonLinear)
                                 depthInternalFormat = (RenderbufferStorage)0x8E2C;
                             else
