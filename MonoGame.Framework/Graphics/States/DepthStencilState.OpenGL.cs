@@ -9,8 +9,8 @@ using GLStencilFunction = MonoMac.OpenGL.StencilFunction;
 using OpenTK.Graphics.OpenGL;
 using GLStencilFunction = OpenTK.Graphics.OpenGL.StencilFunction;
 #elif GLES
-using OpenTK.Graphics.ES20;
-using GLStencilFunction = OpenTK.Graphics.ES20.StencilFunction;
+using OpenTK.Graphics.ES30;
+using GLStencilFunction = OpenTK.Graphics.ES30.StencilFunction;
 #endif
 
 namespace Microsoft.Xna.Framework.Graphics

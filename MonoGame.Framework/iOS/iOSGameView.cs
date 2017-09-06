@@ -79,7 +79,7 @@ using UIKit;
 using CoreGraphics;
 
 using OpenTK.Graphics;
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 using OpenTK.Platform.iPhoneOS;
 
 using Microsoft.Xna.Framework.Graphics;
@@ -158,8 +158,8 @@ namespace Microsoft.Xna.Framework {
 			AssertNotDisposed ();
 
 			try {
-				__renderbuffergraphicsContext = new GraphicsContext (null, null, 2, 0, GraphicsContextFlags.Embedded);
-				_glapi = new Gles20Api ();
+				__renderbuffergraphicsContext = new GraphicsContext (null, null, 3, 0, GraphicsContextFlags.Embedded);
+				_glapi = new Gles30Api ();
 			} catch {
 				__renderbuffergraphicsContext = new GraphicsContext (null, null, 1, 1, GraphicsContextFlags.Embedded);
 				_glapi = new Gles11Api ();
@@ -203,8 +203,8 @@ namespace Microsoft.Xna.Framework {
                 switch (gdm.PreferredDepthStencilFormat)
                 {
                     case DepthFormat.Depth16: depthBufferFormat = All.DepthComponent16; break;
-                    case DepthFormat.Depth24: depthBufferFormat = All.DepthComponent24Oes; break;
-                    case DepthFormat.Depth24Stencil8: depthBufferFormat = All.Depth24Stencil8Oes; break;
+                    case DepthFormat.Depth24: depthBufferFormat = All.DepthComponent24; break;
+                    case DepthFormat.Depth24Stencil8: depthBufferFormat = All.Depth24Stencil8; break;
                 }
 
                 switch (gdm.PreferredBackBufferFormat)
@@ -257,7 +257,7 @@ namespace Microsoft.Xna.Framework {
                 GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, _depthbuffer);
                 GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, (RenderbufferInternalFormat)depthBufferFormat, viewportWidth, viewportHeight);
                 GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.DepthAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
-                if (depthBufferFormat == All.Depth24Stencil8Oes)
+                if (depthBufferFormat == All.Depth24Stencil8)
                     GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferSlot.StencilAttachment, RenderbufferTarget.Renderbuffer, _depthbuffer);
 
                 GL.GetRenderbufferParameter(RenderbufferTarget.Renderbuffer, RenderbufferParameterName.RenderbufferDepthSize, out renderbufferDepthSize);
@@ -351,7 +351,7 @@ namespace Microsoft.Xna.Framework {
 
             this.MakeCurrent();
             GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, this._colorbuffer);
-            GraphicsDevice.FramebufferHelper.GLDiscardFramebufferExt(All.Framebuffer, 2, attachements);
+            GL.InvalidateFramebuffer(All.Framebuffer, 2, attachements);
             __renderbuffergraphicsContext.SwapBuffers();
 		}
 

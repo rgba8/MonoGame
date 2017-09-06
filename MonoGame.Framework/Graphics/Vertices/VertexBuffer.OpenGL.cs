@@ -15,8 +15,8 @@ using MonoMac.OpenGL;
 using OpenTK.Graphics.OpenGL;
 #endif
 #if GLES
-using OpenTK.Graphics.ES20;
-using BufferUsageHint = OpenTK.Graphics.ES20.BufferUsage;
+using OpenTK.Graphics.ES30;
+using BufferUsageHint = OpenTK.Graphics.ES30.BufferUsage;
 #endif
 
 namespace Microsoft.Xna.Framework.Graphics

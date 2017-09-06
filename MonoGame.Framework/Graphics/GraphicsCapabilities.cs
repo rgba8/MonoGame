@@ -8,7 +8,7 @@ using System.Collections.Generic;
 #if MONOMAC
 using MonoMac.OpenGL;
 #elif GLES
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #else
 using OpenTK.Graphics.OpenGL;
 #endif
@@ -101,10 +101,17 @@ namespace Microsoft.Xna.Framework.Graphics
             SupportsTextureFilterAnisotropic = true;
 #endif
 #if GLES
-			SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
+#if IOS
+            SupportsDepth24 = true;
+            SupportsPackedDepthStencil = true;
+            SupportsDepthNonLinear = false;
+            SupportsTextureMaxLevel = true;
+#else
+            SupportsDepth24 = device._extensions.Contains("GL_OES_depth24");
 			SupportsPackedDepthStencil = device._extensions.Contains("GL_OES_packed_depth_stencil");
 			SupportsDepthNonLinear = device._extensions.Contains("GL_NV_depth_nonlinear");
             SupportsTextureMaxLevel = device._extensions.Contains("GL_APPLE_texture_max_level");
+#endif
 #else
             SupportsDepth24 = true;
 			SupportsPackedDepthStencil = true;
@@ -144,7 +151,12 @@ namespace Microsoft.Xna.Framework.Graphics
             int anisotropy = 0;
             if (SupportsTextureFilterAnisotropic)
             {
-                GL.GetInteger((GetPName)All.MaxTextureMaxAnisotropyExt, out anisotropy);
+#if GLES
+                GetPName name = (GetPName)OpenTK.Graphics.ES20.All.MaxTextureMaxAnisotropyExt;
+#else
+                GetPName name = (GetPName)All.MaxTextureMaxAnisotropyExt;
+#endif
+                GL.GetInteger(name, out anisotropy);
                 GraphicsExtensions.CheckGLError();
             }
             MaxTextureAnisotropy = anisotropy;

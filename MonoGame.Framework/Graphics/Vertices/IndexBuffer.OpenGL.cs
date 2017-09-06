@@ -12,8 +12,8 @@ using System.Runtime.InteropServices;
 using MonoMac.OpenGL;
 #endif
 #if GLES
-using OpenTK.Graphics.ES20;
-using BufferUsageHint = OpenTK.Graphics.ES20.BufferUsage;
+using OpenTK.Graphics.ES30;
+using BufferUsageHint = OpenTK.Graphics.ES30.BufferUsage;
 #endif
 #if WINDOWS || LINUX
 using OpenTK.Graphics.OpenGL;

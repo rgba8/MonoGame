@@ -9,7 +9,7 @@ using OpenTK.Graphics.OpenGL;
 using System;
 using System.Collections.Generic;
 #elif GLES
-using OpenTK.Graphics.ES20;
+using OpenTK.Graphics.ES30;
 #endif
 
 namespace Microsoft.Xna.Framework.Graphics

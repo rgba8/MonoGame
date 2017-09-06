@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 #if OPENGL
 #if MONOMAC
@@ -11,11 +12,11 @@ using OpenTK.Graphics.OpenGL;
 #if ANGLE
 using OpenTK.Graphics;
 #endif
-using OpenTK.Graphics.ES20;
-using VertexPointerType = OpenTK.Graphics.ES20.All;
-using ColorPointerType = OpenTK.Graphics.ES20.All;
-using NormalPointerType = OpenTK.Graphics.ES20.All;
-using TexCoordPointerType = OpenTK.Graphics.ES20.All;
+using OpenTK.Graphics.ES30;
+using VertexPointerType = OpenTK.Graphics.ES30.All;
+using ColorPointerType = OpenTK.Graphics.ES30.All;
+using NormalPointerType = OpenTK.Graphics.ES30.All;
+using TexCoordPointerType = OpenTK.Graphics.ES30.All;
 #endif
 #endif
 
@@ -339,11 +340,11 @@ namespace Microsoft.Xna.Framework.Graphics
 			switch (function) {
 			case BlendFunction.Add:
 				return BlendEquationMode.FuncAdd;
-#if IOS
+#if IOS || ANDROID
 			case BlendFunction.Max:
-				return (BlendEquationMode)All.MaxExt;
+				return BlendEquationMode.Max;
 			case BlendFunction.Min:
-				return (BlendEquationMode)All.MinExt;
+				return BlendEquationMode.Min;
 #elif MONOMAC || WINDOWS || LINUX
 			case BlendFunction.Max:
 				return BlendEquationMode.Max;
@@ -657,19 +658,19 @@ namespace Microsoft.Xna.Framework.Graphics
                 glFormat = (PixelFormat)All.CompressedTextureFormats;
                 break;
 			case SurfaceFormat.RgbPvrtc2Bpp:
-				glInternalFormat = (PixelInternalFormat)All.CompressedRgbPvrtc2Bppv1Img;
+				glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbPvrtc2Bppv1Img;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
 			case SurfaceFormat.RgbPvrtc4Bpp:
-				glInternalFormat = (PixelInternalFormat)All.CompressedRgbPvrtc4Bppv1Img;
+                glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbPvrtc4Bppv1Img;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
 			case SurfaceFormat.RgbaPvrtc2Bpp:
-				glInternalFormat = (PixelInternalFormat)All.CompressedRgbaPvrtc2Bppv1Img;
+				glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbaPvrtc2Bppv1Img;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
 			case SurfaceFormat.RgbaPvrtc4Bpp:
-				glInternalFormat = (PixelInternalFormat)All.CompressedRgbaPvrtc4Bppv1Img;
+                glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbaPvrtc4Bppv1Img;
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
             case SurfaceFormat.HalfVector4:
