@@ -480,11 +480,7 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 this.framebufferHelper.GenRenderbuffer(out color);
                 this.framebufferHelper.BindRenderbuffer(color);
-#if GLES
                 this.framebufferHelper.RenderbufferStorageMultisample(preferredMultiSampleCount, (int)RenderbufferStorage.Rgba8, width, height);
-#else
-                this.framebufferHelper.RenderbufferStorageMultisample(preferredMultiSampleCount, (int)RenderbufferStorage.Rgba8, width, height);
-#endif
             }
 
             if (preferredDepthFormat != DepthFormat.None)
@@ -493,36 +489,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 var stencilInternalFormat = (RenderbufferStorage)0;
                 switch (preferredDepthFormat)
                 {
-                    case DepthFormat.Depth16: 
-                        depthInternalFormat = RenderbufferStorage.DepthComponent16; break;
-#if GLES
-                    case DepthFormat.Depth24:
-                        if (GraphicsCapabilities.SupportsDepth24)
-                            depthInternalFormat = RenderbufferStorage.DepthComponent;
-                        else if (GraphicsCapabilities.SupportsDepthNonLinear)
-                            depthInternalFormat = (RenderbufferStorage)0x8E2C;
-                        else
-                            depthInternalFormat = RenderbufferStorage.DepthComponent16;
-                        break;
-                    case DepthFormat.Depth24Stencil8:
-                        if (GraphicsCapabilities.SupportsPackedDepthStencil)
-                            depthInternalFormat = RenderbufferStorage.Depth24Stencil8;
-                        else
-                        {
-                            if (GraphicsCapabilities.SupportsDepth24)
-                                depthInternalFormat = RenderbufferStorage.DepthComponent;
-                            else if (GraphicsCapabilities.SupportsDepthNonLinear)
-                                depthInternalFormat = (RenderbufferStorage)0x8E2C;
-                            else
-                                depthInternalFormat = RenderbufferStorage.DepthComponent16;
-                            stencilInternalFormat = RenderbufferStorage.StencilIndex8;
-                            break;
-                        }
-                        break;
-#else
+                    case DepthFormat.Depth16: depthInternalFormat = RenderbufferStorage.DepthComponent16; break;
                     case DepthFormat.Depth24: depthInternalFormat = RenderbufferStorage.DepthComponent24; break;
                     case DepthFormat.Depth24Stencil8: depthInternalFormat = RenderbufferStorage.Depth24Stencil8; break;
-#endif
                 }
 
                 if (depthInternalFormat != 0)

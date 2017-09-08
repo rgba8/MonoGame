@@ -83,6 +83,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		// Ericcson Texture Compression (Android)
 		RgbEtc1 = 60,
 
+        RgbEtc2 = 61,
+        RgbaEtc2 = 62,
+
         // DXT1 also has a 1-bit alpha form
         Dxt1a = 70,
     }

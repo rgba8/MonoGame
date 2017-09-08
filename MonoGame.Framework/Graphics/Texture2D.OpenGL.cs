@@ -73,6 +73,8 @@ namespace Microsoft.Xna.Framework.Graphics
                             imageSize = (Math.Max(this.width, 8) * Math.Max(this.height, 8) * 4 + 7) / 8;
                             break;
                         case SurfaceFormat.RgbEtc1:
+                        case SurfaceFormat.RgbEtc2:
+                        case SurfaceFormat.RgbaEtc2:
                         case SurfaceFormat.Dxt1:
                         case SurfaceFormat.Dxt1a:
                         case SurfaceFormat.Dxt3:

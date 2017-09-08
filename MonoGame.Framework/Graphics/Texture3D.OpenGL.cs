@@ -16,10 +16,6 @@ using OpenTK.Graphics.OpenGL;
 using OpenTK.Graphics;
 #endif
 using OpenTK.Graphics.ES30;
-using VertexPointerType = OpenTK.Graphics.ES30.All;
-using ColorPointerType = OpenTK.Graphics.ES30.All;
-using NormalPointerType = OpenTK.Graphics.ES30.All;
-using TexCoordPointerType = OpenTK.Graphics.ES30.All;
 #endif
 #endif
 
