@@ -543,19 +543,19 @@ namespace Microsoft.Xna.Framework.Graphics
 				glType = PixelType.UnsignedByte;
 				break;
 			case SurfaceFormat.Dxt1:
-                glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbS3tcDxt1Ext;
+                glInternalFormat = (PixelInternalFormat)0x83F0; // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
             case SurfaceFormat.Dxt1a:
-                glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbaS3tcDxt1Ext;
+                glInternalFormat = (PixelInternalFormat)0x83F1; // GL_COMPRESSED_RGBA_S3TC_DXT1_EXT
                 glFormat = (PixelFormat)All.CompressedTextureFormats;
                 break;
             case SurfaceFormat.Dxt3:
-                glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbaS3tcDxt3Ext;
+                glInternalFormat = (PixelInternalFormat)0x83F2; // GL_COMPRESSED_RGBA_S3TC_DXT3_EXT
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
 			case SurfaceFormat.Dxt5:
-                glInternalFormat = (PixelInternalFormat)OpenTK.Graphics.ES20.All.CompressedRgbaS3tcDxt5Ext;
+                glInternalFormat = (PixelInternalFormat)0x83F3; // GL_COMPRESSED_RGBA_S3TC_DXT5_EXT
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
 				break;
 			case SurfaceFormat.Single:
