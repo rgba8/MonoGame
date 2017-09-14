@@ -211,9 +211,6 @@ namespace Microsoft.Xna.Framework.Graphics
             // Set the default scissor rect.
             _scissorRectangleDirty = true;
             ScissorRectangle = _viewport.Bounds;
-
-            // Set the default render target.
-            ApplyRenderTargets(null);
         }
 
         public RasterizerState RasterizerState
