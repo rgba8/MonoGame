@@ -688,13 +688,13 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.RgbaPvrtc2Bpp:
                 case SurfaceFormat.RgbEtc1:
                 case SurfaceFormat.RgbEtc2:
-                case SurfaceFormat.RgbaEtc2:
                     // One texel in DXT1, PVRTC 2bpp and ETC1 is a minimum 4x4 block, which is 8 bytes
                     return 8;
                 case SurfaceFormat.Dxt3:
                 case SurfaceFormat.Dxt5:
                 case SurfaceFormat.RgbPvrtc4Bpp:
                 case SurfaceFormat.RgbaPvrtc4Bpp:
+                case SurfaceFormat.RgbaEtc2:
                     // One texel in DXT3, DXT5 and PVRTC 4bpp is a minimum 4x4 block, which is 16 bytes
                     return 16;
                 case SurfaceFormat.Alpha8:
@@ -780,7 +780,6 @@ namespace Microsoft.Xna.Framework.Graphics
         }
 
         [Conditional("DEBUG")]
-		[DebuggerHidden]
         public static void CheckGLError()
         {
 #if GLES
