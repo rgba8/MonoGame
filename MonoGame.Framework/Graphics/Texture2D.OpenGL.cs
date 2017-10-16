@@ -247,7 +247,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
                 else
                 {
-                    GL.GetTexImage(TextureTarget.Texture2D, level, this.glFormat, this.glType, data);
+                    GL.GetTexImage(TextureTarget.Texture2D, level, this.glFormat, PixelType.UnsignedByte, data);
                 }
             }
 #endif
