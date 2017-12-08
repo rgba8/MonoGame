@@ -49,7 +49,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private ShaderProgram _shaderProgram = null;
 
-        static readonly float[] _posFixup = new float[4];
+        //static readonly float[] _posFixup = new float[4];
 
         private bool[] _enabledVertexAttributes = null;
 
@@ -405,7 +405,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 
             // In OpenGL we have to re-apply the special "posFixup"
             // vertex shader uniform if the viewport changes.
-            _vertexShaderDirty = true;
+            //_vertexShaderDirty = true;
 
         }
 
@@ -629,7 +629,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     GraphicsExtensions.CheckGLError();
                 }
             }
-            for (var i = 0; i < this._currentRenderTargetCount; ++i)
+            /*for (var i = 0; i < this._currentRenderTargetCount; ++i)
             {
                 renderTargetBinding = this._currentRenderTargetBindings[i];
                 renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
@@ -639,7 +639,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     GraphicsExtensions.CheckGLError();
                     this.framebufferHelper.GenerateMipmap((int)renderTarget.glTarget);
                 }
-            }
+            }*/
         }
 
         private IRenderTarget PlatformApplyRenderTargets()
@@ -724,9 +724,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 _shaderProgram = shaderProgram;
             }
 
-            var posFixupLoc = shaderProgram.GetUniformLocation("posFixup");
-            if (posFixupLoc == null)
-                return;
+            //var posFixupLoc = shaderProgram.GetUniformLocation("posFixup");
+            //if (posFixupLoc == null)
+            //    return;
 
             // Apply vertex shader fix:
             // The following two lines are appended to the end of vertex shaders
@@ -754,21 +754,21 @@ namespace Microsoft.Xna.Framework.Graphics
             // 1.0 or -1.0 to turn the rendering upside down for offscreen rendering. PosFixup.x
             // contains 1.0 to allow a mad.
 
-            _posFixup[0] = 1.0f;
-            _posFixup[1] = 1.0f;
-            _posFixup[2] = (63.0f/64.0f)/Viewport.Width;
-            _posFixup[3] = -(63.0f/64.0f)/Viewport.Height;
+            //_posFixup[0] = 1.0f;
+            //_posFixup[1] = 1.0f;
+            //_posFixup[2] = 1.0f;// (63.0f / 64.0f) / Viewport.Width;
+            //_posFixup[3] = 1.0f;// -(63.0f / 64.0f) / Viewport.Height;
 
-            //If we have a render target bound (rendering offscreen)
-            if (IsRenderTargetBound)
-            {
-                //flip vertically
-                _posFixup[1] *= -1.0f;
-                _posFixup[3] *= -1.0f;
-            }
+            ////If we have a render target bound (rendering offscreen)
+            //if (IsRenderTargetBound)
+            //{
+            //    //flip vertically
+            //    _posFixup[1] *= -1.0f;
+            //    _posFixup[3] *= -1.0f;
+            //}
 
-            GL.Uniform4(posFixupLoc.location, 1, _posFixup);
-            GraphicsExtensions.CheckGLError();
+            //GL.Uniform4(posFixupLoc.location, 1, _posFixup);
+            //GraphicsExtensions.CheckGLError();
         }
 
         internal void PlatformApplyState(bool applyShaders)
