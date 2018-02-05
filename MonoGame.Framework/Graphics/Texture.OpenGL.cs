@@ -16,6 +16,7 @@ namespace Microsoft.Xna.Framework.Graphics
     {
         internal int glTexture = -1;
         internal TextureTarget glTarget;
+
         internal TextureUnit glTextureUnit = TextureUnit.Texture0;
         internal PixelInternalFormat glInternalFormat;
         internal PixelFormat glFormat;

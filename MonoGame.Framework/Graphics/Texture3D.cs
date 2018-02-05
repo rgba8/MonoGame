@@ -29,12 +29,12 @@ namespace Microsoft.Xna.Framework.Graphics
             get { return _depth; }
         }
 
-		public Texture3D(GraphicsDevice graphicsDevice, int width, int height, int depth, bool mipMap, SurfaceFormat format)
-            : this(graphicsDevice, width, height, depth, mipMap, format, false)
+		public Texture3D(GraphicsDevice graphicsDevice, int width, int height, int depth, bool mipMap, SurfaceFormat format, IntPtr data)
+            : this(graphicsDevice, width, height, depth, mipMap, format, false, data)
 		{		    
 		}
 
-		protected Texture3D (GraphicsDevice graphicsDevice, int width, int height, int depth, bool mipMap, SurfaceFormat format, bool renderTarget)
+		protected Texture3D (GraphicsDevice graphicsDevice, int width, int height, int depth, bool mipMap, SurfaceFormat format, bool renderTarget, IntPtr data)
 		{
             if (graphicsDevice == null)
                 throw new ArgumentNullException("graphicsDevice");
@@ -46,7 +46,7 @@ namespace Microsoft.Xna.Framework.Graphics
             this._levelCount = 1;
 		    this._format = format;
 
-            PlatformConstruct(graphicsDevice, width, height, depth, mipMap, format, renderTarget);
+            PlatformConstruct(graphicsDevice, width, height, depth, mipMap, format, renderTarget, data);
         }
 
         public void SetData<T>(T[] data) where T : struct
