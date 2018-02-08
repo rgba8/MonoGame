@@ -645,8 +645,15 @@ namespace Microsoft.Xna.Framework.Graphics
             GL.BindFramebuffer(FramebufferTarget.Framebuffer, this.glFramebuffers[dest]);
             GraphicsExtensions.CheckGLError();
 
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, (FramebufferSlot)FramebufferAttachment.DepthStencilAttachment, destTarget.glTarget, destTarget.depthTexture.glTexture, 0);
+#if GLES
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                (FramebufferSlot)FramebufferAttachment.DepthStencilAttachment, destTarget.glTarget, destTarget.depthTexture.glTexture, 0);
             GraphicsExtensions.CheckGLError();
+#else
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                FramebufferAttachment.DepthStencilAttachment, destTarget.glTarget, destTarget.depthTexture.glTexture, 0);
+            GraphicsExtensions.CheckGLError();
+#endif
         }
 
         private void PlatformResolveRenderTargets()
