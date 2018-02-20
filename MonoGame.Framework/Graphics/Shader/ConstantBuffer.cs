@@ -155,16 +155,28 @@ namespace Microsoft.Xna.Framework.Graphics
             // over and we need to reset.
             if (_stateKey > EffectParameter.NextStateKey)
                 _stateKey = 0;
-            
+
+            EffectParameter pp = null;
+            int o = 0;
             for (var p = 0; p < _parameters.Length; p++)
             {
                 var index = _parameters[p];
                 var param = parameters[index];
 
-                if (param.StateKey < _stateKey)
-                    continue;
+                
+                //if (param.StateKey < _stateKey)
+                //    continue;
 
                 var offset = _offsets[p];
+                if (offset < o)
+                {
+                    int kk = 0;
+                    ++kk;
+                }
+                if (param.ParameterClass == EffectParameterClass.Matrix)
+                    o += param.ColumnCount * 16;
+                else
+                    o += param.RowCount * 16;
                 _dirty = true;
 
                 SetParameter(offset, param);

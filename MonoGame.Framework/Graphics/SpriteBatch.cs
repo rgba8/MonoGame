@@ -81,7 +81,7 @@ namespace Microsoft.Xna.Framework.Graphics
             _sortMode = sortMode;
             _blendState = blendState ?? BlendState.AlphaBlend;
             _samplerState = samplerState ?? SamplerState.LinearClamp;
-            _depthStencilState = depthStencilState ?? DepthStencilState.None;
+            _depthStencilState = depthStencilState ?? DepthStencilState.Default;
             _rasterizerState = rasterizerState ?? RasterizerState.CullCounterClockwise;
             _effect = effect;
             _matrix = transformMatrix ?? Matrix.Identity;
