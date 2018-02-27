@@ -23,17 +23,47 @@ namespace Microsoft.Xna.Framework
         private OrientationListener _orientationListener;
 
         public bool AutoPauseAndResumeMediaPlayer = true;
-        public bool RenderOnUIThread = true; 
+        public bool RenderOnUIThread = true;
 
-		/// <summary>
-		/// OnCreate called when the activity is launched from cold or after the app
-		/// has been killed due to a higher priority app needing the memory
-		/// </summary>
-		/// <param name='savedInstanceState'>
-		/// Saved instance state.
-		/// </param>
-		protected override void OnCreate (Bundle savedInstanceState)
+        /// <summary>
+        /// OnCreate called when the activity is launched from cold or after the app
+        /// has been killed due to a higher priority app needing the memory
+        /// </summary>
+        /// <param name='savedInstanceState'>
+        /// Saved instance state.
+        /// </param>
+        ///
+        public static bool Load(string name)
+        {
+            try
+            {
+
+                Java.Lang.JavaSystem.LoadLibrary(name);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                Console.WriteLine(ex.Message);
+                return true;
+            }
+            return false;
+        }
+        public static void LoadMGD()
+        {
+#if ANDROID
+            if (Load("libMGD.so") &&
+                Load("MGD") &&
+                Load("libMGD"))
+            {
+                Console.WriteLine("FUCKING FAILED");
+            }
+
+#endif
+        }
+
+        protected override void OnCreate (Bundle savedInstanceState)
 		{
+            LoadMGD();
             RequestWindowFeature(WindowFeatures.NoTitle);
             base.OnCreate(savedInstanceState);
 

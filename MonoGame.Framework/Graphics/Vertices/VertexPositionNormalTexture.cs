@@ -7,9 +7,9 @@ namespace Microsoft.Xna.Framework.Graphics
     {
         public Vector3 Position;
         public Vector3 Normal;
-        public Vector3 TextureCoordinate;
+        public Vector2 TextureCoordinate;
         public static readonly VertexDeclaration VertexDeclaration;
-        public VertexPositionNormalTexture(Vector3 position, Vector3 normal, Vector3 textureCoordinate)
+        public VertexPositionNormalTexture(Vector3 position, Vector3 normal, Vector2 textureCoordinate)
         {
             this.Position = position;
             this.Normal = normal;
