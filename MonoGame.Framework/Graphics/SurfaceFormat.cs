@@ -65,17 +65,19 @@ namespace Microsoft.Xna.Framework.Graphics
         HalfVector4 = 18,
         HdrBlendable = 19,
 
+
         // BGRA formats are required for compatibility with WPF D3DImage.
         Bgr32 = 20,     // B8G8R8X8
         Bgra32 = 21,    // B8G8R8A8
         
         HalfVector4Oes = 22,
+        U248 = 23,
 
-		// Good explanation of compressed formats for mobile devices (aimed at Android, but describes PVRTC)
-		// http://developer.motorola.com/docstools/library/understanding-texture-compression/
+        // Good explanation of compressed formats for mobile devices (aimed at Android, but describes PVRTC)
+        // http://developer.motorola.com/docstools/library/understanding-texture-compression/
 
-		// PowerVR texture compression (iOS and Android)
-		RgbPvrtc2Bpp = 50,
+        // PowerVR texture compression (iOS and Android)
+        RgbPvrtc2Bpp = 50,
 		RgbPvrtc4Bpp = 51,
 		RgbaPvrtc2Bpp = 52,
 		RgbaPvrtc4Bpp = 53,

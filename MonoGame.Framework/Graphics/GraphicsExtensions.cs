@@ -580,7 +580,12 @@ namespace Microsoft.Xna.Framework.Graphics
                 glFormat = PixelFormat.Rgba;
                 glType = (PixelType)0x8D61; // GL_HALF_FLOAT_OES
                 break;
-            case SurfaceFormat.HalfSingle:
+                case SurfaceFormat.U248:
+                    glInternalFormat = (PixelInternalFormat)35056;
+                    glFormat = PixelFormat.DepthStencil;
+                    glType = PixelType.UnsignedInt248;
+                    break;
+                case SurfaceFormat.HalfSingle:
                 glInternalFormat = (PixelInternalFormat)All.R16f;
                 glFormat = PixelFormat.Red;
                 glType = PixelType.HalfFloat;
@@ -713,6 +718,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.Rgba1010102:
                 case SurfaceFormat.Bgra32:
                 case SurfaceFormat.Bgr32:
+                case SurfaceFormat.U248:
                     return 4;
                 case SurfaceFormat.HalfVector4:
                 case SurfaceFormat.HalfVector4Oes:

@@ -491,11 +491,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 {
                     case DepthFormat.Depth16: depthInternalFormat = RenderbufferStorage.DepthComponent16; break;
                     case DepthFormat.Depth24: depthInternalFormat = RenderbufferStorage.DepthComponent24; break;
-                    case DepthFormat.Depth24Stencil8:
-                        {
-                            depthInternalFormat = RenderbufferStorage.Depth24Stencil8;
-                            break;
-                        }
+                    case DepthFormat.Depth24Stencil8: depthInternalFormat = RenderbufferStorage.Depth24Stencil8; break;
                 }
 
                 if (depthInternalFormat != 0)
@@ -526,24 +522,24 @@ namespace Microsoft.Xna.Framework.Graphics
                 renderTarget2D.glDepthBuffer = depth;
                 renderTarget2D.glStencilBuffer = stencil;
 
-                renderTarget2D.depthTexture = new Texture2D(this, width, height, false, SurfaceFormat.HalfSingle, Texture2D.SurfaceType.Texture);
-                GL.BindTexture(TextureTarget.Texture2D, renderTarget2D.depthTexture.glTexture);
-                GraphicsExtensions.CheckGLError();
+                if (preferredDepthFormat != DepthFormat.None)
+                {
+                    renderTarget2D.depthTexture = new Texture2D(this, width, height, false, SurfaceFormat.U248, Texture2D.SurfaceType.Texture);
+                    GL.BindTexture(TextureTarget.Texture2D, renderTarget2D.depthTexture.glTexture);
+                    GraphicsExtensions.CheckGLError();
 
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-                GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+                    GraphicsExtensions.CheckGLError();
 
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+                    GraphicsExtensions.CheckGLError();
 
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
-                GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                    GraphicsExtensions.CheckGLError();
 
-                GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
-                GraphicsExtensions.CheckGLError();
-
-                GL.TexImage2D(TextureTarget.Texture2D, 0, (PixelInternalFormat)35056/*.Depth24Stencil8*/, width, height, 0, PixelFormat.DepthStencil, PixelType.UnsignedInt248, IntPtr.Zero);
-                GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+                    GraphicsExtensions.CheckGLError();
+                }
             }
             else
             {
@@ -606,54 +602,38 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-        public void BlitDepth(RenderTargetBinding[] source, RenderTargetBinding[] dest)
+        public void InvalidateFramebuffer(RenderTargetBinding[] renderTargetBindings)
         {
-            if (this._currentRenderTargetCount == 0)
-                return;
+            var renderTargetBinding = renderTargetBindings[0];
+            var renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
 
-            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, this.glFramebuffers[source]);
-            GraphicsExtensions.CheckGLError();
+            if (renderTarget.MultiSampleCount > 0 && this.framebufferHelper.SupportsBlitFramebuffer)
+            {
+                var glResolveFramebuffer = 0;
+                if (this.glResolveFramebuffers.TryGetValue(renderTargetBindings, out glResolveFramebuffer))
+                {
+                    if (this.framebufferHelper.SupportsInvalidateFramebuffer)
+                    {
+                        this.framebufferHelper.BindFramebuffer(glResolveFramebuffer);
+                        this.framebufferHelper.InvalidateReadFramebuffer();
+                        this.framebufferHelper.InvalidateDrawFramebuffer();
+                    }
+                    //Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Black, 1, 0);
+                }
+            }
 
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, this.glFramebuffers[dest]);
-            GraphicsExtensions.CheckGLError();
+            {
+                if (this.framebufferHelper.SupportsInvalidateFramebuffer)
+                {
+                    var framebuffer = this.glFramebuffers[renderTargetBindings];
+                    this.framebufferHelper.BindFramebuffer(framebuffer);
+                    this.framebufferHelper.InvalidateReadFramebuffer();
+                    this.framebufferHelper.InvalidateDrawFramebuffer();
+                }
+                //Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Black, 1, 0);
+            }
 
-
-            var sourceTarget = source[0].RenderTarget as RenderTarget2D;
-            var destTarget = dest[0].RenderTarget as RenderTarget2D;
-
-            GL.BlitFramebuffer(0, 0, sourceTarget.Width, sourceTarget.Height, 0, 0, destTarget.Width, destTarget.Height, ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit, BlitFramebufferFilter.Nearest);
-            GraphicsExtensions.CheckGLError();
-
-            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, 0);
-            GraphicsExtensions.CheckGLError();
-
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, 0);
-            GraphicsExtensions.CheckGLError();
-
-        }
-
-        public void ResolveDepth(RenderTargetBinding[] dest)
-        {
-            var destTarget = dest[0].RenderTarget as RenderTarget2D;
-
-            GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, this.glFramebuffers[dest]);
-            GraphicsExtensions.CheckGLError();
-
-            GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, this.glFramebuffers[dest]);
-            GraphicsExtensions.CheckGLError();
-
-            GL.BindFramebuffer(FramebufferTarget.Framebuffer, this.glFramebuffers[dest]);
-            GraphicsExtensions.CheckGLError();
-
-#if GLES
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                (FramebufferSlot)FramebufferAttachment.DepthStencilAttachment, destTarget.glTarget, destTarget.depthTexture.glTexture, 0);
-            GraphicsExtensions.CheckGLError();
-#else
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                FramebufferAttachment.DepthStencilAttachment, destTarget.glTarget, destTarget.depthTexture.glTexture, 0);
-            GraphicsExtensions.CheckGLError();
-#endif
+            this.framebufferHelper.BindFramebuffer(this.glFramebuffer);
         }
 
         private void PlatformResolveRenderTargets()
@@ -664,8 +644,9 @@ namespace Microsoft.Xna.Framework.Graphics
             var renderTargetBinding = this._currentRenderTargetBindings[0];
             var renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
 
+            var glFramebuffer = this.glFramebuffers[this._currentRenderTargetBindings];
 
-
+            var glDepthResolveFramebuffer = glFramebuffer;
             if (renderTarget.MultiSampleCount > 0 && this.framebufferHelper.SupportsBlitFramebuffer)
             {
                 var glResolveFramebuffer = 0;
@@ -676,6 +657,8 @@ namespace Microsoft.Xna.Framework.Graphics
                     for (var i = 0; i < this._currentRenderTargetCount; ++i)
                     {
                         this.framebufferHelper.FramebufferTexture2D((int)(FramebufferAttachment.ColorAttachment0 + i), (int)renderTarget.glTarget, renderTarget.glTexture);
+                        if (renderTarget.DepthStencilFormat != DepthFormat.None)
+                        this.framebufferHelper.FramebufferTexture2D((int)FramebufferAttachment.DepthAttachment, (int)renderTarget.glTarget, renderTarget.depthTexture.glTexture);
                     }
                     this.glResolveFramebuffers.Add((RenderTargetBinding[])this._currentRenderTargetBindings.Clone(), glResolveFramebuffer);
                 }
@@ -683,40 +666,60 @@ namespace Microsoft.Xna.Framework.Graphics
                 {
                     this.framebufferHelper.BindFramebuffer(glResolveFramebuffer);
                 }
+                glDepthResolveFramebuffer = glResolveFramebuffer;
+
                 // The only fragment operations which affect the resolve are the pixel ownership test, the scissor test, and dithering.
                 if (this._lastRasterizerState.ScissorTestEnable)
                 {
                     GL.Disable(EnableCap.ScissorTest);
                     GraphicsExtensions.CheckGLError();
                 }
-                var glFramebuffer = this.glFramebuffers[this._currentRenderTargetBindings];
                 this.framebufferHelper.BindReadFramebuffer(glFramebuffer);
                 for (var i = 0; i < this._currentRenderTargetCount; ++i)
                 {
                     renderTargetBinding = this._currentRenderTargetBindings[i];
                     renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
-                    this.framebufferHelper.BlitFramebuffer(i, renderTarget.Width, renderTarget.Height);
+                    var clearBufferMask = ClearBufferMask.ColorBufferBit;
+                    clearBufferMask |= (renderTarget.DepthStencilFormat != DepthFormat.None ? ClearBufferMask.DepthBufferBit : (ClearBufferMask)0);
+                    this.framebufferHelper.BlitFramebuffer(i, renderTarget.Width, renderTarget.Height, clearBufferMask);
                 }
                 if (renderTarget.RenderTargetUsage == RenderTargetUsage.DiscardContents && this.framebufferHelper.SupportsInvalidateFramebuffer)
+                {
                     this.framebufferHelper.InvalidateReadFramebuffer();
+                }
+
                 if (this._lastRasterizerState.ScissorTestEnable)
                 {
                     GL.Enable(EnableCap.ScissorTest);
                     GraphicsExtensions.CheckGLError();
                 }
             }
-            /*for (var i = 0; i < this._currentRenderTargetCount; ++i)
+            else
             {
-                renderTargetBinding = this._currentRenderTargetBindings[i];
-                renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
-                if (renderTarget.LevelCount > 1)
+
+#if GLES
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                (FramebufferSlot)FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, renderTarget.depthTexture.glTexture, 0);
+            GraphicsExtensions.CheckGLError();
+#else
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                    FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, renderTarget.depthTexture.glTexture, 0);
+                GraphicsExtensions.CheckGLError();
+#endif
+            }
+
+                /*for (var i = 0; i < this._currentRenderTargetCount; ++i)
                 {
-                    GL.BindTexture((TextureTarget)renderTarget.glTarget, renderTarget.glTexture);
-                    GraphicsExtensions.CheckGLError();
-                    this.framebufferHelper.GenerateMipmap((int)renderTarget.glTarget);
-                }
-            }*/
-        }
+                    renderTargetBinding = this._currentRenderTargetBindings[i];
+                    renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
+                    if (renderTarget.LevelCount > 1)
+                    {
+                        GL.BindTexture((TextureTarget)renderTarget.glTarget, renderTarget.glTexture);
+                        GraphicsExtensions.CheckGLError();
+                        this.framebufferHelper.GenerateMipmap((int)renderTarget.glTarget);
+                    }
+                }*/
+            }
 
         private IRenderTarget PlatformApplyRenderTargets()
         {

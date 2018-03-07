@@ -33,37 +33,8 @@ namespace Microsoft.Xna.Framework
         /// Saved instance state.
         /// </param>
         ///
-        public static bool Load(string name)
-        {
-            try
-            {
-
-                Java.Lang.JavaSystem.LoadLibrary(name);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                Console.WriteLine(ex.Message);
-                return true;
-            }
-            return false;
-        }
-        public static void LoadMGD()
-        {
-#if ANDROID
-            if (Load("libMGD.so") &&
-                Load("MGD") &&
-                Load("libMGD"))
-            {
-                Console.WriteLine("FUCKING FAILED");
-            }
-
-#endif
-        }
-
         protected override void OnCreate (Bundle savedInstanceState)
 		{
-            LoadMGD();
             RequestWindowFeature(WindowFeatures.NoTitle);
             base.OnCreate(savedInstanceState);
 
