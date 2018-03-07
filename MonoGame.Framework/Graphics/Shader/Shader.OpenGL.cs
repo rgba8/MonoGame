@@ -36,6 +36,9 @@ namespace Microsoft.Xna.Framework.Graphics
         private void PlatformConstruct(BinaryReader reader, bool isVertexShader, byte[] shaderBytecode)
         {
             _glslCode = System.Text.Encoding.ASCII.GetString(shaderBytecode);
+            _glslCode = _glslCode.Replace("gl_Position.y = gl_Position.y * posFixup.y;", "");
+            _glslCode = _glslCode.Replace("gl_Position.xy += posFixup.zw * gl_Position.ww;", "");
+
 
             HashKey = MonoGame.Utilities.Hash.ComputeHash(shaderBytecode);
 

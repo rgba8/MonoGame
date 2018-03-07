@@ -49,7 +49,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         private ShaderProgram _shaderProgram = null;
 
-        static readonly float[] _posFixup = new float[4];
+        //static readonly float[] _posFixup = new float[4];
 
         private bool[] _enabledVertexAttributes = null;
 
@@ -521,6 +521,25 @@ namespace Microsoft.Xna.Framework.Graphics
                     renderTarget2D.glColorBuffer = renderTarget2D.glTexture;
                 renderTarget2D.glDepthBuffer = depth;
                 renderTarget2D.glStencilBuffer = stencil;
+
+                if (preferredDepthFormat != DepthFormat.None)
+                {
+                    renderTarget2D.depthTexture = new Texture2D(this, width, height, false, SurfaceFormat.U248, Texture2D.SurfaceType.Texture);
+                    GL.BindTexture(TextureTarget.Texture2D, renderTarget2D.depthTexture.glTexture);
+                    GraphicsExtensions.CheckGLError();
+
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+                    GraphicsExtensions.CheckGLError();
+
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+                    GraphicsExtensions.CheckGLError();
+
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+                    GraphicsExtensions.CheckGLError();
+
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+                    GraphicsExtensions.CheckGLError();
+                }
             }
             else
             {
@@ -583,6 +602,40 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
+        public void InvalidateFramebuffer(RenderTargetBinding[] renderTargetBindings)
+        {
+            var renderTargetBinding = renderTargetBindings[0];
+            var renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
+
+            if (renderTarget.MultiSampleCount > 0 && this.framebufferHelper.SupportsBlitFramebuffer)
+            {
+                var glResolveFramebuffer = 0;
+                if (this.glResolveFramebuffers.TryGetValue(renderTargetBindings, out glResolveFramebuffer))
+                {
+                    if (this.framebufferHelper.SupportsInvalidateFramebuffer)
+                    {
+                        this.framebufferHelper.BindFramebuffer(glResolveFramebuffer);
+                        this.framebufferHelper.InvalidateReadFramebuffer();
+                        this.framebufferHelper.InvalidateDrawFramebuffer();
+                    }
+                    //Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Black, 1, 0);
+                }
+            }
+
+            {
+                if (this.framebufferHelper.SupportsInvalidateFramebuffer)
+                {
+                    var framebuffer = this.glFramebuffers[renderTargetBindings];
+                    this.framebufferHelper.BindFramebuffer(framebuffer);
+                    this.framebufferHelper.InvalidateReadFramebuffer();
+                    this.framebufferHelper.InvalidateDrawFramebuffer();
+                }
+                //Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Black, 1, 0);
+            }
+
+            this.framebufferHelper.BindFramebuffer(this.glFramebuffer);
+        }
+
         private void PlatformResolveRenderTargets()
         {
             if (this._currentRenderTargetCount == 0)
@@ -590,6 +643,10 @@ namespace Microsoft.Xna.Framework.Graphics
 
             var renderTargetBinding = this._currentRenderTargetBindings[0];
             var renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
+
+            var glFramebuffer = this.glFramebuffers[this._currentRenderTargetBindings];
+
+            var glDepthResolveFramebuffer = glFramebuffer;
             if (renderTarget.MultiSampleCount > 0 && this.framebufferHelper.SupportsBlitFramebuffer)
             {
                 var glResolveFramebuffer = 0;
@@ -600,6 +657,8 @@ namespace Microsoft.Xna.Framework.Graphics
                     for (var i = 0; i < this._currentRenderTargetCount; ++i)
                     {
                         this.framebufferHelper.FramebufferTexture2D((int)(FramebufferAttachment.ColorAttachment0 + i), (int)renderTarget.glTarget, renderTarget.glTexture);
+                        if (renderTarget.DepthStencilFormat != DepthFormat.None)
+                        this.framebufferHelper.FramebufferTexture2D((int)FramebufferAttachment.DepthAttachment, (int)renderTarget.glTarget, renderTarget.depthTexture.glTexture);
                     }
                     this.glResolveFramebuffers.Add((RenderTargetBinding[])this._currentRenderTargetBindings.Clone(), glResolveFramebuffer);
                 }
@@ -607,19 +666,22 @@ namespace Microsoft.Xna.Framework.Graphics
                 {
                     this.framebufferHelper.BindFramebuffer(glResolveFramebuffer);
                 }
+                glDepthResolveFramebuffer = glResolveFramebuffer;
+
                 // The only fragment operations which affect the resolve are the pixel ownership test, the scissor test, and dithering.
                 if (this._lastRasterizerState.ScissorTestEnable)
                 {
                     GL.Disable(EnableCap.ScissorTest);
                     GraphicsExtensions.CheckGLError();
                 }
-                var glFramebuffer = this.glFramebuffers[this._currentRenderTargetBindings];
                 this.framebufferHelper.BindReadFramebuffer(glFramebuffer);
                 for (var i = 0; i < this._currentRenderTargetCount; ++i)
                 {
                     renderTargetBinding = this._currentRenderTargetBindings[i];
                     renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
-                    this.framebufferHelper.BlitFramebuffer(i, renderTarget.Width, renderTarget.Height);
+                    var clearBufferMask = ClearBufferMask.ColorBufferBit;
+                    clearBufferMask |= (renderTarget.DepthStencilFormat != DepthFormat.None ? ClearBufferMask.DepthBufferBit : (ClearBufferMask)0);
+                    this.framebufferHelper.BlitFramebuffer(i, renderTarget.Width, renderTarget.Height, clearBufferMask);
                 }
                 if (renderTarget.RenderTargetUsage == RenderTargetUsage.DiscardContents && this.framebufferHelper.SupportsInvalidateFramebuffer)
                     this.framebufferHelper.InvalidateReadFramebuffer();
@@ -628,6 +690,19 @@ namespace Microsoft.Xna.Framework.Graphics
                     GL.Enable(EnableCap.ScissorTest);
                     GraphicsExtensions.CheckGLError();
                 }
+            }
+            else
+            {
+
+#if GLES
+            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                (FramebufferSlot)FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, renderTarget.depthTexture.glTexture, 0);
+            GraphicsExtensions.CheckGLError();
+#else
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                    FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, renderTarget.depthTexture.glTexture, 0);
+                GraphicsExtensions.CheckGLError();
+#endif
             }
             for (var i = 0; i < this._currentRenderTargetCount; ++i)
             {
@@ -724,9 +799,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 _shaderProgram = shaderProgram;
             }
 
-            var posFixupLoc = shaderProgram.GetUniformLocation("posFixup");
-            if (posFixupLoc == null)
-                return;
+            //var posFixupLoc = shaderProgram.GetUniformLocation("posFixup");
+            //if (posFixupLoc == null)
+            //    return;
 
             // Apply vertex shader fix:
             // The following two lines are appended to the end of vertex shaders
@@ -754,21 +829,21 @@ namespace Microsoft.Xna.Framework.Graphics
             // 1.0 or -1.0 to turn the rendering upside down for offscreen rendering. PosFixup.x
             // contains 1.0 to allow a mad.
 
-            _posFixup[0] = 1.0f;
-            _posFixup[1] = 1.0f;
-            _posFixup[2] = (63.0f/64.0f)/Viewport.Width;
-            _posFixup[3] = -(63.0f/64.0f)/Viewport.Height;
+            //_posFixup[0] = 1.0f;
+            //_posFixup[1] = 1.0f;
+            //_posFixup[2] = 1.0f;// (63.0f / 64.0f) / Viewport.Width;
+            //_posFixup[3] = 1.0f;// -(63.0f / 64.0f) / Viewport.Height;
 
-            //If we have a render target bound (rendering offscreen)
-            if (IsRenderTargetBound)
-            {
-                //flip vertically
-                _posFixup[1] *= -1.0f;
-                _posFixup[3] *= -1.0f;
-            }
+            ////If we have a render target bound (rendering offscreen)
+            //if (IsRenderTargetBound)
+            //{
+            //    //flip vertically
+            //    _posFixup[1] *= -1.0f;
+            //    _posFixup[3] *= -1.0f;
+            //}
 
-            GL.Uniform4(posFixupLoc.location, 1, _posFixup);
-            GraphicsExtensions.CheckGLError();
+            //GL.Uniform4(posFixupLoc.location, 1, _posFixup);
+            //GraphicsExtensions.CheckGLError();
         }
 
         internal void PlatformApplyState(bool applyShaders)
@@ -855,7 +930,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			var target = PrimitiveTypeGL(primitiveType);
 			var vertexOffset = (IntPtr)(_vertexBuffer.VertexDeclaration.VertexStride * baseVertex);
 
-			_vertexBuffer.VertexDeclaration.Apply(_vertexShader, vertexOffset);
+			_vertexBuffer.VertexDeclaration.Apply(_vertexShader, _pixelShader, vertexOffset);
 
             GL.DrawElements(target,
                                      indexElementCount,
@@ -880,7 +955,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
-            vertexDeclaration.Apply(_vertexShader, vbHandle.AddrOfPinnedObject());
+            vertexDeclaration.Apply(_vertexShader, _pixelShader, vbHandle.AddrOfPinnedObject());
 
             //Draw
             GL.DrawArrays(PrimitiveTypeGL(primitiveType),
@@ -907,7 +982,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
-            vertexDeclaration.Apply(_vertexShader, vertexAddr);
+            vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw
             GL.DrawArrays(PrimitiveTypeGL(primitiveType), vertexOffset, vertexCount);
@@ -918,7 +993,7 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             PlatformApplyState(true);
 
-            _vertexBuffer.VertexDeclaration.Apply(_vertexShader, IntPtr.Zero);
+            _vertexBuffer.VertexDeclaration.Apply(_vertexShader, _pixelShader, IntPtr.Zero);
 
 			GL.DrawArrays(PrimitiveTypeGL(primitiveType),
 			              vertexStart,
@@ -945,7 +1020,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
-            vertexDeclaration.Apply(_vertexShader, vertexAddr);
+            vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw
             GL.DrawElements(    PrimitiveTypeGL(primitiveType),
@@ -978,7 +1053,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
-            vertexDeclaration.Apply(_vertexShader, vertexAddr);
+            vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw
             GL.DrawElements(    PrimitiveTypeGL(primitiveType),
@@ -1007,7 +1082,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
-            vertexDeclaration.Apply(_vertexShader, vertexAddr);
+            vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw
             GL.DrawElements(PrimitiveTypeGL(primitiveType),

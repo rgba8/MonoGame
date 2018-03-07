@@ -41,6 +41,11 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 Threading.BlockOnUIThread(() =>
                 {
+                    if (depthTexture != null)
+                    {
+                        depthTexture.Dispose();
+                        depthTexture = null;
+                    }
                     this.GraphicsDevice.PlatformDeleteRenderTarget(this);
                 });
             }

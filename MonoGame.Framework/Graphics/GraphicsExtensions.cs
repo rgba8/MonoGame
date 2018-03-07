@@ -518,6 +518,11 @@ namespace Microsoft.Xna.Framework.Graphics
 				glFormat = PixelFormat.Rgba;
 				glType = PixelType.UnsignedByte;
 				break;
+            case SurfaceFormat.U248:
+                glInternalFormat = (PixelInternalFormat)35056;
+                glFormat = PixelFormat.DepthStencil;
+                glType = PixelType.UnsignedInt248;
+                break;
 			case SurfaceFormat.Bgr565:
 				glInternalFormat = PixelInternalFormat.Rgb;
 				glFormat = PixelFormat.Rgb;
@@ -713,6 +718,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.Rgba1010102:
                 case SurfaceFormat.Bgra32:
                 case SurfaceFormat.Bgr32:
+                case SurfaceFormat.U248:
                     return 4;
                 case SurfaceFormat.HalfVector4:
                 case SurfaceFormat.HalfVector4Oes:
