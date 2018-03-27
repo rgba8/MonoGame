@@ -625,10 +625,13 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 if (this.framebufferHelper.SupportsInvalidateFramebuffer)
                 {
-                    var framebuffer = this.glFramebuffers[renderTargetBindings];
-                    this.framebufferHelper.BindFramebuffer(framebuffer);
-                    this.framebufferHelper.InvalidateReadFramebuffer();
-                    this.framebufferHelper.InvalidateDrawFramebuffer();
+                    var framebuffer = 0;
+                    if (this.glFramebuffers.TryGetValue(renderTargetBindings, out framebuffer))
+                    {
+                        this.framebufferHelper.BindFramebuffer(framebuffer);
+                        this.framebufferHelper.InvalidateReadFramebuffer();
+                        this.framebufferHelper.InvalidateDrawFramebuffer();
+                    }
                 }
                 //Clear(ClearOptions.Target | ClearOptions.DepthBuffer | ClearOptions.Stencil, Color.Black, 1, 0);
             }
@@ -691,13 +694,13 @@ namespace Microsoft.Xna.Framework.Graphics
                     GraphicsExtensions.CheckGLError();
                 }
             }
-            else
+            else if (renderTarget.depthTexture != null)
             {
 
 #if GLES
-            GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
-                (FramebufferSlot)FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, renderTarget.depthTexture.glTexture, 0);
-            GraphicsExtensions.CheckGLError();
+                GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
+                    (FramebufferSlot)FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, renderTarget.depthTexture.glTexture, 0);
+                GraphicsExtensions.CheckGLError();
 #else
                 GL.FramebufferTexture2D(FramebufferTarget.Framebuffer,
                     FramebufferAttachment.DepthStencilAttachment, TextureTarget.Texture2D, renderTarget.depthTexture.glTexture, 0);

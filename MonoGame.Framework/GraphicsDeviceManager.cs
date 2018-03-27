@@ -63,7 +63,7 @@ namespace Microsoft.Xna.Framework
 #endif
 
             _preferredBackBufferFormat = SurfaceFormat.Color;
-            _preferredDepthStencilFormat = DepthFormat.Depth24;
+            _preferredDepthStencilFormat = DepthFormat.None;
             _synchronizedWithVerticalRetrace = true;
 
             GraphicsProfile = GraphicsDevice.GetHighestSupportedGraphicsProfile(null);

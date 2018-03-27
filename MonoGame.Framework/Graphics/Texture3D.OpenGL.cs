@@ -23,7 +23,7 @@ namespace Microsoft.Xna.Framework.Graphics
 {
 	public partial class Texture3D : Texture
 	{
-        private void PlatformConstruct(GraphicsDevice graphicsDevice, int width, int height, int depth, bool mipMap, SurfaceFormat format, bool renderTarget)
+        private void PlatformConstruct(GraphicsDevice graphicsDevice, int width, int height, int depth, bool mipMap, SurfaceFormat format, bool renderTarget, IntPtr data)
         {
             this.glTarget = TextureTarget.Texture3D;
             this.glLastSamplerStates = new SamplerState[GraphicsDevice.MaxTextureSlots];
@@ -37,7 +37,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #if GLES
             GL.TexImage3D((All)glTarget, 0, (int)glInternalFormat, width, height, depth, 0, (All)glFormat, (All)glType, IntPtr.Zero);
 #else
-            GL.TexImage3D(glTarget, 0, glInternalFormat, width, height, depth, 0, glFormat, glType, IntPtr.Zero);
+            GL.TexImage3D(glTarget, 0, glInternalFormat, width, height, depth, 0, glFormat, glType, data);
 #endif
             GraphicsExtensions.CheckGLError();
 
