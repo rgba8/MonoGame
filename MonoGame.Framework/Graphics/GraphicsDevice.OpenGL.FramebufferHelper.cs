@@ -89,6 +89,12 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
             }
 
+            internal virtual void BindDrawFramebuffer(int drawFramebuffer)
+            {
+                GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, drawFramebuffer);
+                GraphicsExtensions.CheckGLError();
+            }
+
             internal virtual void BindReadFramebuffer(int readFramebuffer)
             {
                 GL.BindFramebuffer(FramebufferTarget.ReadFramebuffer, readFramebuffer);
@@ -134,9 +140,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
             }
 
-            internal virtual void BlitFramebuffer(int iColorAttachment, int width, int height)
+            internal virtual void BlitFramebuffer(int iColorAttachment, int width, int height, ClearBufferMask clearBufferMask)
             {
-                GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+                GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, clearBufferMask, BlitFramebufferFilter.Nearest);
                 GraphicsExtensions.CheckGLError();
             }
 
@@ -271,7 +277,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             }
 
-            internal virtual void BlitFramebuffer(int iColorAttachment, int width, int height)
+            internal virtual void BlitFramebuffer(int iColorAttachment, int width, int height, ClearBufferMask clearBufferMask)
             {
 
                 GL.ReadBuffer(ReadBufferMode.ColorAttachment0 + iColorAttachment);
@@ -279,9 +285,9 @@ namespace Microsoft.Xna.Framework.Graphics
                 GL.DrawBuffer(DrawBufferMode.ColorAttachment0 + iColorAttachment);
                 GraphicsExtensions.CheckGLError();
 #if !MONOMAC
-                GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+                GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, clearBufferMask, BlitFramebufferFilter.Nearest);
 #else
-				GLBlitFramebufferExt(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+				GLBlitFramebufferExt(0, 0, width, height, 0, 0, width, height, clearBufferMask, BlitFramebufferFilter.Nearest);
 #endif
                 GraphicsExtensions.CheckGLError();
 
@@ -379,15 +385,15 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
             }
 
-            internal override void BlitFramebuffer(int iColorAttachment, int width, int height)
-            {
-                GL.ReadBuffer(ReadBufferMode.ColorAttachment0 + iColorAttachment);
-                GraphicsExtensions.CheckGLError();
-                GL.DrawBuffer(DrawBufferMode.ColorAttachment0 + iColorAttachment);
-                GraphicsExtensions.CheckGLError();
-                GL.Ext.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
-                GraphicsExtensions.CheckGLError();
-            }
+            //internal override void BlitFramebuffer(int iColorAttachment, int width, int height)
+            //{
+            //    GL.ReadBuffer(ReadBufferMode.ColorAttachment0 + iColorAttachment);
+            //    GraphicsExtensions.CheckGLError();
+            //    GL.DrawBuffer(DrawBufferMode.ColorAttachment0 + iColorAttachment);
+            //    GraphicsExtensions.CheckGLError();
+            //    GL.Ext.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+            //    GraphicsExtensions.CheckGLError();
+            //}
 
             internal override void CheckFramebufferStatus()
             {

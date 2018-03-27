@@ -137,7 +137,7 @@ namespace Microsoft.Xna.Framework.Graphics
         internal GraphicsDevice ()
 		{
             PresentationParameters = new PresentationParameters();
-            PresentationParameters.DepthStencilFormat = DepthFormat.Depth24;
+            PresentationParameters.DepthStencilFormat = DepthFormat.None;
             Setup();
             GraphicsCapabilities = new GraphicsCapabilities(this);
             Initialize();
@@ -455,10 +455,15 @@ namespace Microsoft.Xna.Framework.Graphics
 		public void SetRenderTargets(params RenderTargetBinding[] renderTargets) 
 		{
             // Avoid having to check for null and zero length.
-            var renderTargetCount = 0;
+            int renderTargetCount = 0;
             if (renderTargets != null)
             {
-                renderTargetCount = renderTargets.Length;
+                //renderTargetCount = renderTargets.Length;
+                foreach (var target in renderTargets)
+                {
+                    if (target.RenderTarget != null)
+                    { ++renderTargetCount; }
+                }
                 if (renderTargetCount == 0)
                     renderTargets = null;
             }
@@ -481,10 +486,10 @@ namespace Microsoft.Xna.Framework.Graphics
                     return;
             }
 
-            ApplyRenderTargets(renderTargets);
+            ApplyRenderTargets(renderTargets, renderTargetCount);
         }
 
-        internal void ApplyRenderTargets(RenderTargetBinding[] renderTargets)
+        internal void ApplyRenderTargets(RenderTargetBinding[] renderTargets, int count)
         {
             var clearTarget = false;
 
@@ -509,7 +514,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			{
                 // Copy the new bindings.
                 Array.Copy(renderTargets, _currentRenderTargetBindings, renderTargets.Length);
-                _currentRenderTargetCount = renderTargets.Length;
+                _currentRenderTargetCount = count;
 
                 var renderTarget = PlatformApplyRenderTargets();
 
