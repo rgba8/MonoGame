@@ -137,7 +137,7 @@ namespace Microsoft.Xna.Framework.Graphics
         internal GraphicsDevice ()
 		{
             PresentationParameters = new PresentationParameters();
-            PresentationParameters.DepthStencilFormat = DepthFormat.Depth24;
+            PresentationParameters.DepthStencilFormat = DepthFormat.None;
             Setup();
             GraphicsCapabilities = new GraphicsCapabilities(this);
             Initialize();
@@ -436,29 +436,34 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-		public void SetRenderTarget(RenderTarget2D renderTarget)
+		public void SetRenderTarget(bool resolve, bool depthOnly, RenderTarget2D renderTarget)
 		{
 			if (renderTarget == null)
-                SetRenderTargets(null);
+                SetRenderTargets(resolve, depthOnly, null);
 			else
-				SetRenderTargets(new RenderTargetBinding(renderTarget));
+				SetRenderTargets(resolve, depthOnly, new RenderTargetBinding(renderTarget));
 		}
 		
-        public void SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace cubeMapFace)
+        public void SetRenderTarget(bool resolve, bool depthOnly, RenderTargetCube renderTarget, CubeMapFace cubeMapFace)
         {
             if (renderTarget == null)
-                SetRenderTarget(null);
+                SetRenderTarget(resolve, depthOnly, null);
             else
-                SetRenderTargets(new RenderTargetBinding(renderTarget, cubeMapFace));
+                SetRenderTargets(resolve, depthOnly, new RenderTargetBinding(renderTarget, cubeMapFace));
         }
 
-		public void SetRenderTargets(params RenderTargetBinding[] renderTargets) 
+		public void SetRenderTargets(bool resolve, bool depthOnly, params RenderTargetBinding[] renderTargets) 
 		{
             // Avoid having to check for null and zero length.
-            var renderTargetCount = 0;
+            int renderTargetCount = 0;
             if (renderTargets != null)
             {
-                renderTargetCount = renderTargets.Length;
+                //renderTargetCount = renderTargets.Length;
+                foreach (var target in renderTargets)
+                {
+                    if (target.RenderTarget != null)
+                    { ++renderTargetCount; }
+                }
                 if (renderTargetCount == 0)
                     renderTargets = null;
             }
@@ -481,14 +486,14 @@ namespace Microsoft.Xna.Framework.Graphics
                     return;
             }
 
-            ApplyRenderTargets(renderTargets);
+            ApplyRenderTargets(renderTargets, renderTargetCount, resolve, depthOnly);
         }
 
-        internal void ApplyRenderTargets(RenderTargetBinding[] renderTargets)
+        internal void ApplyRenderTargets(RenderTargetBinding[] renderTargets, int count, bool resolve, bool depthOnly)
         {
             var clearTarget = false;
 
-            PlatformResolveRenderTargets();
+            PlatformResolveRenderTargets(resolve, depthOnly);
 
             // Clear the current bindings.
             Array.Clear(_currentRenderTargetBindings, 0, _currentRenderTargetBindings.Length);
@@ -509,7 +514,7 @@ namespace Microsoft.Xna.Framework.Graphics
 			{
                 // Copy the new bindings.
                 Array.Copy(renderTargets, _currentRenderTargetBindings, renderTargets.Length);
-                _currentRenderTargetCount = renderTargets.Length;
+                _currentRenderTargetCount = count;
 
                 var renderTarget = PlatformApplyRenderTargets();
 

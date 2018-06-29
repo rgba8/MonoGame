@@ -19,6 +19,7 @@ namespace Microsoft.Xna.Framework.Graphics
         internal int glColorBuffer;
         internal int glDepthBuffer;
         internal int glStencilBuffer;
+        internal FramebufferAttachment depthStencilAttachment = 0;
 
         private void PlatformConstruct(GraphicsDevice graphicsDevice, int width, int height, bool mipMap,
             SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat, int preferredMultiSampleCount, RenderTargetUsage usage, bool shared)
@@ -41,6 +42,11 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 Threading.BlockOnUIThread(() =>
                 {
+                    if (DepthTexture != null)
+                    {
+                        DepthTexture.Dispose();
+                        DepthTexture = null;
+                    }
                     this.GraphicsDevice.PlatformDeleteRenderTarget(this);
                 });
             }

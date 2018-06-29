@@ -8,6 +8,7 @@ namespace Microsoft.Xna.Framework.Graphics
 {
 	public partial class RenderTarget2D : Texture2D, IRenderTarget
 	{
+        public Texture2D DepthTexture { get; internal set; }
 		public DepthFormat DepthStencilFormat { get; private set; }
 		
 		public int MultiSampleCount { get; private set; }

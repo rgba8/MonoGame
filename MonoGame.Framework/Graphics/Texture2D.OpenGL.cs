@@ -52,6 +52,8 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             this.glTarget = TextureTarget.Texture2D;
             this.glLastSamplerStates = new SamplerState[GraphicsDevice.MaxTextureSlots];
+            if (format == SurfaceFormat.NONE)
+                return;
             
             Threading.BlockOnUIThread(() =>
             {
