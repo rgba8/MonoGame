@@ -131,6 +131,32 @@ namespace Microsoft.Xna.Framework.Graphics
 
             //vertexShader.BindVertexAttributes(program);
 
+            //try
+            //{
+            //    int i0 = GL.GetAttribLocation(program, "fragColor0");
+            //    GraphicsExtensions.CheckGLError();
+
+            //    GL.BindAttribLocation(program, 0, "fragColor0");
+            //    GraphicsExtensions.CheckGLError();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
+
+            //try
+            //{
+            //    int i1 = GL.GetAttribLocation(program, "fragColor1");
+            //    GraphicsExtensions.CheckGLError();
+
+            //    GL.BindAttribLocation(program, 1, "fragColor1");
+            //    GraphicsExtensions.CheckGLError();
+            //}
+            //catch (Exception ex)
+            //{
+            //    Console.WriteLine(ex.Message);
+            //}
+
             GL.LinkProgram(program);
             GraphicsExtensions.CheckGLError();
 

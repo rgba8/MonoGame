@@ -19,10 +19,10 @@ namespace Microsoft.Xna.Framework.Graphics
     {
         Dictionary<int, VertexDeclarationAttributeInfo> shaderAttributeInfo = new Dictionary<int, VertexDeclarationAttributeInfo>();
 
-		internal void Apply(Shader shader, IntPtr offset)
+		internal void Apply(Shader vertexShader, Shader pixelShader, IntPtr offset)
 		{
             VertexDeclarationAttributeInfo attrInfo;
-            int shaderHash = shader.GetHashCode();
+            int shaderHash = vertexShader.HashKey | pixelShader.HashKey;
             if (!shaderAttributeInfo.TryGetValue(shaderHash, out attrInfo))
             {
                 // Get the vertex attribute info and cache it
@@ -30,7 +30,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 foreach (var ve in _elements)
                 {
-                    var attributeLocation = shader.GetAttribLocation(ve.VertexElementUsage, ve.UsageIndex);
+                    var attributeLocation = vertexShader.GetAttribLocation(ve.VertexElementUsage, ve.UsageIndex);
                     // XNA appears to ignore usages it can't find a match for, so we will do the same
                     if (attributeLocation >= 0)
                     {

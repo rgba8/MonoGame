@@ -38,15 +38,15 @@ namespace Microsoft.Xna.Framework.Graphics
             switch (Filter)
       {
       case TextureFilter.Point:
-				if (GraphicsDevice.GraphicsCapabilities.SupportsTextureFilterAnisotropic)
-                {
-                    GL.TexParameter(target, TextureParameterNameTextureMaxAnisotropy, 1.0f);
-                    GraphicsExtensions.CheckGLError();
-                }
-        GL.TexParameter(target, TextureParameterName.TextureMinFilter, (int)(useMipmaps ? TextureMinFilter.NearestMipmapNearest : TextureMinFilter.Nearest));
-                GraphicsExtensions.CheckGLError();
-        GL.TexParameter(target, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-                GraphicsExtensions.CheckGLError();
+				//if (GraphicsDevice.GraphicsCapabilities.SupportsTextureFilterAnisotropic)
+    //            {
+    //                GL.TexParameter(target, TextureParameterNameTextureMaxAnisotropy, 1.0f);
+    //                GraphicsExtensions.CheckGLError();
+    //            }
+    //    GL.TexParameter(target, TextureParameterName.TextureMinFilter, (int)(useMipmaps ? TextureMinFilter.NearestMipmapNearest : TextureMinFilter.Nearest));
+    //            GraphicsExtensions.CheckGLError();
+    //    GL.TexParameter(target, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+    //            GraphicsExtensions.CheckGLError();
         break;
       case TextureFilter.Linear:
 				if (GraphicsDevice.GraphicsCapabilities.SupportsTextureFilterAnisotropic)
@@ -152,17 +152,17 @@ namespace Microsoft.Xna.Framework.Graphics
             GL.TexParameter(target, TextureParameterName.TextureLodBias, MipMapLevelOfDetailBias);
             GraphicsExtensions.CheckGLError();
 #endif
-            if (GraphicsDevice.GraphicsCapabilities.SupportsTextureMaxLevel)
-            {
-                if (this.MaxMipLevel > 0)
-                {
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterNameTextureMaxLevel, this.MaxMipLevel);
-                }
-                else
-                {
-                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterNameTextureMaxLevel, 1000);
-                }
-            }
+            //if (GraphicsDevice.GraphicsCapabilities.SupportsTextureMaxLevel)
+            //{
+            //    if (this.MaxMipLevel > 0)
+            //    {
+            //        GL.TexParameter(TextureTarget.Texture2D, TextureParameterNameTextureMaxLevel, this.MaxMipLevel);
+            //    }
+            //    else
+            //    {
+            //        GL.TexParameter(TextureTarget.Texture2D, TextureParameterNameTextureMaxLevel, 1000);
+            //    }
+            //}
         }
 
     private int GetWrapMode(TextureAddressMode textureAddressMode)
