@@ -65,7 +65,7 @@ namespace Microsoft.Xna.Framework.Content
 		private IServiceProvider serviceProvider;
 		private IGraphicsDeviceService graphicsDeviceService;
         private Dictionary<string, object> loadedAssets = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
-		private List<IDisposable> disposableAssets = new List<IDisposable>();
+		protected List<IDisposable> disposableAssets = new List<IDisposable>();
         private bool disposed;
 		
 		private static object ContentManagerLock = new object();
