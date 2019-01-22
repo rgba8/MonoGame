@@ -54,6 +54,12 @@
       <Platform Name="WindowsPhone81">TRACE;WINRT;WINDOWS_PHONE81;DIRECTX;WINDOWS_STOREAPP</Platform>
       <Platform Name="Web">TRACE;WEB</Platform>
     </CustomDefinitions>
+	
+    <FrameworkVersions>
+      <Platform Name="WindowsGL">
+        <Version>v4.6</Version>
+      </Platform>
+    </FrameworkVersions>
 
   </Properties>
 
