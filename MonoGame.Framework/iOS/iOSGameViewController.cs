@@ -120,7 +120,12 @@ namespace Microsoft.Xna.Framework
             }
 
             base.ViewWillTransitionToSize(toSize, coordinator);
-        } 
+        }
+
+        public override UIRectEdge PreferredScreenEdgesDeferringSystemGestures
+        {
+            get { return UIRectEdge.All; }
+        }
 
         public override void TraitCollectionDidChange(UITraitCollection previousTraitCollection)
         {

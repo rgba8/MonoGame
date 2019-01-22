@@ -101,7 +101,7 @@ namespace Microsoft.Xna.Framework.Input.Touch
         /// Apply the given new touch to the state. If it is a Pressed it will be added as a new touch, otherwise we update the existing touch it matches
         /// </summary>
         private void ApplyTouch(List<TouchLocation> state, TouchLocation touch)
-        {
+        {            
             if (touch.State == TouchLocationState.Pressed)
             {
                 state.Add(touch);
@@ -134,20 +134,26 @@ namespace Microsoft.Xna.Framework.Input.Touch
 
         public TouchCollection GetState()
         {
-            //Clear out touches from previous frames that were released on the same frame they were touched that haven't been seen
-            for (var i = _touchState.Count - 1; i >= 0; i--)
-            {
-                var touch = _touchState[i];
+            //
+            // Laura: Disabling this because it's causing missed inputs in low fps situations now that we have update in draw
+            //
 
-                //If a touch was pressed and released in a previous frame and the user didn't ask about it then trash it.
-                if (touch.SameFrameReleased && touch.Timestamp < CurrentTimestamp && touch.State == TouchLocationState.Pressed)
-                {
-                    _touchState.RemoveAt(i);
-                }
-            }
+            ////Clear out touches from previous frames that were released on the same frame they were touched that haven't been seen
+            //for (var i = _touchState.Count - 1; i >= 0; i--)
+            //{
+            //    var touch = _touchState[i];
+
+            //    //If a touch was pressed and released in a previous frame and the user didn't ask about it then trash it.
+            //    if (touch.SameFrameReleased && touch.Timestamp < CurrentTimestamp && touch.State == TouchLocationState.Pressed)
+            //    {
+            //        Console.WriteLine("Touch Removing: {0}", touch.Id);
+            //        _touchState.RemoveAt(i);
+            //    }
+            //}
 
             var result = (_touchState.Count > 0) ? new TouchCollection(_touchState.ToArray()) : TouchCollection.Empty;
             AgeTouches(_touchState);
+            
             return result;
         }
 
