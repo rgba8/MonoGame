@@ -38,7 +38,9 @@ namespace Microsoft.Xna.Framework.Graphics
         internal IGraphicsContext Context { get; private set; }
 #endif
 
-#if !GLES
+#if GLES
+        private DrawBufferMode[] _drawBuffers;
+#else
         private DrawBuffersEnum[] _drawBuffers;
 #endif
 
@@ -178,17 +180,48 @@ namespace Microsoft.Xna.Framework.Graphics
             GL.GetInteger(GetPName.MaxTextureSize, out _maxTextureSize);
             GraphicsExtensions.CheckGLError();
 
-#if !GLES
-			// Initialize draw buffer attachment array
-			int maxDrawBuffers;
-			GL.GetInteger(GetPName.MaxDrawBuffers, out maxDrawBuffers);
-			_drawBuffers = new DrawBuffersEnum[maxDrawBuffers];
-			for (int i = 0; i < maxDrawBuffers; i++)
-				_drawBuffers[i] = (DrawBuffersEnum)(FramebufferAttachment.ColorAttachment0Ext + i);
+            // Initialize draw buffer attachment array
+            int maxDrawBuffers;
+            GL.GetInteger(GetPName.MaxDrawBuffers, out maxDrawBuffers);
+#if GLES
+            _drawBuffers = new DrawBufferMode[maxDrawBuffers];
+#else
+            _drawBuffers = new DrawBuffersEnum[maxDrawBuffers];
 #endif
+
             _extensions = GetGLExtensions();
 
             _enabledVertexAttributes = new bool[MaxVertexAttributes];
+        }
+
+        public void DrawBuffers(int[] drawBuffers)
+        {
+            for (int i = 0; i < this._drawBuffers.Length; ++i)
+            {
+#if GLES
+                _drawBuffers[i] = DrawBufferMode.None;
+#else
+                _drawBuffers[i] = DrawBuffersEnum.None;
+#endif
+            }
+
+            int max = -1;
+            if (drawBuffers != null)
+            {
+                for (int i = 0; i < drawBuffers.Length; ++i)
+                {
+                    int k = drawBuffers[i];
+                    max = Math.Max(k, max);
+#if GLES
+                    _drawBuffers[k] = (DrawBufferMode)(FramebufferAttachment.ColorAttachment0 + k);
+#else
+                    _drawBuffers[k] = (DrawBuffersEnum)(FramebufferAttachment.ColorAttachment0 + k);
+#endif
+                }
+            }
+
+            GL.DrawBuffers(max + 1, this._drawBuffers);
+            GraphicsExtensions.CheckGLError();
         }
 
         List<string> GetGLExtensions()
@@ -325,6 +358,18 @@ namespace Microsoft.Xna.Framework.Graphics
 		    ScissorRectangle = prevScissorRect;
 		    DepthStencilState = prevDepthStencilState;
 		    BlendState = prevBlendState;
+        }
+
+        public void ClearBuffer(int index, float[] color)
+        {
+            GL.ClearBuffer(
+#if GLES
+                OpenTK.Graphics.ES30.ClearBuffer.Color
+#else
+                OpenTK.Graphics.OpenGL.ClearBuffer.Color
+#endif
+                , index, color);
+            GraphicsExtensions.CheckGLError();
         }
 
         private void PlatformDispose()
@@ -674,9 +719,6 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 this.framebufferHelper.BindFramebuffer(glFramebuffer);
             }
-#if !GLES
-            GL.DrawBuffers(this._currentRenderTargetCount, this._drawBuffers);
-#endif
 
             // Reset the raster state because we flip vertices
             // when rendering offscreen and hence the cull direction.
