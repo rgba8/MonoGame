@@ -38,10 +38,11 @@ namespace Microsoft.Xna.Framework.Graphics
         internal IGraphicsContext Context { get; private set; }
 #endif
 
-#if !GLES
+#if GLES
+        private DrawBufferMode[] _drawBuffers;
+#else
         private DrawBuffersEnum[] _drawBuffers;
 #endif
-
         static List<Action> disposeActions = new List<Action>();
         static object disposeActionsLock = new object();
 
@@ -99,17 +100,17 @@ namespace Microsoft.Xna.Framework.Graphics
             GraphicsMode mode = GraphicsMode.Default;
             var wnd = (Game.Instance.Window as OpenTKGameWindow).Window.WindowInfo;
 
-            #if GLES
+#if GLES
             // Create an OpenGL ES 2.0 context
             var flags = GraphicsContextFlags.Embedded;
             int major = 2;
             int minor = 0;
-            #else
+#else
             // Create an OpenGL compatibility context
             var flags = GraphicsContextFlags.Default;
             int major = 1;
             int minor = 0;
-            #endif
+#endif
 
             if (Context == null || Context.IsDisposed)
             {
@@ -178,13 +179,17 @@ namespace Microsoft.Xna.Framework.Graphics
             GL.GetInteger(GetPName.MaxTextureSize, out _maxTextureSize);
             GraphicsExtensions.CheckGLError();
 
-#if !GLES
 			// Initialize draw buffer attachment array
 			int maxDrawBuffers;
 			GL.GetInteger(GetPName.MaxDrawBuffers, out maxDrawBuffers);
-			_drawBuffers = new DrawBuffersEnum[maxDrawBuffers];
-			for (int i = 0; i < maxDrawBuffers; i++)
-				_drawBuffers[i] = (DrawBuffersEnum)(FramebufferAttachment.ColorAttachment0Ext + i);
+#if GLES
+            _drawBuffers = new DrawBufferMode[maxDrawBuffers];
+            for (int i = 0; i < maxDrawBuffers; i++)
+                _drawBuffers[i] = DrawBufferMode.ColorAttachment0 + i;
+#else
+            _drawBuffers = new DrawBuffersEnum[maxDrawBuffers];
+            for (int i = 0; i < maxDrawBuffers; i++)
+                _drawBuffers[i] = DrawBuffersEnum.ColorAttachment0 + i;
 #endif
             _extensions = GetGLExtensions();
 
@@ -232,12 +237,12 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 this.framebufferHelper = new FramebufferHelper(this);
             }
-            #if !(GLES || MONOMAC)
+#if !(GLES || MONOMAC)
             else if (GraphicsCapabilities.SupportsFramebufferObjectEXT)
             {
                 this.framebufferHelper = new FramebufferHelperEXT(this);
             }
-            #endif
+#endif
             else
             {
                 throw new PlatformNotSupportedException(
@@ -306,11 +311,11 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 if (depth != _lastClearDepth)
                 {
- #if GLES
+#if GLES
                     GL.ClearDepth (depth);
- #else
+#else
                     GL.ClearDepth((double)depth);
- #endif
+#endif
                     GraphicsExtensions.CheckGLError();
                     _lastClearDepth = depth;
                 }
@@ -599,7 +604,8 @@ namespace Microsoft.Xna.Framework.Graphics
                     this.framebufferHelper.BindFramebuffer(glResolveFramebuffer);
                     for (var i = 0; i < this._currentRenderTargetCount; ++i)
                     {
-                        this.framebufferHelper.FramebufferTexture2D((int)(FramebufferAttachment.ColorAttachment0 + i), (int)renderTarget.glTarget, renderTarget.glTexture);
+                        var rt = this._currentRenderTargetBindings[i].RenderTarget;
+                        this.framebufferHelper.FramebufferTexture2D((int)(FramebufferAttachment.ColorAttachment0 + i), (int)rt.glTarget, rt.glTexture);
                     }
                     this.glResolveFramebuffers.Add((RenderTargetBinding[])this._currentRenderTargetBindings.Clone(), glResolveFramebuffer);
                 }
@@ -662,7 +668,7 @@ namespace Microsoft.Xna.Framework.Graphics
                         this.framebufferHelper.FramebufferRenderbuffer(attachement, renderTarget.glColorBuffer, 0);
                     else
                         this.framebufferHelper.FramebufferTexture2D(attachement, (int)renderTarget.glTarget, renderTarget.glTexture, 0, renderTarget.MultiSampleCount);
-                }
+                }               
 
 #if DEBUG
                 this.framebufferHelper.CheckFramebufferStatus();
@@ -673,9 +679,62 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 this.framebufferHelper.BindFramebuffer(glFramebuffer);
             }
-#if !GLES
-            GL.DrawBuffers(this._currentRenderTargetCount, this._drawBuffers);
+
+            // Reset the drawbuffers mask (can be changed by calling SetRenderTargetMask) to ensure caller Clear() will work
+            for (var i = 0; i < this._currentRenderTargetCount; ++i)
+            {
+#if GLES
+                this._drawBuffers[i] = DrawBufferMode.ColorAttachment0 + i;
+#else
+                this._drawBuffers[i] = DrawBuffersEnum.ColorAttachment0 + i;
 #endif
+            }
+            GL.DrawBuffers(this._currentRenderTargetCount, this._drawBuffers);
+            GraphicsExtensions.CheckGLError();
+
+            // Color masks affects glClear/glClearBuffer
+            GL.ColorMask(true, true, true, true);
+            GraphicsExtensions.CheckGLError();
+            for (var i = 0; i < this._currentRenderTargetCount; ++i)
+            {
+                var renderTargetBinding = this._currentRenderTargetBindings[i];
+                var renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
+                if (renderTarget.RenderTargetUsage != RenderTargetUsage.PreserveContents)
+                {
+                    // Scissor test affects glClear/glClearBuffer
+                    GL.Disable(EnableCap.ScissorTest);
+                    GraphicsExtensions.CheckGLError();
+                    var color = renderTargetBinding.ClearColor.ToVector4();
+                    GL.ClearBuffer(ClearBuffer.Color, i, ref color.X);
+                    GraphicsExtensions.CheckGLError();
+                    if (renderTarget.DepthStencilFormat != DepthFormat.None)
+                    {
+                        GL.DepthMask(true);
+                        GraphicsExtensions.CheckGLError();
+                        if (renderTarget.DepthStencilFormat == DepthFormat.Depth24Stencil8)
+                        {
+                            // Stencil test affects glClear/glClearBuffer on some drivers (which ones?)
+                            GL.Enable(EnableCap.StencilTest);
+                            GraphicsExtensions.CheckGLError();
+                            GL.StencilMask(~0);
+                            GraphicsExtensions.CheckGLError();
+                            GL.ClearBuffer(ClearBufferCombined.DepthStencil, i, 1.0f, 0);
+                            GraphicsExtensions.CheckGLError();
+                        }
+                        else
+                        {
+                            var clearDepth = 1.0f;
+                            GL.ClearBuffer(ClearBuffer.Depth, i, ref clearDepth);
+                            GraphicsExtensions.CheckGLError();
+                        }
+                    }
+                }
+               
+            }
+
+            // Make sure to reapply states since we might have touched some of them
+            _depthStencilStateDirty = true;
+            _blendStateDirty = true;
 
             // Reset the raster state because we flip vertices
             // when rendering offscreen and hence the cull direction.
@@ -685,6 +744,23 @@ namespace Microsoft.Xna.Framework.Graphics
             Textures.Dirty();
 
             return _currentRenderTargetBindings[0].RenderTarget as IRenderTarget;
+        }
+
+        public void DrawBuffers(bool color0, bool color1, bool color2, bool color3)
+        {
+#if GLES
+            var none = DrawBufferMode.None;
+            var colorAttachement0 = DrawBufferMode.ColorAttachment0;
+#else
+            var none = DrawBuffersEnum.None;
+            var colorAttachement0 = DrawBuffersEnum.ColorAttachment0;
+#endif
+            this._drawBuffers[0] = color0 ? colorAttachement0 : none;
+            this._drawBuffers[1] = (this._currentRenderTargetCount > 1) && color1 ? colorAttachement0 + 1 : none;
+            this._drawBuffers[2] = (this._currentRenderTargetCount > 2) && color2 ? colorAttachement0 + 2 : none;
+            this._drawBuffers[3] = (this._currentRenderTargetCount > 3) && color3 ? colorAttachement0 + 3 : none;
+            GL.DrawBuffers(4, this._drawBuffers);
+            GraphicsExtensions.CheckGLError();
         }
 
         private static GLPrimitiveType PrimitiveTypeGL(PrimitiveType primitiveType)

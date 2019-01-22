@@ -48,7 +48,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #if DEBUG
         private static readonly Color DiscardColor = new Color(68, 34, 136, 255);
 #else
-        private static readonly Color DiscardColor = new Color(0, 0, 0, 255);
+        private static readonly Color DiscardColor = new Color(0, 0, 0, 0);
 #endif
 
         /// <summary>
@@ -513,9 +513,11 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 var renderTarget = PlatformApplyRenderTargets();
 
+#if !OPENGL
                 // We clear the render target if asked.
+                // On OpenGL, clear is handled in PlatformApplyRenderTargets()
                 clearTarget = renderTarget.RenderTargetUsage == RenderTargetUsage.DiscardContents;
-
+#endif
                 renderTargetWidth = renderTarget.Width;
                 renderTargetHeight = renderTarget.Height;
             }

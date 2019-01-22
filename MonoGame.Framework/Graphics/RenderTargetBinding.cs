@@ -49,8 +49,11 @@ namespace Microsoft.Xna.Framework.Graphics
 	{
         private readonly Texture _renderTarget;
         private readonly int _arraySlice;
+        private readonly Color _clearColor;
+        private readonly float _clearDepth;
+        private readonly int _clearStencil;
 
-		public Texture RenderTarget 
+        public Texture RenderTarget 
         {
 			get { return _renderTarget; }
 		}
@@ -60,14 +63,48 @@ namespace Microsoft.Xna.Framework.Graphics
             get { return _arraySlice; }
         }
 
-		public RenderTargetBinding(RenderTarget2D renderTarget)
+        public Color ClearColor
+        {
+            get { return _clearColor; }
+        }
+
+        public float ClearDepth
+        {
+            get { return _clearDepth; }
+        }
+
+        public float ClearStencil
+        {
+            get { return _clearStencil; }
+        }
+
+        public RenderTargetBinding(RenderTarget2D renderTarget)
 		{
 			if (renderTarget == null) 
 				throw new ArgumentNullException("renderTarget");
 
 			_renderTarget = renderTarget;
             _arraySlice = (int)CubeMapFace.PositiveX;
-		}
+#if DEBUG
+            _clearColor = new Color(68, 34, 136, 255);
+#else
+            _clearColor = new Color(0, 0, 0, 0);
+#endif
+            _clearDepth = 1.0f;
+            _clearStencil = 0;
+        }
+
+        public RenderTargetBinding(RenderTarget2D renderTarget, Color clearColor, float clearDepth = 1.0f, int clearStencil = 0)
+        {
+            if (renderTarget == null)
+                throw new ArgumentNullException("renderTarget");
+
+            _renderTarget = renderTarget;
+            _arraySlice = (int)CubeMapFace.PositiveX;
+            _clearColor = clearColor;
+            _clearDepth = clearDepth;
+            _clearStencil = clearStencil;
+        }
 
         public RenderTargetBinding(RenderTargetCube renderTarget, CubeMapFace cubeMapFace)
         {
@@ -78,6 +115,13 @@ namespace Microsoft.Xna.Framework.Graphics
 
             _renderTarget = renderTarget;
             _arraySlice = (int)cubeMapFace;
+#if DEBUG
+            _clearColor = new Color(68, 34, 136, 255);
+#else
+            _clearColor = new Color(0, 0, 0, 0);
+#endif
+            _clearDepth = 1.0f;
+            _clearStencil = 0;
         }
 
 #if DIRECTX
@@ -102,7 +146,7 @@ namespace Microsoft.Xna.Framework.Graphics
             _arraySlice = arraySlice;
         }
 
-#endif 
+#endif
 
         public static implicit operator RenderTargetBinding(RenderTarget2D renderTarget)
         {

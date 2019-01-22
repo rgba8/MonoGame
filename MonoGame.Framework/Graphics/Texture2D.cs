@@ -16,14 +16,14 @@ namespace Microsoft.Xna.Framework.Graphics
             SwapChainRenderTarget,
         }
 
-		internal int width;
-		internal int height;
+        internal int width;
+        internal int height;
 
         public Rectangle Bounds
         {
             get
             {
-				return new Rectangle(0, 0, this.width, this.height);
+                return new Rectangle(0, 0, this.width, this.height);
             }
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Xna.Framework.Graphics
         }
 
         protected Texture2D(GraphicsDevice graphicsDevice, int width, int height, bool mipmap, SurfaceFormat format, SurfaceType type, bool shared)
-		{
+        {
             if (graphicsDevice == null)
                 throw new ArgumentNullException("Graphics Device Cannot Be Null");
 
@@ -54,8 +54,8 @@ namespace Microsoft.Xna.Framework.Graphics
             this._levelCount = mipmap ? CalculateMipLevels(width, height) : 1;
 
             // Texture will be assigned by the swap chain.
-		    if (type == SurfaceType.SwapChainRenderTarget)
-		        return;
+            if (type == SurfaceType.SwapChainRenderTarget)
+                return;
 
             PlatformConstruct(width, height, mipmap, format, type, shared);
         }
@@ -76,25 +76,30 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-        public void SetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct 
+        public void SetData<T>(int level, int arraySlice, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
         {
-            if (data == null)
-				throw new ArgumentNullException("data");
-
-            PlatformSetData<T>(level, rect, data, startIndex, elementCount);
+            PlatformSetData(level, arraySlice, rect, data, startIndex, elementCount);
         }
 
-		public void SetData<T>(T[] data, int startIndex, int elementCount) where T : struct
+        public void SetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (data == null)
+                throw new ArgumentNullException("data");
+
+            PlatformSetData<T>(level, 0, rect, data, startIndex, elementCount);
+        }
+
+        public void SetData<T>(T[] data, int startIndex, int elementCount) where T : struct
         {
             this.SetData(0, null, data, startIndex, elementCount);
         }
-		
-		public void SetData<T>(T[] data) where T : struct
+
+        public void SetData<T>(T[] data) where T : struct
         {
-			this.SetData(0, null, data, 0, data.Length);
+            this.SetData(0, null, data, 0, data.Length);
         }
-		
-		public void GetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
+
+        public void GetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
         {
             if (data == null || data.Length == 0)
                 throw new ArgumentException("data cannot be null");
@@ -104,18 +109,88 @@ namespace Microsoft.Xna.Framework.Graphics
             PlatformGetData<T>(level, rect, data, startIndex, elementCount);
         }
 
-		public void GetData<T>(T[] data, int startIndex, int elementCount) where T : struct
-		{
-			this.GetData(0, null, data, startIndex, elementCount);
-		}
-		
-		public void GetData<T> (T[] data) where T : struct
-		{
-			this.GetData(0, null, data, 0, data.Length);
-		}
-		
-		public static Texture2D FromStream(GraphicsDevice graphicsDevice, Stream stream)
-		{
+        public void GetData<T>(T[] data, int startIndex, int elementCount) where T : struct
+        {
+            this.GetData(0, null, data, startIndex, elementCount);
+        }
+
+        public void GetData<T>(T[] data) where T : struct
+        {
+            this.GetData(0, null, data, 0, data.Length);
+        }
+
+#if OPENGL
+        public void BeginGetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (data == null || data.Length == 0)
+                throw new ArgumentException("data cannot be null");
+            if (data.Length < startIndex + elementCount)
+                throw new ArgumentException("The data passed has a length of " + data.Length + " but " + elementCount + " pixels have been requested.");
+
+            PlatformBeginGetData<T>(level, rect, data, startIndex, elementCount);
+        }
+
+        public void BeginGetData<T>(T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (data == null || data.Length == 0)
+                throw new ArgumentException("data cannot be null");
+            if (data.Length < startIndex + elementCount)
+                throw new ArgumentException("The data passed has a length of " + data.Length + " but " + elementCount + " pixels have been requested.");
+
+            PlatformBeginGetData<T>(0, null, data, startIndex, elementCount);
+        }
+
+        public void BeginGetData<T>(T[] data) where T : struct
+        {
+            if (data == null || data.Length == 0)
+                throw new ArgumentException("data cannot be null");
+
+            PlatformBeginGetData<T>(0, null, data, 0, data.Length);
+        }
+
+        public void EndGetData()
+        {
+            PlatformEndGetData();
+        }
+
+        public bool IsGetDataCompleted()
+        {
+            return PlatformIsGetDataCompleted();
+        }
+
+
+        public void BeginSetData<T>(int level, Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (data == null)
+                throw new ArgumentNullException("data");
+
+            PlatformBeginSetData<T>(level, 0, rect, data, startIndex, elementCount);
+        }
+
+        public void BeginSetData<T>(T[] data, int startIndex, int elementCount) where T : struct
+        {
+            if (data == null)
+                throw new ArgumentNullException("data");
+
+            PlatformBeginSetData<T>(0, 0, null, data, startIndex, elementCount);
+        }
+
+        public void BeginSetData<T>(T[] data) where T : struct
+        {
+            if (data == null)
+                throw new ArgumentNullException("data");
+
+            PlatformBeginSetData<T>(0, 0, null, data, 0, data.Length);
+        }
+
+        public bool IsSetDataCompleted()
+        {
+            return PlatformIsSetDataCompleted();
+        }
+#endif
+
+        public static Texture2D FromStream(GraphicsDevice graphicsDevice, Stream stream)
+        {
             return PlatformFromStream(graphicsDevice, stream);
         }
 
@@ -146,6 +221,5 @@ namespace Microsoft.Xna.Framework.Graphics
                 pixels[i] = (int)((pixel & 0xFF00FF00) | ((pixel & 0x00FF0000) >> 16) | ((pixel & 0x000000FF) << 16));
             }
         }
-	}
+    }
 }
-
