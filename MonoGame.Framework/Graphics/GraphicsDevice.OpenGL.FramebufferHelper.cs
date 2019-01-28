@@ -66,7 +66,7 @@ namespace Microsoft.Xna.Framework.Graphics
             internal virtual void RenderbufferStorageMultisample(int samples, int internalFormat, int width, int height)
             {
                 if (samples > 0)
-                    GL.RenderbufferStorageMultisample(All.Renderbuffer, samples, (All)internalFormat, width, height);
+                    GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, samples, (RenderbufferInternalFormat)internalFormat, width, height);
                 else
                     GL.RenderbufferStorage(RenderbufferTarget.Renderbuffer, (RenderbufferInternalFormat)internalFormat, width, height);
                 GraphicsExtensions.CheckGLError();

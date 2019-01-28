@@ -73,7 +73,7 @@ namespace Microsoft.Xna.Framework.Graphics
             get { return _clearDepth; }
         }
 
-        public float ClearStencil
+        public int ClearStencil
         {
             get { return _clearStencil; }
         }

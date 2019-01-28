@@ -17,8 +17,7 @@ namespace Microsoft.Xna.Framework.Graphics
     public partial class RenderTarget2D
     {
         internal int glColorBuffer;
-        internal int glDepthBuffer;
-        internal int glStencilBuffer;
+        internal int glDepthStencilBuffer;
 
         private void PlatformConstruct(GraphicsDevice graphicsDevice, int width, int height, bool mipMap,
             SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat, int preferredMultiSampleCount, RenderTargetUsage usage, bool shared)
