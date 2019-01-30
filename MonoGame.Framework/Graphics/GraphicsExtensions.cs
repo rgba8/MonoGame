@@ -502,7 +502,6 @@ namespace Microsoft.Xna.Framework.Graphics
         }
 #endif
 		
-		
 		internal static void GetGLFormat (this SurfaceFormat format,
 		                                 out PixelInternalFormat glInternalFormat,
 		                                 out PixelFormat glFormat,
@@ -514,26 +513,28 @@ namespace Microsoft.Xna.Framework.Graphics
 			
 			switch (format) {
 			case SurfaceFormat.Color:
-				glInternalFormat = PixelInternalFormat.Rgba;
+				glInternalFormat = (PixelInternalFormat)All.Rgba8;
 				glFormat = PixelFormat.Rgba;
 				glType = PixelType.UnsignedByte;
 				break;
-			case SurfaceFormat.Bgr565:
-				glInternalFormat = PixelInternalFormat.Rgb;
-				glFormat = PixelFormat.Rgb;
-				glType = PixelType.UnsignedShort565;
-				break;
+            case SurfaceFormat.Bgra32:
+                glInternalFormat = (PixelInternalFormat)All.Rgba8;
+                // Component are swizzed at texture initialization
+                glFormat = PixelFormat.Rgba;
+                glType = PixelType.UnsignedByte;
+                break;
+            case SurfaceFormat.Bgr565:
+                glInternalFormat = (PixelInternalFormat)All.Rgb565;
+			    glFormat = PixelFormat.Rgb;
+			    glType = PixelType.UnsignedShort565;
+			    break;
 			case SurfaceFormat.Bgra4444:
-#if IOS || ANDROID
-				glInternalFormat = PixelInternalFormat.Rgba;
-#else
-				glInternalFormat = PixelInternalFormat.Rgba4;
-#endif
+				glInternalFormat = (PixelInternalFormat)All.Rgba4;
 				glFormat = PixelFormat.Rgba;
 				glType = PixelType.UnsignedShort4444;
 				break;
 			case SurfaceFormat.Bgra5551:
-				glInternalFormat = PixelInternalFormat.Rgba;
+				glInternalFormat = (PixelInternalFormat)All.Rgb5A1;
 				glFormat = PixelFormat.Rgba;
 				glType = PixelType.UnsignedShort5551;
 				break;
@@ -575,37 +576,28 @@ namespace Microsoft.Xna.Framework.Graphics
                 glFormat = PixelFormat.Rgba;
                 glType = PixelType.HalfFloat;
                 break;
-            case SurfaceFormat.HalfVector4Oes:
-                glInternalFormat = PixelInternalFormat.Rgba;
-                glFormat = PixelFormat.Rgba;
-                glType = (PixelType)0x8D61; // GL_HALF_FLOAT_OES
-                break;
             case SurfaceFormat.HalfSingle:
                 glInternalFormat = (PixelInternalFormat)All.R16f;
                 glFormat = PixelFormat.Red;
                 glType = PixelType.HalfFloat;
                 break;
-
             case SurfaceFormat.Vector2:
                 glInternalFormat = (PixelInternalFormat)All.Rg32f;
                 glFormat = PixelFormat.Rg;
                 glType = PixelType.Float;
                 break;
-
             case SurfaceFormat.Vector4:
                 glInternalFormat = (PixelInternalFormat)All.Rgba32f;
                 glFormat = PixelFormat.Rgba;
                 glType = PixelType.Float;
-                break;
-
+                    break;
             case SurfaceFormat.NormalizedByte2:
-                glInternalFormat = (PixelInternalFormat)All.Rg8i;
+                glInternalFormat = (PixelInternalFormat)All.Rg8Snorm;
                 glFormat = PixelFormat.Rg;
                 glType = PixelType.Byte;
                 break;
-
             case SurfaceFormat.NormalizedByte4:
-                glInternalFormat = (PixelInternalFormat)All.Rgba8i;
+                glInternalFormat = (PixelInternalFormat)All.Rgba8Snorm;
                 glFormat = PixelFormat.Rgba;
                 glType = PixelType.Byte;
                 break;
@@ -621,14 +613,17 @@ namespace Microsoft.Xna.Framework.Graphics
                 break;
             case SurfaceFormat.Rgba1010102:
 #if GLES
-                throw new NotSupportedException();
+                glInternalFormat = (PixelInternalFormat)All.Rgb10A2ui;
+                glFormat = PixelFormat.Rgba;
+                glType = (PixelType)All.UnsignedInt2101010Rev;
+                break;
 #else
                 glInternalFormat = (PixelInternalFormat)All.Rgb10A2ui;
                 glFormat = PixelFormat.Rgba;
                 glType = PixelType.UnsignedInt1010102;
                 break;
 #endif
-            case SurfaceFormat.RgbEtc1:
+                case SurfaceFormat.RgbEtc1:
                 glInternalFormat = (PixelInternalFormat)0x8D64; // GL_ETC1_RGB8_OES
                 glFormat = (PixelFormat)All.CompressedTextureFormats;
                 break;
@@ -663,7 +658,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
 #endif // OPENGL
 
-        public static int GetFrameLatency(this PresentInterval interval)
+                    public static int GetFrameLatency(this PresentInterval interval)
         {
             switch (interval)
             {
@@ -706,6 +701,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.NormalizedByte2:
                     return 2;
                 case SurfaceFormat.Color:
+                
                 case SurfaceFormat.Single:
                 case SurfaceFormat.Rg32:
                 case SurfaceFormat.HalfVector2:

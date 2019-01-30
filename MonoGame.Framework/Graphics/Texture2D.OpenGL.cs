@@ -65,30 +65,14 @@ namespace Microsoft.Xna.Framework.Graphics
             Threading.BlockOnUIThread(() =>
             {
                 GenerateGLTextureIfRequired();
-                int w = width;
-                int h = height;
-                int level = 0;
-                while (true)
-                {
-                    if (glFormat == (GLPixelFormat)All.CompressedTextureFormats)
-                    {
-                        var imageSize = GetImageSize(format, w, h);
-                        GL.CompressedTexImage2D(this.glTarget, level, glInternalFormat, w, h, 0, imageSize, IntPtr.Zero);
-                        GraphicsExtensions.CheckGLError();
-                    }
-                    else
-                    {
-                        GL.TexImage2D(this.glTarget, level, glInternalFormat, w, h, 0, glFormat, glType, IntPtr.Zero);
-                        GraphicsExtensions.CheckGLError();
-                    }
-                    if ((w == 1 && h == 1) || !mipmap)
-                        break;
-                    if (w > 1)
-                        w = w / 2;
-                    if (h > 1)
-                        h = h / 2;
-                    ++level;
-                }
+#if GLES
+                GL.TexStorage2D(TextureTarget2D.Texture2D, this._levelCount, (SizedInternalFormat)glInternalFormat, width, height);
+#else
+                GL.TexStorage2D(TextureTarget2d.Texture2D, this._levelCount, (SizedInternalFormat)glInternalFormat, width, height);
+#endif
+                GraphicsExtensions.CheckGLError();
+                
+      
             });
         }
 
@@ -496,20 +480,20 @@ namespace Microsoft.Xna.Framework.Graphics
             Bitmap image = (Bitmap)Bitmap.FromStream(stream);
             try
             {
-                // Fix up the Image to match the expected format
-                image = (Bitmap)image.RGBToBGR();
-
                 var data = new byte[image.Width * image.Height * 4];
-
-                BitmapData bitmapData = image.LockBits(new System.Drawing.Rectangle(0, 0, image.Width, image.Height),
-                    ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
-                if (bitmapData.Stride != image.Width * 4)
-                    throw new NotImplementedException();
-                Marshal.Copy(bitmapData.Scan0, data, 0, data.Length);
-                image.UnlockBits(bitmapData);
-
+                unsafe
+                {
+                    fixed (byte* dataPtr = &data[0])
+                    {
+                        var bitmapData = new BitmapData { Width = image.Width, Height = image.Height, PixelFormat = System.Drawing.Imaging.PixelFormat.Format32bppArgb, Stride = image.Width * 4 };
+                        bitmapData.Scan0 = (IntPtr)dataPtr;
+                        var rect = new System.Drawing.Rectangle(0, 0, image.Width, image.Height);
+                        image.LockBits(rect, ImageLockMode.UserInputBuffer | ImageLockMode.ReadOnly, System.Drawing.Imaging.PixelFormat.Format32bppPArgb, bitmapData);
+                        image.UnlockBits(bitmapData);
+                    }
+                }
                 Texture2D texture = null;
-                texture = new Texture2D(graphicsDevice, image.Width, image.Height);
+                texture = new Texture2D(graphicsDevice, image.Width, image.Height, false, SurfaceFormat.Bgra32);
                 texture.SetData(data);
 
                 return texture;
@@ -587,11 +571,8 @@ namespace Microsoft.Xna.Framework.Graphics
             colorSpace.Dispose();
 
             Texture2D texture = null;
-            Threading.BlockOnUIThread(() =>
-            {
-                texture = new Texture2D(graphicsDevice, (int)width, (int)height, false, SurfaceFormat.Color);
-                texture.SetData(data);
-            });
+            texture = new Texture2D(graphicsDevice, (int)width, (int)height, false, SurfaceFormat.Color);
+            texture.SetData(data);
 
             return texture;
         }
@@ -619,15 +600,9 @@ namespace Microsoft.Xna.Framework.Graphics
             }
             image.Recycle();
 
-            // Convert from ARGB to ABGR
-            ConvertToABGR(height, width, pixels);
-
             Texture2D texture = null;
-            Threading.BlockOnUIThread(() =>
-            {
-                texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Color);
-                texture.SetData<int>(pixels);
-            });
+            texture = new Texture2D(graphicsDevice, width, height, false, SurfaceFormat.Bgra32);
+            texture.SetData<int>(pixels);
 
             return texture;
         }
@@ -650,9 +625,6 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 int[] pixels = new int[width * height];
                 image.GetPixels(pixels, 0, width, 0, 0, width, height);
-
-                // Convert from ARGB to ABGR
-                ConvertToABGR(height, width, pixels);
 
                 this.SetData<int>(pixels);
                 image.Recycle();
@@ -792,6 +764,18 @@ namespace Microsoft.Xna.Framework.Graphics
                 GraphicsExtensions.CheckGLError();
                 GL.TexParameter(this.glTarget, TextureParameterName.TextureWrapT, (int)wrap);
                 GraphicsExtensions.CheckGLError();
+
+                if (this.Format == SurfaceFormat.Bgra32)
+                {
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int)All.Blue);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int)All.Green);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int)All.Red);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int)All.Alpha);
+                    GraphicsExtensions.CheckGLError();
+                }
             }
         }
     }

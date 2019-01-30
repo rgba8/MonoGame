@@ -24,14 +24,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         internal static int CalculateMipLevels(int width, int height = 0, int depth = 0)
         {
-            int levels = 1;
-            int size = Math.Max(Math.Max(width, height), depth);
-            while (size > 1)
-            {
-                size = size / 2;
-                levels++;
-            }
-            return levels;
+            return (int)(1 + Math.Floor(Math.Log(Math.Max(width, Math.Max(height, depth)), 2)));
         }
 
         internal int GetPitch(int width)

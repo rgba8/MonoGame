@@ -31,18 +31,13 @@ namespace Microsoft.Xna.Framework.Graphics
             Threading.BlockOnUIThread(() =>
             {
                 GenerateGLTextureIfRequired();
-
                 format.GetGLFormat(out glInternalFormat, out glFormat, out glType);
-
 #if GLES
-            GL.TexImage3D((All)glTarget, 0, (int)glInternalFormat, width, height, depth, 0, (All)glFormat, (All)glType, IntPtr.Zero);
+                GL.TexStorage3D(TextureTarget3D.Texture3D, this._levelCount, (SizedInternalFormat)glInternalFormat, width, height, depth);
 #else
-            GL.TexImage3D(glTarget, 0, glInternalFormat, width, height, depth, 0, glFormat, glType, IntPtr.Zero);
+                GL.TexStorage3D(TextureTarget3d.Texture3D, this._levelCount, (SizedInternalFormat)glInternalFormat, width, height, depth);
 #endif
-            GraphicsExtensions.CheckGLError();
-
-            if (mipMap)
-                throw new NotImplementedException("Texture3D does not yet support mipmaps.");
+                GraphicsExtensions.CheckGLError();
             });
         }
 
@@ -68,7 +63,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     GL.PixelStore(PixelStoreParameter.UnpackAlignment, GraphicsExtensions.GetSize(this.Format));
                     GraphicsExtensions.CheckGLError();
 #if GLES
-            GL.TexSubImage3D((All)glTarget, level, left, top, front, width, height, depth, (All)glFormat, (All)glType, dataPtr);
+                    GL.TexSubImage3D((All)glTarget, level, left, top, front, width, height, depth, (All)glFormat, (All)glType, dataPtr);
 #else
                     GL.TexSubImage3D(glTarget, level, left, top, front, width, height, depth, glFormat, glType, dataPtr);
 #endif
@@ -119,6 +114,18 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 GL.TexParameter(TextureTarget.Texture3D, TextureParameterName.TextureWrapR, (int)wrap);
                 GraphicsExtensions.CheckGLError();
+
+                if (this.Format == SurfaceFormat.Bgra32)
+                {
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int)All.Blue);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int)All.Green);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int)All.Red);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int)All.Alpha);
+                    GraphicsExtensions.CheckGLError();
+                }
             }
         }
 	}

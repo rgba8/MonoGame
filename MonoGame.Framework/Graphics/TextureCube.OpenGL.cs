@@ -23,50 +23,42 @@ namespace Microsoft.Xna.Framework.Graphics
 
             Threading.BlockOnUIThread(() =>
             {
-			GL.GenTextures(1, out this.glTexture);
-            GraphicsExtensions.CheckGLError();
-            GL.BindTexture(TextureTarget.TextureCubeMap, this.glTexture);
-            GraphicsExtensions.CheckGLError();
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter,
-                            mipMap ? (int)TextureMinFilter.LinearMipmapLinear : (int)TextureMinFilter.Linear);
-            GraphicsExtensions.CheckGLError();
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter,
-                            (int)TextureMagFilter.Linear);
-            GraphicsExtensions.CheckGLError();
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS,
-                            (int)TextureWrapMode.ClampToEdge);
-            GraphicsExtensions.CheckGLError();
-            GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT,
-                            (int)TextureWrapMode.ClampToEdge);
-            GraphicsExtensions.CheckGLError();
+			    GL.GenTextures(1, out this.glTexture);
+                GraphicsExtensions.CheckGLError();
+                GL.BindTexture(TextureTarget.TextureCubeMap, this.glTexture);
+                GraphicsExtensions.CheckGLError();
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMinFilter,
+                                mipMap ? (int)TextureMinFilter.LinearMipmapLinear : (int)TextureMinFilter.Linear);
+                GraphicsExtensions.CheckGLError();
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureMagFilter,
+                                (int)TextureMagFilter.Linear);
+                GraphicsExtensions.CheckGLError();
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapS,
+                                (int)TextureWrapMode.ClampToEdge);
+                GraphicsExtensions.CheckGLError();
+                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.TextureWrapT,
+                                (int)TextureWrapMode.ClampToEdge);
+                GraphicsExtensions.CheckGLError();
 
-
-            format.GetGLFormat(out glInternalFormat, out glFormat, out glType);
-
-            for (int i = 0; i < 6; i++)
-            {
-                TextureTarget target = GetGLCubeFace((CubeMapFace)i);
-
-                if (glFormat == (PixelFormat)All.CompressedTextureFormats)
+                if (this.Format == SurfaceFormat.Bgra32)
                 {
-                    throw new NotImplementedException();
-                }
-                else
-                {
-                    GL.TexImage2D(target, 0, glInternalFormat, size, size, 0, glFormat, glType, IntPtr.Zero);
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleR, (int)All.Blue);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleG, (int)All.Green);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleB, (int)All.Red);
+                    GraphicsExtensions.CheckGLError();
+                    GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureSwizzleA, (int)All.Alpha);
                     GraphicsExtensions.CheckGLError();
                 }
-            }
 
-            if (mipMap)
-            {
-#if IOS || ANDROID
-				GL.GenerateMipmap(TextureTarget.TextureCubeMap);
+                format.GetGLFormat(out glInternalFormat, out glFormat, out glType);
+#if GLES
+                GL.TexStorage2D(TextureTarget2D.TextureCubeMap, this._levelCount, (SizedInternalFormat)glInternalFormat, size, size);
 #else
-                GL.TexParameter(TextureTarget.TextureCubeMap, TextureParameterName.GenerateMipmap, (int)All.True);
+                GL.TexStorage2D(TextureTarget2d.TextureCubeMap, this._levelCount, (SizedInternalFormat)glInternalFormat, size, size);
 #endif
                 GraphicsExtensions.CheckGLError();
-            }
             });
         }
 
@@ -90,19 +82,19 @@ namespace Microsoft.Xna.Framework.Graphics
         {
             Threading.BlockOnUIThread(() =>
             {
-            GL.BindTexture(TextureTarget.TextureCubeMap, this.glTexture);
-            GraphicsExtensions.CheckGLError();
-
-            TextureTarget target = GetGLCubeFace(face);
-            if (glFormat == (PixelFormat)All.CompressedTextureFormats)
-            {
-                throw new NotImplementedException();
-            }
-            else
-            {
-                GL.TexSubImage2D(target, level, xOffset, yOffset, width, height, glFormat, glType, dataPtr);
+                GL.BindTexture(TextureTarget.TextureCubeMap, this.glTexture);
                 GraphicsExtensions.CheckGLError();
-            }
+
+                TextureTarget target = GetGLCubeFace(face);
+                if (glFormat == (PixelFormat)All.CompressedTextureFormats)
+                {
+                    throw new NotImplementedException();
+                }
+                else
+                {
+                    GL.TexSubImage2D(target, level, xOffset, yOffset, width, height, glFormat, glType, dataPtr);
+                    GraphicsExtensions.CheckGLError();
+                }
             });
         }
 
