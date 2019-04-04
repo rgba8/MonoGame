@@ -258,6 +258,23 @@ namespace Microsoft.Xna.Framework.Graphics
         private BlendState clearBlendState = BlendState.Opaque;
         private DepthStencilState clearDepthStencilState = new DepthStencilState { StencilEnable = true };
 
+        public void DrawBuffers(bool color0, bool color1, bool color2, bool color3)
+        {
+#if GLES
+            var none = DrawBufferMode.None;
+            var colorAttachement0 = DrawBufferMode.ColorAttachment0;
+#else
+            var none = DrawBuffersEnum.None;
+            var colorAttachement0 = DrawBuffersEnum.ColorAttachment0;
+#endif
+            this._drawBuffers[0] = color0 ? colorAttachement0 : none;
+            this._drawBuffers[1] = (this._currentRenderTargetCount > 1) && color1 ? colorAttachement0 + 1 : none;
+            this._drawBuffers[2] = (this._currentRenderTargetCount > 2) && color2 ? colorAttachement0 + 2 : none;
+            this._drawBuffers[3] = (this._currentRenderTargetCount > 3) && color3 ? colorAttachement0 + 3 : none;
+            GL.DrawBuffers(4, this._drawBuffers);
+            GraphicsExtensions.CheckGLError();
+        }
+
         public void PlatformClear(ClearOptions options, Vector4 color, float depth, int stencil)
         {
             // TODO: We need to figure out how to detect if we have a
