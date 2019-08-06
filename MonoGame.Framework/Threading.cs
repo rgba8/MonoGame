@@ -60,6 +60,11 @@ using OpenTK.Graphics.OpenGL;
 #if WINDOWS_PHONE
 using System.Windows;
 #endif
+#if ANDROID
+using OpenTK.Graphics.ES30;
+using OpenTK.Platform;
+using OpenTK.Platform.Android;
+#endif
 
 namespace Microsoft.Xna.Framework
 {
@@ -72,8 +77,8 @@ namespace Microsoft.Xna.Framework
 #endif
 
 #if ANDROID
-        static List<Action> actions = new List<Action>();
-        //static Mutex actionsMutex = new Mutex();
+        public static AndroidGraphicsContext BackgroundContext;
+        public static IWindowInfo WindowInfo;
 #elif IOS
         public static EAGLContext BackgroundContext;
 #elif WINDOWS || LINUX || ANGLE
@@ -191,6 +196,18 @@ namespace Microsoft.Xna.Framework
                 GL.Finish();
                 GraphicsExtensions.CheckGLError();
             }
+#elif ANDROID
+            lock (BackgroundContext)
+            {
+                // Make the context current on this thread
+                BackgroundContext.MakeCurrent(WindowInfo);
+                // Execute the action
+                action();
+                // Must flush the GL calls so the GPU asset is ready for the main context to use it
+                GL.Finish();
+                GraphicsExtensions.CheckGLError();
+                BackgroundContext.MakeCurrent(null);
+            }
 #elif WINDOWS || LINUX || ANGLE
             lock (BackgroundContext)
             {
@@ -214,10 +231,6 @@ namespace Microsoft.Xna.Framework
             Add(() =>
 #endif
             {
-#if ANDROID
-                //if (!Game.Instance.Window.GraphicsContext.IsCurrent)
-                ((AndroidGameWindow)Game.Instance.Window).GameView.MakeCurrent();
-#endif
                 action();
                 resetEvent.Set();
             });
@@ -225,32 +238,5 @@ namespace Microsoft.Xna.Framework
 #endif
 #endif
         }
-
-#if ANDROID
-        static void Add(Action action)
-        {
-            lock (actions)
-            {
-                actions.Add(action);
-            }
-        }
-
-        /// <summary>
-        /// Runs all pending actions.  Must be called from the UI thread.
-        /// </summary>
-        internal static void Run()
-        {
-            EnsureUIThread();
-
-            lock (actions)
-            {
-                foreach (Action action in actions)
-                {
-                    action();
-                }
-                actions.Clear();
-            }
-        }
-#endif
     }
 }

@@ -275,6 +275,14 @@ namespace Microsoft.Xna.Framework
                 Android.Util.Log.Debug("MonoGame", "Framebuffer Status: " + status.ToString());
 
                 MakeCurrent();
+
+                if (Threading.BackgroundContext != null)
+                {
+                    Threading.BackgroundContext.Dispose();
+                }
+                Threading.BackgroundContext = new AndroidGraphicsContext(mode, this.WindowInfo, this.GraphicsContext, this.ContextRenderingApi, GraphicsContextFlags.Embedded);
+                Threading.WindowInfo = this.WindowInfo;
+
                 return;
             }
             throw new NoSuitableGraphicsDeviceException("Could not create OpenGLES 2.0 frame buffer", innerException);

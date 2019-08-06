@@ -68,16 +68,12 @@ namespace Microsoft.Xna.Framework
 
             if (!GameView.GraphicsContext.IsCurrent)
                 GameView.MakeCurrent();
-
-            Threading.Run();
         }
 
         private void OnUpdateFrame(object sender, FrameEventArgs frameEventArgs)
         {
             if (!GameView.GraphicsContext.IsCurrent)
                 GameView.MakeCurrent();
-
-            Threading.Run();
 
             if (_game != null)
             {
