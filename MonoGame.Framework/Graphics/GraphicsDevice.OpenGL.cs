@@ -987,7 +987,7 @@ namespace Microsoft.Xna.Framework.Graphics
             GraphicsExtensions.CheckGLError();
         }
 
-        private void PlatformDrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, VertexDeclaration vertexDeclaration, int vertexCount) where T : struct
+        private void PlatformDrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, VertexDeclaration vertexDeclaration, int vertexCount) where T : unmanaged
         {
             PlatformApplyState(true);
 
@@ -998,21 +998,29 @@ namespace Microsoft.Xna.Framework.Graphics
             GraphicsExtensions.CheckGLError();
             _vertexBufferDirty = _indexBufferDirty = true;
 
-            // Pin the buffers.
-            var vbHandle = GCHandle.Alloc(vertexData, GCHandleType.Pinned);
+            unsafe
+            {
+                fixed (void* vertexPtr = &vertexData[0])
+                {
+                    // Setup the vertex declaration to point at the VB data.
+                    vertexDeclaration.GraphicsDevice = this;
+                    vertexDeclaration.Apply(_vertexShader, _pixelShader, (IntPtr)vertexPtr);
 
-            // Setup the vertex declaration to point at the VB data.
-            vertexDeclaration.GraphicsDevice = this;
-            vertexDeclaration.Apply(_vertexShader, _pixelShader, vbHandle.AddrOfPinnedObject());
+                    //Draw
+                    GL.DrawArrays(PrimitiveTypeGL(primitiveType),
+                                  vertexOffset,
+                                  vertexCount);
+                    GraphicsExtensions.CheckGLError();
+                }
+            }
 
-            //Draw
-            GL.DrawArrays(PrimitiveTypeGL(primitiveType),
-                          vertexOffset,
-                          vertexCount);
-            GraphicsExtensions.CheckGLError();
+            //// Pin the buffers.
+            //var vbHandle = GCHandle.Alloc(vertexData, GCHandleType.Pinned);
 
-            // Release the handles.
-            vbHandle.Free();
+            
+
+            //// Release the handles.
+            //vbHandle.Free();
         }
 
         private void PlatformDrawUserPrimitives(PrimitiveType primitiveType, IntPtr vertexDataPtr, int vertexOffset, VertexDeclaration vertexDeclaration, int vertexCount)
@@ -1049,7 +1057,7 @@ namespace Microsoft.Xna.Framework.Graphics
             GraphicsExtensions.CheckGLError();
         }
 
-        private void PlatformDrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, short[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
+        private void PlatformDrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, short[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : unmanaged
         {
             PlatformApplyState(true);
 
@@ -1082,7 +1090,7 @@ namespace Microsoft.Xna.Framework.Graphics
             vbHandle.Free();
         }
 
-        private void PlatformDrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, int[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct, IVertexType
+        private void PlatformDrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, int[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : unmanaged, IVertexType
         {
             PlatformApplyState(true);
 

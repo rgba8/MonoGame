@@ -60,6 +60,7 @@
         <Version>v4.6</Version>
       </Platform>
     </FrameworkVersions>
+	<LangVersion>7.3</LangVersion>
 
   </Properties>
 
