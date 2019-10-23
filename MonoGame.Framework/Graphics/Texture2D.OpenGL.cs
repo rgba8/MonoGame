@@ -5,7 +5,6 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Drawing;
 
 #if MONOMAC
 using MonoMac.AppKit;
@@ -26,6 +25,7 @@ using GLPixelFormat = MonoMac.OpenGL.PixelFormat;
 #endif
 
 #if WINDOWS || LINUX
+using System.Drawing;
 using OpenTK.Graphics.OpenGL;
 using GLPixelFormat = OpenTK.Graphics.OpenGL.PixelFormat;
 using GLTextureTarget3D = OpenTK.Graphics.OpenGL.TextureTarget;
@@ -76,7 +76,7 @@ namespace Microsoft.Xna.Framework.Graphics
             });
         }
 
-        static int GetImageSize(SurfaceFormat format, int width, int height)
+        public static int GetImageSize(SurfaceFormat format, int width, int height)
         {
             var imageSize = 0;
             switch (format)
@@ -566,7 +566,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             var colorSpace = CGColorSpace.CreateDeviceRGB();
             var bitmapContext = new CGBitmapContext(data, width, height, 8, width * 4, colorSpace, CGBitmapFlags.PremultipliedLast);
-            bitmapContext.DrawImage(new RectangleF(0, 0, width, height), cgImage);
+            bitmapContext.DrawImage(new CGRect(0, 0, width, height), cgImage);
             bitmapContext.Dispose();
             colorSpace.Dispose();
 
