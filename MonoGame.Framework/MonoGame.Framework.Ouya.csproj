@@ -31,7 +31,7 @@
     <OutputPath>bin\Ouya\AnyCPU\Debug</OutputPath>
     <IntermediateOutputPath>obj\Ouya\AnyCPU\Debug</IntermediateOutputPath>
     <DocumentationFile>bin\Ouya\AnyCPU\Debug\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>DEBUG;OPENGL;OPENAL;TRACE;ANDROID;GLES;OUYA</DefineConstants>
+    <DefineConstants>DEBUG;OPENGL;TRACE;ANDROID;GLES;OUYA;OPENAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -44,7 +44,7 @@
     <OutputPath>bin\Ouya\AnyCPU\Release</OutputPath>
     <IntermediateOutputPath>obj\Ouya\AnyCPU\Release</IntermediateOutputPath>
     <DocumentationFile>bin\Ouya\AnyCPU\Release\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>OPENGL;OPENAL;TRACE;ANDROID;GLES;OUYA</DefineConstants>
+    <DefineConstants>OPENGL;TRACE;ANDROID;GLES;OUYA;OPENAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>

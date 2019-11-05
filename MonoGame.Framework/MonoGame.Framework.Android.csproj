@@ -31,7 +31,7 @@
     <OutputPath>bin\Android\AnyCPU\Debug</OutputPath>
     <IntermediateOutputPath>obj\Android\AnyCPU\Debug</IntermediateOutputPath>
     <DocumentationFile>bin\Android\AnyCPU\Debug\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>DEBUG;OPENGL;OPENAL;TRACE;ANDROID;GLES</DefineConstants>
+    <DefineConstants>DEBUG;OPENGL;TRACE;ANDROID;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -44,7 +44,7 @@
     <OutputPath>bin\Android\AnyCPU\Release</OutputPath>
     <IntermediateOutputPath>obj\Android\AnyCPU\Release</IntermediateOutputPath>
     <DocumentationFile>bin\Android\AnyCPU\Release\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>OPENGL;OPENAL;TRACE;ANDROID;GLES</DefineConstants>
+    <DefineConstants>OPENGL;TRACE;ANDROID;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>

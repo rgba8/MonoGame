@@ -41,8 +41,8 @@
     <PlatformSpecificOutputFolder>True</PlatformSpecificOutputFolder>
 
     <CustomDefinitions>
-      <Platform Name="Android">TRACE;ANDROID;GLES;OPENGL;OPENAL</Platform>
-      <Platform Name="iOS">IOS;GLES;OPENGL;OPENAL</Platform>
+      <Platform Name="Android">TRACE;ANDROID;GLES;OPENGL</Platform>
+      <Platform Name="iOS">IOS;GLES;OPENGL</Platform>
       <Platform Name="Linux">TRACE;LINUX;OPENGL;OPENAL</Platform>
       <Platform Name="MacOS">MONOMAC;OPENGL;OPENAL</Platform>
       <Platform Name="Ouya">TRACE;ANDROID;GLES;OPENGL;OUYA;OPENAL</Platform>
@@ -109,7 +109,7 @@
     </Service>
     <Service Name="OpenGLGraphics">
       <RemoveDefine>DIRECTX;WINDOWS_MEDIA_SESSION</RemoveDefine>
-      <AddDefine>OPENGL;OPENAL</AddDefine>
+      <AddDefine>OPENGL</AddDefine>
       <Platforms>iOS,MacOS,Linux,Windows,WindowsGL,Ouya,Android</Platforms>
       <Conflicts>ANGLEGraphics,DirectXGraphics,PSMGraphics,WebGraphics</Conflicts>
       <Requires>OpenALAudio,_GLCompatible</Requires>

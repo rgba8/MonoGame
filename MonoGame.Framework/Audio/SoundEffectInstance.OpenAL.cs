@@ -6,7 +6,7 @@ using System;
 
 #if MONOMAC
 using MonoMac.OpenAL;
-#elif OPENAL
+#else
 using OpenTK.Audio.OpenAL;
 #endif
 

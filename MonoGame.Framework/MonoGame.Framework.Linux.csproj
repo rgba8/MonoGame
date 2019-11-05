@@ -23,7 +23,7 @@
     <OutputPath>bin\Linux\AnyCPU\Debug</OutputPath>
     <IntermediateOutputPath>obj\Linux\AnyCPU\Debug</IntermediateOutputPath>
     <DocumentationFile>bin\Linux\AnyCPU\Debug\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>DEBUG;OPENGL;OPENAL;TRACE;LINUX</DefineConstants>
+    <DefineConstants>DEBUG;OPENGL;TRACE;LINUX;OPENAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -34,7 +34,7 @@
     <OutputPath>bin\Linux\AnyCPU\Release</OutputPath>
     <IntermediateOutputPath>obj\Linux\AnyCPU\Release</IntermediateOutputPath>
     <DocumentationFile>bin\Linux\AnyCPU\Release\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>OPENGL;OPENAL;TRACE;LINUX</DefineConstants>
+    <DefineConstants>OPENGL;TRACE;LINUX;OPENAL</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>

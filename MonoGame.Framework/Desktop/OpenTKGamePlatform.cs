@@ -85,7 +85,9 @@ namespace Microsoft.Xna.Framework
     class OpenTKGamePlatform : GamePlatform
     {
         private OpenTKGameWindow _view;
+#if OPENAL
 		private OpenALSoundController soundControllerInstance = null;
+#endif
         // stored the current screen state, so we can check if it has changed.
         private bool isCurrentlyFullScreen = false;
         private Toolkit toolkit;
@@ -98,7 +100,8 @@ namespace Microsoft.Xna.Framework
             _view = new OpenTKGameWindow(game);
             this.Window = _view;
 
-			// Setup our OpenALSoundController to handle our SoundBuffer pools
+#if OPENAL
+            // Setup our OpenALSoundController to handle our SoundBuffer pools
             try
             {
                 soundControllerInstance = OpenALSoundController.GetInstance;
@@ -107,7 +110,8 @@ namespace Microsoft.Xna.Framework
             {
                 throw (new NoAudioHardwareException("Failed to init OpenALSoundController", ex));
             }
-            
+#endif
+
 #if LINUX
             // also set up SdlMixer to play background music. If one of these functions fails, we will not get any background music (but that should rarely happen)
             Tao.Sdl.Sdl.SDL_InitSubSystem(Tao.Sdl.Sdl.SDL_INIT_AUDIO);
@@ -182,9 +186,12 @@ namespace Microsoft.Xna.Framework
         {
             IsActive = _view.Window.Focused;
 
+#if OPENAL
             // Update our OpenAL sound buffer pools
             if (soundControllerInstance != null)
                 soundControllerInstance.Update();
+#endif
+
             return true;
         }
 

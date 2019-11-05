@@ -24,7 +24,7 @@
     <OutputPath>bin\iOS\iPhone\Debug</OutputPath>
     <IntermediateOutputPath>obj\iOS\iPhone\Debug</IntermediateOutputPath>
     <DocumentationFile>bin\iOS\iPhone\Debug\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>DEBUG;OPENGL;OPENAL;IOS;GLES</DefineConstants>
+    <DefineConstants>DEBUG;OPENGL;IOS;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -37,7 +37,7 @@
     <OutputPath>bin\iOS\iPhone\Release</OutputPath>
     <IntermediateOutputPath>obj\iOS\iPhone\Release</IntermediateOutputPath>
     <DocumentationFile>bin\iOS\iPhone\Release\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>OPENGL;OPENAL;IOS;GLES</DefineConstants>
+    <DefineConstants>OPENGL;IOS;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -51,7 +51,7 @@
     <OutputPath>bin\iOS\iPhoneSimulator\Debug</OutputPath>
     <IntermediateOutputPath>obj\iOS\iPhoneSimulator\Debug</IntermediateOutputPath>
     <DocumentationFile>bin\iOS\iPhoneSimulator\Debug\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>DEBUG;OPENGL;OPENAL;IOS;GLES</DefineConstants>
+    <DefineConstants>DEBUG;OPENGL;IOS;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -64,7 +64,7 @@
     <OutputPath>bin\iOS\iPhoneSimulator\Release</OutputPath>
     <IntermediateOutputPath>obj\iOS\iPhoneSimulator\Release</IntermediateOutputPath>
     <DocumentationFile>bin\iOS\iPhoneSimulator\Release\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>OPENGL;OPENAL;IOS;GLES</DefineConstants>
+    <DefineConstants>OPENGL;IOS;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -76,7 +76,7 @@
     <OutputPath>bin\iOS\iPhone\Ad-Hoc</OutputPath>
     <IntermediateOutputPath>obj\iOS\iPhone\Ad-Hoc</IntermediateOutputPath>
     <DocumentationFile>bin\iOS\iPhone\Ad-Hoc\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>OPENGL;OPENAL;IOS;GLES</DefineConstants>
+    <DefineConstants>OPENGL;IOS;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -88,7 +88,7 @@
     <OutputPath>bin\iOS\iPhone\AppStore</OutputPath>
     <IntermediateOutputPath>obj\iOS\iPhone\AppStore</IntermediateOutputPath>
     <DocumentationFile>bin\iOS\iPhone\AppStore\MonoGame.Framework.xml</DocumentationFile>
-    <DefineConstants>OPENGL;OPENAL;IOS;GLES</DefineConstants>
+    <DefineConstants>OPENGL;IOS;GLES</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
