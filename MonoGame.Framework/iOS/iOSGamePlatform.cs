@@ -240,8 +240,10 @@ namespace Microsoft.Xna.Framework
 
         public override bool BeforeDraw(GameTime gameTime)
         {
-    		// Update our OpenAL sound buffer pools
-    		soundControllerInstance.Update();
+#if OPENAL
+            // Update our OpenAL sound buffer pools
+            soundControllerInstance.Update();
+#endif
 
             if (IsPlayingVideo)
                 return false;
