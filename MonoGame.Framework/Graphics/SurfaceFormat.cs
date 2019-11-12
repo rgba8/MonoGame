@@ -71,6 +71,10 @@ namespace Microsoft.Xna.Framework.Graphics
         
         HalfVector4Oes = 22,
 
+        R8UI = 23,
+        RG8UI = 24,
+        HalfVector3 = 25,
+
 		// Good explanation of compressed formats for mobile devices (aimed at Android, but describes PVRTC)
 		// http://developer.motorola.com/docstools/library/understanding-texture-compression/
 
