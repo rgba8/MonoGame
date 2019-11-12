@@ -452,6 +452,10 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 case SurfaceFormat.Alpha8:
                     return new ColorFormat(0, 0, 0, 8);
+                case SurfaceFormat.R8UI:
+                    return new ColorFormat(8, 0, 0, 0);
+                case SurfaceFormat.RG8UI:
+                    return new ColorFormat(8, 8, 0, 0);
                 case SurfaceFormat.Bgr565:
                     return new ColorFormat(5, 6, 5, 0);
                 case SurfaceFormat.Bgra4444:
@@ -465,6 +469,14 @@ namespace Microsoft.Xna.Framework.Graphics
                     return new ColorFormat(8, 8, 8, 8);
                 case SurfaceFormat.Rgba1010102:
                     return new ColorFormat(10, 10, 10, 2);
+                case SurfaceFormat.HalfSingle:
+                    return new ColorFormat(16, 0, 0, 0);
+                case SurfaceFormat.HalfVector2:
+                    return new ColorFormat(16, 16, 0, 0);
+                case SurfaceFormat.HalfVector3:
+                    return new ColorFormat(16, 16, 16, 0);
+                case SurfaceFormat.HalfVector4:
+                    return new ColorFormat(16, 16, 16, 16);
                 default:
                     // Floating point backbuffers formats could be implemented
                     // but they are not typically used on the backbuffer. In
@@ -541,8 +553,12 @@ namespace Microsoft.Xna.Framework.Graphics
 			case SurfaceFormat.Alpha8:
 				glInternalFormat = PixelInternalFormat.Luminance;
 				glFormat = PixelFormat.Luminance;
-				glType = PixelType.UnsignedByte;
 				break;
+            case SurfaceFormat.R8UI:
+                glInternalFormat = (PixelInternalFormat)0x8229;// GL_R8;
+                glFormat = PixelFormat.Red;
+                glType = PixelType.UnsignedByte;
+                break;
 			case SurfaceFormat.Dxt1:
                 glInternalFormat = (PixelInternalFormat)0x83F0; // GL_COMPRESSED_RGB_S3TC_DXT1_EXT
 				glFormat = (PixelFormat)All.CompressedTextureFormats;
@@ -569,6 +585,11 @@ namespace Microsoft.Xna.Framework.Graphics
 				glFormat = PixelFormat.Rg;
 				glType = PixelType.HalfFloat;
                 break;
+            case SurfaceFormat.HalfVector3:
+                glInternalFormat = (PixelInternalFormat)All.Rgb16f;
+                glFormat = PixelFormat.Rgb;
+                glType = PixelType.HalfFloat;
+                break;
             // HdrBlendable implemented as HalfVector4 (see http://blogs.msdn.com/b/shawnhar/archive/2010/07/09/surfaceformat-hdrblendable.aspx)
             case SurfaceFormat.HdrBlendable:
             case SurfaceFormat.HalfVector4:
@@ -590,7 +611,12 @@ namespace Microsoft.Xna.Framework.Graphics
                 glInternalFormat = (PixelInternalFormat)All.Rgba32f;
                 glFormat = PixelFormat.Rgba;
                 glType = PixelType.Float;
-                    break;
+                break;
+            case SurfaceFormat.RG8UI:
+                glInternalFormat = (PixelInternalFormat)0x822B; // GL_RG8;
+                glFormat = PixelFormat.Rg;
+                glType = PixelType.UnsignedByte;
+                break;
             case SurfaceFormat.NormalizedByte2:
                 glInternalFormat = (PixelInternalFormat)All.Rg8Snorm;
                 glFormat = PixelFormat.Rg;
@@ -693,7 +719,9 @@ namespace Microsoft.Xna.Framework.Graphics
                     // One texel in DXT3, DXT5 and PVRTC 4bpp is a minimum 4x4 block, which is 16 bytes
                     return 16;
                 case SurfaceFormat.Alpha8:
+                case SurfaceFormat.R8UI:
                     return 1;
+                case SurfaceFormat.RG8UI:
                 case SurfaceFormat.Bgr565:
                 case SurfaceFormat.Bgra4444:
                 case SurfaceFormat.Bgra5551:
@@ -701,7 +729,6 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.NormalizedByte2:
                     return 2;
                 case SurfaceFormat.Color:
-                
                 case SurfaceFormat.Single:
                 case SurfaceFormat.Rg32:
                 case SurfaceFormat.HalfVector2:
@@ -710,6 +737,8 @@ namespace Microsoft.Xna.Framework.Graphics
                 case SurfaceFormat.Bgra32:
                 case SurfaceFormat.Bgr32:
                     return 4;
+                case SurfaceFormat.HalfVector3:
+                    return 6;
                 case SurfaceFormat.HalfVector4:
                 case SurfaceFormat.HalfVector4Oes:
                 case SurfaceFormat.Rgba64:
