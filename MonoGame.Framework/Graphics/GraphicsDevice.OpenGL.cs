@@ -694,16 +694,7 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 renderTargetBinding = this._currentRenderTargetBindings[i];
                 renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
-                if (renderTarget.LevelCount > 1)
-                {
-                    GL.BindTexture(renderTarget.glTarget, renderTarget.glTexture);
-                    GraphicsExtensions.CheckGLError();
-#if GLES
-                    GL.GenerateMipmap(renderTarget.glTarget);
-#else
-                    GL.GenerateMipmap((GenerateMipmapTarget)renderTarget.glTarget);
-#endif
-                }
+                renderTarget.mipmapsDirty = renderTarget.LevelCount > 1;
             }
         }
 

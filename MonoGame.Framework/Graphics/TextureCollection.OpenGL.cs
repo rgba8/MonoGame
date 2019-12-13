@@ -58,6 +58,18 @@ namespace Microsoft.Xna.Framework.Graphics
                     _targets[i] = tex.glTarget;
                     GL.BindTexture(tex.glTarget, tex.glTexture);
                     GraphicsExtensions.CheckGLError();
+
+                    // Generate mipmaps for rendertargets when they are being used as textures (instead of everytime they are rendered to)
+                    var renderTarget = tex as RenderTarget2D;
+                    if (renderTarget != null && renderTarget.mipmapsDirty)
+                    {
+#if GLES
+                        GL.GenerateMipmap(renderTarget.glTarget);
+#else
+                        GL.GenerateMipmap((GenerateMipmapTarget)renderTarget.glTarget);
+#endif
+                        renderTarget.mipmapsDirty = false;
+                    }
                 }
 
                 _dirty &= ~mask;

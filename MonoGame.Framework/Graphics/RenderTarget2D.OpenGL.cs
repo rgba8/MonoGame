@@ -19,6 +19,8 @@ namespace Microsoft.Xna.Framework.Graphics
         internal int glColorBuffer;
         internal int glDepthStencilBuffer;
 
+        internal bool mipmapsDirty;
+
         private void PlatformConstruct(GraphicsDevice graphicsDevice, int width, int height, bool mipMap,
             SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat, int preferredMultiSampleCount, RenderTargetUsage usage, bool shared)
         {
