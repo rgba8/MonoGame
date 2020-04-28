@@ -26,10 +26,10 @@ namespace Microsoft.Xna.Framework.Graphics
         private Rectangle _scissorRectangle;
         private bool _scissorRectangleDirty;
   
-        private VertexBuffer _vertexBuffer;
+        internal VertexBuffer _vertexBuffer;
         private bool _vertexBufferDirty;
 
-        private IndexBuffer _indexBuffer;
+        internal IndexBuffer _indexBuffer;
         private bool _indexBufferDirty;
 
         private readonly RenderTargetBinding[] _currentRenderTargetBindings = new RenderTargetBinding[4];
@@ -137,7 +137,7 @@ namespace Microsoft.Xna.Framework.Graphics
         internal GraphicsDevice ()
 		{
             PresentationParameters = new PresentationParameters();
-            PresentationParameters.DepthStencilFormat = DepthFormat.Depth24;
+            PresentationParameters.DepthStencilFormat = DepthFormat.Depth24Stencil8;
             Setup();
             GraphicsCapabilities = new GraphicsCapabilities(this);
             Initialize();
@@ -633,6 +633,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
         public void DrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int primitiveCount) where T : unmanaged, IVertexType
         {
+
             DrawUserPrimitives(primitiveType, vertexData, vertexOffset, primitiveCount, VertexDeclarationCache<T>.VertexDeclaration);
         }
 

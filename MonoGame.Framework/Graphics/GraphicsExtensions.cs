@@ -477,6 +477,9 @@ namespace Microsoft.Xna.Framework.Graphics
                     return new ColorFormat(16, 16, 16, 0);
                 case SurfaceFormat.HalfVector4:
                     return new ColorFormat(16, 16, 16, 16);
+                case SurfaceFormat.Single:
+                case SurfaceFormat.R32UI:
+                    return new ColorFormat(32, 0, 0, 0);
                 default:
                     // Floating point backbuffers formats could be implemented
                     // but they are not typically used on the backbuffer. In
@@ -580,6 +583,11 @@ namespace Microsoft.Xna.Framework.Graphics
 				glFormat = PixelFormat.Red;
 				glType = PixelType.Float;
 				break;
+                case SurfaceFormat.R32UI:
+                    glInternalFormat = (PixelInternalFormat)All.R32ui;
+                    glFormat = PixelFormat.Red;
+                    glType = PixelType.UnsignedInt;
+                    break;
             case SurfaceFormat.HalfVector2:
                 glInternalFormat = (PixelInternalFormat)All.Rg16f;
 				glFormat = PixelFormat.Rg;

@@ -134,13 +134,6 @@ namespace Microsoft.Xna.Framework.Graphics
             GL.LinkProgram(program);
             GraphicsExtensions.CheckGLError();
 
-            GL.UseProgram(program);
-            GraphicsExtensions.CheckGLError();
-
-            vertexShader.GetVertexAttributeLocations(program);
-
-            pixelShader.ApplySamplerTextureUnits(program);
-
             var linked = 0;
 
             GL.GetProgram(program, GetProgramParameterName.LinkStatus, out linked);
@@ -158,6 +151,14 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
                 throw new InvalidOperationException("Unable to link effect program" + (String.IsNullOrEmpty(log) ? "" : (": " + log)));
             }
+
+            GL.UseProgram(program);
+            GraphicsExtensions.CheckGLError();
+
+            vertexShader.GetVertexAttributeLocations(program);
+
+            pixelShader.ApplySamplerTextureUnits(program);
+
 
             ShaderProgram shaderProgram = new ShaderProgram(program);
 

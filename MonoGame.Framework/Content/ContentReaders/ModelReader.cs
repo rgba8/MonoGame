@@ -84,8 +84,8 @@ namespace Microsoft.Xna.Framework.Content
 
             return -1;
         }
-		
-		protected internal override Model Read(ContentReader reader, Model existingInstance)
+
+        protected internal override Model Read(ContentReader reader, Model existingInstance)
 		{
             // Read the bone names and transforms.
             uint boneCount = reader.ReadUInt32();
@@ -157,7 +157,6 @@ namespace Microsoft.Xna.Framework.Content
                 //Debug.WriteLine("Mesh part count: {0}", partCount);
 
                 List<ModelMeshPart> parts = new List<ModelMeshPart>(partCount);
-
                 for (uint j = 0; j < partCount; j++)
                 {
                     ModelMeshPart part;
@@ -189,9 +188,9 @@ namespace Microsoft.Xna.Framework.Content
 					{
 						parts[jj].Effect = v;
 					});
-
-					
                 }
+
+
 
                 if (existingInstance != null)
                     continue;

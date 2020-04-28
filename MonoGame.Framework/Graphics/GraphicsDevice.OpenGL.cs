@@ -324,20 +324,23 @@ namespace Microsoft.Xna.Framework.Graphics
                 bufferMask = bufferMask | ClearBufferMask.StencilBufferBit;
 			}
 
-			if ((options & ClearOptions.DepthBuffer) == ClearOptions.DepthBuffer) 
+            if (stopDiscard)
             {
-                if (depth != _lastClearDepth)
+                if ((options & ClearOptions.DepthBuffer) == ClearOptions.DepthBuffer)
                 {
+                    if (depth != _lastClearDepth)
+                    {
 #if GLES
                     GL.ClearDepth (depth);
 #else
-                    GL.ClearDepth((double)depth);
+                        GL.ClearDepth((double)depth);
 #endif
-                    GraphicsExtensions.CheckGLError();
-                    _lastClearDepth = depth;
+                        GraphicsExtensions.CheckGLError();
+                        _lastClearDepth = depth;
+                    }
+                    bufferMask = bufferMask | ClearBufferMask.DepthBufferBit;
                 }
-				bufferMask = bufferMask | ClearBufferMask.DepthBufferBit;
-			}
+            }
 
 
 			GL.Clear(bufferMask);
@@ -506,11 +509,13 @@ namespace Microsoft.Xna.Framework.Graphics
                 switch (preferredFormat)
                 {
                     case SurfaceFormat.Color: colorInternalFormat = All.Rgba8; break;
+                    case SurfaceFormat.R32UI: colorInternalFormat = All.R32ui; break;
                     case SurfaceFormat.Bgra4444: colorInternalFormat = All.Rgba4; break;
                     // Formats below are only supported if EXT_color_buffer_half_float extension is present
                     case SurfaceFormat.HalfVector4: colorInternalFormat = All.Rgba16f; break;
                     case SurfaceFormat.HalfVector2: colorInternalFormat = All.Rg16f; break;
                     case SurfaceFormat.HalfSingle: colorInternalFormat = All.R16f; break;
+                    case SurfaceFormat.Single: colorInternalFormat = All.R32f; break;
                     default: throw new NotSupportedException();
                 }
 #if GLES
@@ -532,13 +537,46 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 if (depthInternalFormat != 0)
                 {
-                    GL.GenRenderbuffers(1, out depthStencil);
-                    GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthStencil);
+                    if (preferredMultiSampleCount > 0 && this.framebufferHelper.SupportsBlitFramebuffer)
+                    {
+                        GL.GenRenderbuffers(1, out depthStencil);
+                        GL.BindRenderbuffer(RenderbufferTarget.Renderbuffer, depthStencil);
 #if GLES
                     GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, preferredMultiSampleCount, (RenderbufferInternalFormat)depthInternalFormat, width, height);
 #else
-                    GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, preferredMultiSampleCount, (RenderbufferStorage)depthInternalFormat, width, height);
+                        GL.RenderbufferStorageMultisample(RenderbufferTarget.Renderbuffer, preferredMultiSampleCount, (RenderbufferStorage)depthInternalFormat, width, height);
+
 #endif
+                    }
+                    else
+                    {
+                        GL.GenTextures(1, out depthStencil);
+                        GraphicsExtensions.CheckGLError();
+
+                        var wrap = TextureWrapMode.ClampToEdge;
+
+                        GL.BindTexture(TextureTarget.Texture2D, depthStencil);
+                        GraphicsExtensions.CheckGLError();
+
+                        //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
+
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
+                        GraphicsExtensions.CheckGLError();
+
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
+                        GraphicsExtensions.CheckGLError();
+
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)wrap);
+                        GraphicsExtensions.CheckGLError();
+
+                        GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)wrap);
+                        GraphicsExtensions.CheckGLError();
+
+                        GL.TexImage2D(TextureTarget.Texture2D, 0, (PixelInternalFormat)All.Depth24Stencil8, width, height, 0, PixelFormat.DepthStencil, PixelType.UnsignedInt248, IntPtr.Zero);
+                        GraphicsExtensions.CheckGLError();
+
+
+                    }
                 }
             }
 
@@ -617,14 +655,65 @@ namespace Microsoft.Xna.Framework.Graphics
         private DrawBuffersEnum[] GLBlitAttachements = { DrawBuffersEnum.None, DrawBuffersEnum.None, DrawBuffersEnum.None, DrawBuffersEnum.None };
 #endif
 
+
         private void PlatformResolveRenderTargets()
         {
             if (this._currentRenderTargetCount == 0)
                 return;
 
+            if (stopDiscard)
+            {
+                int blitFramebuffer;
+                if (this.glFramebuffers.TryGetValue(this.blitTarget, out blitFramebuffer))
+                {
+                    //var oldRT = this._currentRenderTargetBindings[0].RenderTarget as RenderTarget2D;
+                    //var newRT = this.blitTarget[0].RenderTarget as RenderTarget2D;
+                    //newRT.glDepthStencilBuffer = oldRT.glDepthStencilBuffer;
+
+                    GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, blitFramebuffer);// this.glFramebuffer);
+                    GraphicsExtensions.CheckGLError();
+
+                    GL.ReadBuffer(ReadBufferMode.ColorAttachment0);
+                    GraphicsExtensions.CheckGLError();
+
+#if GLES
+                    var drawBufferEnum = All.ColorAttachment0;
+#else
+                    var drawBufferEnum = DrawBuffersEnum.ColorAttachment0;
+#endif
+                    GL.DrawBuffers(1, ref drawBufferEnum);
+                    GraphicsExtensions.CheckGLError();
+
+                    GL.Enable(EnableCap.StencilTest);
+                    GL.Enable(EnableCap.DepthTest);
+
+                    GL.Disable(EnableCap.ScissorTest);
+                    GraphicsExtensions.CheckGLError();
+
+                    var target2D = blitTarget[0].RenderTarget as RenderTarget2D;
+                    GL.BlitFramebuffer(0, 0, target2D.Width, target2D.Height, 0, 0, target2D.Width, target2D.Height, /*ClearBufferMask.ColorBufferBit | */ClearBufferMask.DepthBufferBit | ClearBufferMask.StencilBufferBit, BlitFramebufferFilter.Nearest);
+                    GraphicsExtensions.CheckGLError();
+
+                    int oldFramebuffer;
+                    if (this.glFramebuffers.TryGetValue(this._currentRenderTargetBindings, out oldFramebuffer))
+                    {
+                        GL.BindFramebuffer(FramebufferTarget.DrawFramebuffer, oldFramebuffer);
+                        GraphicsExtensions.CheckGLError();
+                    }
+                }
+                //blitTarget = null;
+            }
+
             // Always discard depth and stencil
-            GL.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, 2, GLDepthStencilAttachements);
-            GraphicsExtensions.CheckGLError();
+            //if (stopDiscard)
+            //{
+            //    stopDiscard = false;
+            //}
+            //else
+            {
+                GL.InvalidateFramebuffer(FramebufferTarget.DrawFramebuffer, 2, GLDepthStencilAttachements);
+                GraphicsExtensions.CheckGLError();
+            }
 
             var renderTargetBinding = this._currentRenderTargetBindings[0];
             var renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
@@ -678,7 +767,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     GL.DrawBuffers(this._currentRenderTargetCount, GLBlitAttachements);
                     GraphicsExtensions.CheckGLError();
                     GLBlitAttachements[i] = drawbufferNone;
-                    GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+                    GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, renderTargetBinding.LinearFilter ? BlitFramebufferFilter.Linear : BlitFramebufferFilter.Nearest);
                     GraphicsExtensions.CheckGLError();
                 }
                 // Always discard multisampled renderbuffers
@@ -707,6 +796,28 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
+        public RenderTargetBinding[] blitTarget = new RenderTargetBinding[4];
+        public bool stopDiscard;
+
+        //public void BlitStencilBuffer(RenderTarget2D source, RenderTarget2D dest, bool attach)
+        //{
+        //    if (attach)
+        //    {
+        //        int bkpFramebuffer;
+        //        if (this.glFramebuffers.TryGetValue(this._currentRenderTargetBindings, out bkpFramebuffer))
+        //        {
+        //            GL.BindFramebuffer(FramebufferTarget.Framebuffer, bkpFramebuffer);
+        //            GraphicsExtensions.CheckGLError();
+        //            GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, FramebufferAttachment.DepthStencilAttachment, RenderbufferTarget.Renderbuffer, source.glDepthStencilBuffer);
+        //            GraphicsExtensions.CheckGLError();
+        //        }
+        //    }
+        //    else
+        //    {
+        //        this.blitTarget = source;
+        //    }
+        //}
+
         private IRenderTarget PlatformApplyRenderTargets()
         {
             var glFramebuffer = 0;
@@ -725,7 +836,8 @@ namespace Microsoft.Xna.Framework.Graphics
 #else
                     var depthStencilAttachement = renderTarget.DepthStencilFormat == DepthFormat.Depth24Stencil8 ? FramebufferAttachment.DepthStencilAttachment : FramebufferAttachment.DepthAttachment;
 #endif
-                    GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, depthStencilAttachement, RenderbufferTarget.Renderbuffer, renderTarget.glDepthStencilBuffer);
+                    //GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, depthStencilAttachement, RenderbufferTarget.Renderbuffer, renderTarget.glDepthStencilBuffer);
+                    GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, depthStencilAttachement, renderTarget.glTarget, renderTarget.glDepthStencilBuffer, 0);
                     GraphicsExtensions.CheckGLError();
                 }
                 for (var i = 0; i < this._currentRenderTargetCount; ++i)
@@ -779,9 +891,14 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (renderTarget.RenderTargetUsage != RenderTargetUsage.PreserveContents)
                 {
                     var color = renderTargetBinding.ClearColor.ToVector4();
+                    //if (renderTarget.Format == SurfaceFormat.R32UI)
+                    //{
+                    //    GL.ClearBuffer(ClearBuffer.Color, i, new uint[] { UInt32.MaxValue, 0, 0, 0 });
+                    //}
+                    //else
                     GL.ClearBuffer(ClearBuffer.Color, i, ref color.X);
                     GraphicsExtensions.CheckGLError();
-                    if (renderTarget.DepthStencilFormat != DepthFormat.None)
+                    if (renderTarget.DepthStencilFormat != DepthFormat.None && stopDiscard == false)
                     {
                         var clearDepth = renderTargetBinding.ClearDepth;
                         if (renderTarget.DepthStencilFormat == DepthFormat.Depth24Stencil8)
@@ -1004,6 +1121,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 {
                     // Setup the vertex declaration to point at the VB data.
                     vertexDeclaration.GraphicsDevice = this;
+                    vertexDeclaration.ClearCache();
                     vertexDeclaration.Apply(_vertexShader, _pixelShader, (IntPtr)vertexPtr);
 
                     //Draw
@@ -1038,6 +1156,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
+            vertexDeclaration.ClearCache();
             vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw
@@ -1076,6 +1195,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
+            vertexDeclaration.ClearCache();
             vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw
@@ -1109,6 +1229,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
+            vertexDeclaration.ClearCache();
             vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw
@@ -1138,6 +1259,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
             // Setup the vertex declaration to point at the VB data.
             vertexDeclaration.GraphicsDevice = this;
+            vertexDeclaration.ClearCache();
             vertexDeclaration.Apply(_vertexShader, _pixelShader, vertexAddr);
 
             //Draw

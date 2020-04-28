@@ -19,6 +19,12 @@ namespace Microsoft.Xna.Framework.Graphics
     {
         Dictionary<int, VertexDeclarationAttributeInfo> shaderAttributeInfo = new Dictionary<int, VertexDeclarationAttributeInfo>();
 
+        VertexDeclarationAttributeInfo cachedDeclaration = null;
+        int cachedShader = -1;
+        Int64 cachedOffset = -1;
+        VertexBuffer cachedVertexBuffer;
+        IndexBuffer cachedIndexBuffer;
+
 		internal void Apply(Shader vertexShader, Shader pixelShader, IntPtr offset)
 		{
             VertexDeclarationAttributeInfo attrInfo;
@@ -46,22 +52,48 @@ namespace Microsoft.Xna.Framework.Graphics
                     }
                 }
 
+                attrInfo._hashCode = attrInfo.GetHashCode();
                 shaderAttributeInfo.Add(shaderHash, attrInfo);
             }
 
-            // Apply the vertex attribute info
-            foreach (var element in attrInfo.Elements)
+
+            var offsetI64 = offset.ToInt64();
+            //if (cachedOffset != offsetI64 || cachedDeclaration == null || cachedDeclaration._hashCode != attrInfo._hashCode || cachedShader != shaderHash ||
+            //    cachedVertexBuffer != this.GraphicsDevice._vertexBuffer || cachedIndexBuffer != this.GraphicsDevice._indexBuffer || this.GraphicsDevice._vertexBuffer == null || this.GraphicsDevice._indexBuffer == null)
             {
-                GL.VertexAttribPointer(element.AttributeLocation,
-                    element.NumberOfElements,
-                    element.VertexAttribPointerType,
-                    element.Normalized,
-                    this.VertexStride,
-                    (IntPtr)(offset.ToInt64() + element.Offset));
-                GraphicsExtensions.CheckGLError();
+                cachedOffset = offsetI64;
+                cachedDeclaration = attrInfo;
+                cachedShader = shaderHash;
+                cachedVertexBuffer = this.GraphicsDevice._vertexBuffer;
+                cachedIndexBuffer = this.GraphicsDevice._indexBuffer;
+                // Apply the vertex attribute info
+                foreach (var element in attrInfo.Elements)
+                {
+                    GL.VertexAttribPointer(element.AttributeLocation,
+                        element.NumberOfElements,
+                        element.VertexAttribPointerType,
+                        element.Normalized,
+                        this.VertexStride,
+                        (IntPtr)(offset.ToInt64() + element.Offset));
+                    GraphicsExtensions.CheckGLError();
+                    GraphicsDevice.SetVertexAttributeArray(attrInfo.EnabledAttributes);
+                }
             }
-            GraphicsDevice.SetVertexAttributeArray(attrInfo.EnabledAttributes);
-		}
+            //else
+            //{
+            //    int dummyint = 0 ;
+            //    dummyint++;
+            //}
+        }
+
+        public void ClearCache()
+        {
+            cachedOffset = -1;
+            cachedDeclaration = null;
+            cachedShader = -1;
+            cachedVertexBuffer = null;
+            cachedIndexBuffer = null;
+        }
 
         /// <summary>
         /// Vertex attribute information for a particular shader/vertex declaration combination.
@@ -69,6 +101,7 @@ namespace Microsoft.Xna.Framework.Graphics
         class VertexDeclarationAttributeInfo
         {
             internal bool[] EnabledAttributes;
+            internal int _hashCode;
 
             internal class Element
             {

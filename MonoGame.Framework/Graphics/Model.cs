@@ -1,13 +1,9 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
-	public class Model
+    public class Model
 	{
 		private static Matrix[] sharedDrawBoneMatrices;
 		
@@ -46,8 +42,133 @@ namespace Microsoft.Xna.Framework.Graphics
 			Bones = new ModelBoneCollection(bones);
 			Meshes = new ModelMeshCollection(meshes);
 		}
-		
-		public void BuildHierarchy()
+
+
+        struct IV
+        {
+            public VertexBuffer v;
+            public IndexBuffer i;
+            public List<ModelMeshPart> parts;
+        };
+        public void RebuildBuffers()
+        {
+            List<IV> ivs = new List<IV>();
+            {
+                var meshCount = this.Meshes.Count;
+                for (var meshIndex = 0; meshIndex < meshCount; meshIndex++)
+                {
+                    var mesh = this.Meshes[meshIndex];
+                    var partCount = mesh.MeshParts.Count;
+                    for (var partIndex = 0; partIndex < partCount; partIndex++)
+                    {
+                        var part = mesh.MeshParts[partIndex];
+                        var ivCount = ivs.Count;
+                        var ivFound = -1;
+                        for (var ivIndex = 0; ivIndex < ivCount; ivIndex++)
+                        {
+                            if (ivs[ivIndex].v == part.VertexBuffer && ivs[ivIndex].i == part.IndexBuffer)
+                            {
+                                ivFound = ivIndex;
+                                break;
+                            }
+                        }
+                        IV iv;
+                        if (ivFound < 0)
+                        {
+                            ivFound = ivCount;
+                            iv.parts = new List<ModelMeshPart>();
+                            iv.v = part.VertexBuffer;
+                            iv.i = part.IndexBuffer;
+                            ivs.Add(iv);
+                        }
+                        else
+                        {
+                            iv = ivs[ivFound];
+                        }
+
+                        iv.parts.Add(part);
+                        ivs[ivFound] = iv;
+                    }
+                }
+            }
+
+            {
+                var ivCount = ivs.Count;
+                for (var ivIndex = 0; ivIndex < ivCount; ivIndex++)
+                {
+                    var v = ivs[ivIndex].v;
+                    var i = ivs[ivIndex].i;
+                    var parts = ivs[ivIndex].parts;
+                    var partCount = parts.Count;
+
+                    var data = i._data;
+                    var dataCount = data.Length;
+                    var newData = data;
+
+                    var newI = new IndexBuffer(i.GraphicsDevice, IndexElementSize.ThirtyTwoBits, i.IndexCount, i.BufferUsage);
+                    if (i.IndexElementSize == IndexElementSize.SixteenBits)
+                    {
+                        newData = new byte[data.Length * 2];
+                    }
+
+
+                    for (var partIndex = 0; partIndex < partCount; partIndex++)
+                    {
+                        var part = parts[partIndex];
+                        var startIndex = part.StartIndex;
+                        var vertexOffset = part.VertexOffset;
+                        part.VertexOffset = 0;
+                        part.IndexBuffer = newI;
+                        var indexCount = part.PrimitiveCount * 3;
+                        if (i.IndexElementSize == IndexElementSize.SixteenBits)
+                        {
+                            for (var index = 0; index < indexCount; index++)
+                            {
+                                var offset = (startIndex + index) * 2;
+                                var b0 = data[(startIndex + index) * 2];
+                                var b1 = data[(startIndex + index) * 2 + 1];
+
+                                int newIndex = (b1 << 8 | b0) + vertexOffset;
+                                var newOffset = (startIndex + index) * 4;
+                                newData[newOffset] = (byte)(newIndex & 0xFF);
+                                newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                                newData[newOffset + 2] = (byte)((newIndex >> 16) & 0xFF);
+                                newData[newOffset + 3] = (byte)((newIndex >> 24) & 0xFF);
+                            }
+                        }
+                        else if (i.IndexElementSize == IndexElementSize.ThirtyTwoBits)
+                        {
+                            for (var index = 0; index < indexCount; index++)
+                            {
+                                var newOffset = (startIndex + index) * 4;
+                                var b0 = data[newOffset];
+                                var b1 = data[newOffset + 1];
+                                var b2 = data[newOffset + 2];
+                                var b3 = data[newOffset + 3];
+
+                                int newIndex = (b3 << 24 | b2 << 16 | b1 << 8 | b0) + vertexOffset;
+
+                                newData[newOffset] = (byte)(vertexOffset & 0xFF);
+                                newData[newOffset + 1] = (byte)((vertexOffset >> 8) & 0xFF);
+                                newData[newOffset + 2] = (byte)((vertexOffset >> 16) & 0xFF);
+                                newData[newOffset + 3] = (byte)((vertexOffset >> 24) & 0xFF);
+
+                            }
+                        }
+                    }
+
+                    newI.SetData(newData);
+                    newI._data = null;
+                    i._data = null;
+                    i.Dispose();
+                    newData = null;
+                    data = null;
+                }
+            }
+        }
+
+
+        public void BuildHierarchy()
 		{
 			var globalScale = Matrix.CreateScale(0.01f);
 			
