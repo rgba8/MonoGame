@@ -1,13 +1,13 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
+using System.Deployment.Internal;
+using System.Linq;
+using System.Web.UI.WebControls.WebParts;
+using System.Xml.XPath;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
-	public class Model
+    public class Model
 	{
 		private static Matrix[] sharedDrawBoneMatrices;
 		
@@ -46,8 +46,171 @@ namespace Microsoft.Xna.Framework.Graphics
 			Bones = new ModelBoneCollection(bones);
 			Meshes = new ModelMeshCollection(meshes);
 		}
-		
-		public void BuildHierarchy()
+
+        public void RebuildIndexBuffers()
+        {
+            Dictionary<int, List<ModelMeshPart>> ibMeshParts = new Dictionary<int, List<ModelMeshPart>>();
+            var meshCount = this.Meshes.Count;
+            for (var meshIndex = 0; meshIndex < meshCount; meshIndex++)
+            {
+                var mesh = this.Meshes[meshIndex];
+                var partCount = mesh.MeshParts.Count;
+                for (var partIndex = 0; partIndex < partCount; partIndex++)
+                {
+                    var part = mesh.MeshParts[partIndex];
+                    var ibCount = ibMeshParts.Count;
+                    List<ModelMeshPart> meshParts;
+                    int key = part.IndexBuffer.GetHashCode() ^ part.VertexBuffer.GetHashCode();
+                    if (!ibMeshParts.TryGetValue(key,  out meshParts))
+                    {
+                        meshParts = new List<ModelMeshPart>();
+                        ibMeshParts[key] = meshParts;
+                    }
+                    meshParts.Add(part);
+                }
+            }
+
+            Dictionary<IndexBuffer, bool> disposable = new Dictionary<IndexBuffer, bool>();
+
+            foreach (var kv in ibMeshParts)
+            {
+                var parts = kv.Value;
+                var partCount = parts.Count;
+
+                if (partCount > 0)
+                {
+                    var vertexBuffer = parts[0].VertexBuffer;
+
+                    var indexBuffer = parts[0].IndexBuffer;
+                    var data = indexBuffer._data;
+                    var size = data.Length;
+
+                    var newIndexBuffer = indexBuffer;
+                    var newData = data;
+                    var newSize = size;
+                    var newFormat = indexBuffer.IndexElementSize;
+
+                    if (vertexBuffer.VertexCount >= UInt16.MaxValue && indexBuffer.IndexElementSize == IndexElementSize.SixteenBits)
+                    {
+                        newSize = size * 2;
+                        newFormat = IndexElementSize.ThirtyTwoBits;
+                    }
+                    else if (vertexBuffer.VertexCount < UInt16.MaxValue && indexBuffer.IndexElementSize == IndexElementSize.ThirtyTwoBits)
+                    {
+                        newSize = size / 2;
+                        newFormat = IndexElementSize.SixteenBits;
+                    }
+
+                    if (newSize != size)
+                    {
+                        newData = new byte[newSize];
+                        newIndexBuffer = new IndexBuffer(indexBuffer.GraphicsDevice, newFormat, indexBuffer.IndexCount, indexBuffer.BufferUsage);
+                        bool todispose;
+                        if (!disposable.TryGetValue(indexBuffer, out todispose))
+                        {
+                            disposable[indexBuffer] = true;
+                        }
+                    }
+                    else
+                    {
+                        disposable[indexBuffer] = false;
+                    }
+
+                    for (var partIndex = 0; partIndex < partCount; partIndex++)
+                    {
+                        var part = parts[partIndex];
+                        var startIndex = part.StartIndex;
+                        var vertexOffset = part.VertexOffset;
+                        part.VertexOffset = 0;
+                        part.IndexBuffer = newIndexBuffer;
+                        var indexCount = part.PrimitiveCount * 3;
+                        if (indexBuffer.IndexElementSize == IndexElementSize.SixteenBits && newIndexBuffer.IndexElementSize == IndexElementSize.SixteenBits)
+                        {
+                            for (var index = 0; index < indexCount; index++)
+                            {
+                                var offset = (startIndex + index) * 2;
+                                var b0 = data[offset];
+                                var b1 = data[offset + 1];
+
+                                int newIndex = (b1 << 8 | b0) + vertexOffset;
+                                newData[offset] = (byte)(newIndex & 0xFF);
+                                newData[offset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                            }
+                        }
+                        else if (indexBuffer.IndexElementSize == IndexElementSize.SixteenBits)
+                        {
+                            for (var index = 0; index < indexCount; index++)
+                            {
+                                var offset = (startIndex + index) * 2;
+                                var b0 = data[offset];
+                                var b1 = data[offset + 1];
+
+                                int newIndex = (b1 << 8 | b0) + vertexOffset;
+                                var newOffset = (startIndex + index) * 4;
+                                newData[newOffset] = (byte)(newIndex & 0xFF);
+                                newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                                newData[newOffset + 2] = (byte)((newIndex >> 16) & 0xFF);
+                                newData[newOffset + 3] = (byte)((newIndex >> 24) & 0xFF);
+                            }
+                        }
+                        else if (newIndexBuffer.IndexElementSize == IndexElementSize.ThirtyTwoBits)
+                        {
+                            for (var index = 0; index < indexCount; index++)
+                            {
+                                var newOffset = (startIndex + index) * 4;
+                                var b0 = data[newOffset];
+                                var b1 = data[newOffset + 1];
+                                var b2 = data[newOffset + 2];
+                                var b3 = data[newOffset + 3];
+
+                                int newIndex = (b3 << 24 | b2 << 16 | b1 << 8 | b0) + vertexOffset;
+
+                                newData[newOffset] = (byte)(vertexOffset & 0xFF);
+                                newData[newOffset + 1] = (byte)((vertexOffset >> 8) & 0xFF);
+                                newData[newOffset + 2] = (byte)((vertexOffset >> 16) & 0xFF);
+                                newData[newOffset + 3] = (byte)((vertexOffset >> 24) & 0xFF);
+                            }
+                        }
+                        else
+                        {
+                            for (var index = 0; index < indexCount; index++)
+                            {
+                                var offset = (startIndex + index) * 4;
+                                var b0 = data[offset];
+                                var b1 = data[offset + 1];
+                                var b2 = data[offset + 2];
+                                var b3 = data[offset + 3];
+
+                                int newIndex = (b3 << 24 | b2 << 16 | b1 << 8 | b0) + vertexOffset;
+
+                                var newOffset = (startIndex + index) * 2;
+                                newData[newOffset] = (byte)(newIndex & 0xFF);
+                                newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                            }
+                        }
+                    }
+                    newIndexBuffer.SetData(newData);
+                }
+            }
+
+            foreach (var kv in ibMeshParts)
+            {
+                kv.Value[0].IndexBuffer._data = null;
+            }
+
+
+            foreach (var kv in disposable)
+            {
+                if (kv.Value == true)
+                {
+                    kv.Key.Dispose();
+                }
+                kv.Key._data = null;
+            }
+        }
+
+
+        public void BuildHierarchy()
 		{
 			var globalScale = Matrix.CreateScale(0.01f);
 			
