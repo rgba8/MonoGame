@@ -678,7 +678,17 @@ namespace Microsoft.Xna.Framework.Graphics
                     GL.DrawBuffers(this._currentRenderTargetCount, GLBlitAttachements);
                     GraphicsExtensions.CheckGLError();
                     GLBlitAttachements[i] = drawbufferNone;
-                    GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, BlitFramebufferFilter.Nearest);
+                    BlitFramebufferFilter blitFramebufferFilter = (BlitFramebufferFilter)0;
+                    switch (renderTargetBinding.ResolveFilter)
+                    {
+                        case TextureFilter.Point:
+                            blitFramebufferFilter = BlitFramebufferFilter.Nearest;
+                            break;
+                        case TextureFilter.Linear:
+                            blitFramebufferFilter = BlitFramebufferFilter.Linear;
+                            break;
+                    }
+                    GL.BlitFramebuffer(0, 0, width, height, 0, 0, width, height, ClearBufferMask.ColorBufferBit, blitFramebufferFilter);
                     GraphicsExtensions.CheckGLError();
                 }
                 // Always discard multisampled renderbuffers
