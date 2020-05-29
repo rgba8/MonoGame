@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Deployment.Internal;
 using System.Linq;
-using System.Web.UI.WebControls.WebParts;
-using System.Xml.XPath;
 
 namespace Microsoft.Xna.Framework.Graphics
 {
