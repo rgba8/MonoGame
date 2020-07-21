@@ -26,7 +26,7 @@ namespace Microsoft.Xna.Framework.Graphics
         private Rectangle _scissorRectangle;
         private bool _scissorRectangleDirty;
   
-        private VertexBuffer _vertexBuffer;
+        internal VertexBuffer _vertexBuffer;
         private bool _vertexBufferDirty;
 
         private IndexBuffer _indexBuffer;
