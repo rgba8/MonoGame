@@ -52,6 +52,7 @@ namespace Microsoft.Xna.Framework.Graphics
         private readonly Color _clearColor;
         private readonly float _clearDepth;
         private readonly int _clearStencil;
+        private readonly TextureFilter _resolveFilter;
 
         public Texture RenderTarget 
         {
@@ -78,6 +79,11 @@ namespace Microsoft.Xna.Framework.Graphics
             get { return _clearStencil; }
         }
 
+        public TextureFilter ResolveFilter
+        {
+            get { return _resolveFilter; }
+        }
+
         public RenderTargetBinding(RenderTarget2D renderTarget)
 		{
 			if (renderTarget == null) 
@@ -92,9 +98,11 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
             _clearDepth = 1.0f;
             _clearStencil = 0;
+
+            _resolveFilter = TextureFilter.Point;
         }
 
-        public RenderTargetBinding(RenderTarget2D renderTarget, Color clearColor, float clearDepth = 1.0f, int clearStencil = 0)
+        public RenderTargetBinding(RenderTarget2D renderTarget, Color clearColor, float clearDepth = 1.0f, int clearStencil = 0, TextureFilter resolveFilter = TextureFilter.Point)
         {
             if (renderTarget == null)
                 throw new ArgumentNullException("renderTarget");
@@ -104,6 +112,7 @@ namespace Microsoft.Xna.Framework.Graphics
             _clearColor = clearColor;
             _clearDepth = clearDepth;
             _clearStencil = clearStencil;
+            _resolveFilter = resolveFilter;
         }
 
         public RenderTargetBinding(RenderTargetCube renderTarget, CubeMapFace cubeMapFace)
@@ -122,6 +131,7 @@ namespace Microsoft.Xna.Framework.Graphics
 #endif
             _clearDepth = 1.0f;
             _clearStencil = 0;
+            _resolveFilter = TextureFilter.Point;
         }
 
 #if DIRECTX
