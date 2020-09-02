@@ -126,9 +126,12 @@ namespace Microsoft.Xna.Framework.Content
 					convertedFormat = SurfaceFormat.Color;
 					break;
 			}
-			
+
             if (existingInstance == null)
+            {
                 texture = new Texture2D(reader.GraphicsDevice, width, height, levelCountOutput > 1, convertedFormat);
+                texture.Key = Texture.NextKey;
+            }
             else
                 texture = existingInstance;
 			

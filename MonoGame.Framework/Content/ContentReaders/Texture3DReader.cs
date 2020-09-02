@@ -17,7 +17,10 @@ namespace Microsoft.Xna.Framework.Content
             int levelCount = reader.ReadInt32();
 
             if (existingInstance == null)
+            {
                 texture = new Texture3D(reader.GraphicsDevice, width, height, depth, levelCount > 1, format);
+                texture.Key = Texture.NextKey;
+            }
             else
                 texture = existingInstance;
             
