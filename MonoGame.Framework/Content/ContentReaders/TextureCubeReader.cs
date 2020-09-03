@@ -16,7 +16,10 @@ namespace Microsoft.Xna.Framework.Content
             int levels = reader.ReadInt32 ();
 
             if (existingInstance == null)
+            {
                 textureCube = new TextureCube(reader.GraphicsDevice, size, levels > 1, surfaceFormat);
+                textureCube.Key = Texture.NextKey;
+            }
             else
                 textureCube = existingInstance;
 

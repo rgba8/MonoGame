@@ -11,7 +11,12 @@ namespace Microsoft.Xna.Framework.Graphics
 	{
 		internal SurfaceFormat _format;
 		internal int _levelCount;
+        internal int _key;
+        static internal int _nextKey;
 
+
+        public static int NextKey { get { return _nextKey++; } }
+         
 		public SurfaceFormat Format
 		{
 			get { return _format; }
@@ -21,6 +26,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		{
 			get { return _levelCount; }
 		}
+        public int Key { get { return _key; } set { _key = value; } }
 
         internal static int CalculateMipLevels(int width, int height = 0, int depth = 0)
         {
