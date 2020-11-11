@@ -10,7 +10,7 @@ namespace Microsoft.Xna.Framework.Graphics
     public partial class VertexBuffer : GraphicsResource
     {
         private readonly bool _isDynamic;
-
+        public byte[] _data;
 		public int VertexCount { get; private set; }
 		public VertexDeclaration VertexDeclaration { get; private set; }
 		public BufferUsage BufferUsage { get; private set; }

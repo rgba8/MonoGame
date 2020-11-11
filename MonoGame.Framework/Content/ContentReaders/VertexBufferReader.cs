@@ -40,6 +40,7 @@ namespace Microsoft.Xna.Framework.Content
 
             var buffer = new VertexBuffer( input.GraphicsDevice, declaration, vertexCount, BufferUsage.None );
             buffer.SetData( data );
+            buffer._data = data;
             return buffer;
         }
     }

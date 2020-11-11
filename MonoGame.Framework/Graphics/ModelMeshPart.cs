@@ -84,7 +84,15 @@ namespace Microsoft.Xna.Framework.Graphics
 		internal int EffectIndex { get; set; }
 		
 		internal ModelMesh parent;
-	}
+
+        public Vector3 Center;
+        public double SqRadius;
+        public double Radius;
+        public Vector3 Size;
+        public Vector3 HalfSize;
+        public Vector3 Min;
+        public Vector3 Max;
+    }
 
 	//// Summary:
 	////     Represents a batch of geometry information to submit to the graphics device
