@@ -137,7 +137,7 @@ namespace Microsoft.Xna.Framework.Graphics
         internal GraphicsDevice ()
 		{
             PresentationParameters = new PresentationParameters();
-            PresentationParameters.DepthStencilFormat = DepthFormat.Depth24;
+            PresentationParameters.DepthStencilFormat = DepthFormat.None;
             Setup();
             GraphicsCapabilities = new GraphicsCapabilities(this);
             Initialize();
