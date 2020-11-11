@@ -21,8 +21,8 @@ namespace Microsoft.Xna.Framework.Graphics
 			for (int i = 0; i < parts.Count; i++) {
 				parts[i].parent = this;
 			}
-			
-			Effects = new ModelEffectCollection();
+
+            Effects = new List<Effect> ();
 		}
 		
 		/*internal void BuildEffectList()
@@ -45,7 +45,7 @@ namespace Microsoft.Xna.Framework.Graphics
 		//
 		// Summary:
 		//     Gets a collection of effects associated with this mesh.
-		public ModelEffectCollection Effects { get; set; }
+		public List<Effect> Effects { get; set; }
 		//
 		// Summary:
 		//     Gets the ModelMeshPart objects that make up this mesh. Each part of a mesh
