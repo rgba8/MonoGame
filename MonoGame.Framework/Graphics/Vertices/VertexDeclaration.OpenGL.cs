@@ -17,8 +17,8 @@ namespace Microsoft.Xna.Framework.Graphics
 {
     public partial class VertexDeclaration
     {
-        Dictionary<int, VertexDeclarationAttributeInfo> shaderAttributeInfo = new Dictionary<int, VertexDeclarationAttributeInfo>();
-
+        Dictionary<ShaderProgramKey, VertexDeclarationAttributeInfo> shaderAttributeInfo = new Dictionary<ShaderProgramKey, VertexDeclarationAttributeInfo>();
+        ShaderProgramKey programKey;
         static VertexDeclarationAttributeInfo cachedDeclaration = null;
         static Int64 cachedOffset = -1;
         static VertexBuffer cachedVertexBuffer;
@@ -26,8 +26,9 @@ namespace Microsoft.Xna.Framework.Graphics
 		internal void Apply(Shader vertexShader, Shader pixelShader, IntPtr offset)
 		{
             VertexDeclarationAttributeInfo attrInfo;
-            int shaderHash = vertexShader.HashKey ^ pixelShader.HashKey;
-            if (!shaderAttributeInfo.TryGetValue(shaderHash, out attrInfo))
+            programKey.vertexKey = vertexShader.HashKey;
+            programKey.pixelKey = pixelShader.HashKey;
+            if (!shaderAttributeInfo.TryGetValue(programKey, out attrInfo))
             {
                 // Get the vertex attribute info and cache it
                 attrInfo = new VertexDeclarationAttributeInfo(GraphicsDevice.MaxVertexAttributes);
@@ -51,7 +52,7 @@ namespace Microsoft.Xna.Framework.Graphics
                 }
 
                 attrInfo._hashCode = attrInfo.GetHashCode();
-                shaderAttributeInfo.Add(shaderHash, attrInfo);
+                shaderAttributeInfo.Add(programKey, attrInfo);
             }
 
             var offsetI64 = offset.ToInt64();

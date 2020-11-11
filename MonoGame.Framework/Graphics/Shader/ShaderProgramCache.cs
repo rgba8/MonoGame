@@ -64,6 +64,23 @@ namespace Microsoft.Xna.Framework.Graphics
         }
     }
 
+    struct ShaderProgramKey
+    {
+        public int vertexKey;
+        public int pixelKey;
+        public override int GetHashCode()
+        {
+            const uint hash = 0x9e3779b9;
+            var seed = vertexKey + hash;
+            seed ^= pixelKey + hash + (seed << 6) + (seed >> 2);
+            return (int)seed;
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is ShaderProgramKey other && (vertexKey == other.vertexKey && pixelKey == other.pixelKey);
+        }
+    };
+
     /// <summary>
     /// This class is used to Cache the links between Vertex/Pixel Shaders and Constant Buffers.
     /// It will be responsible for linking the programs under OpenGL if they have not been linked
@@ -71,7 +88,7 @@ namespace Microsoft.Xna.Framework.Graphics
     /// </summary>
     internal class ShaderProgramCache : IDisposable
     {
-        private readonly Dictionary<int, ShaderProgram> _programCache = new Dictionary<int, ShaderProgram>();
+        private readonly Dictionary<ShaderProgramKey, ShaderProgram> _programCache = new Dictionary<ShaderProgramKey, ShaderProgram>();
         bool disposed;
 
         ~ShaderProgramCache()
@@ -99,20 +116,22 @@ namespace Microsoft.Xna.Framework.Graphics
             _programCache.Clear();
         }
 
+        private ShaderProgramKey programKey;
         public ShaderProgram GetProgram(Shader vertexShader, Shader pixelShader)
         {
             // TODO: We should be hashing in the mix of constant 
             // buffers here as well.  This would allow us to optimize
             // setting uniforms to only when a constant buffer changes.
 
-            var key = vertexShader.HashKey | pixelShader.HashKey;
-            if (!_programCache.ContainsKey(key))
+            programKey.vertexKey = vertexShader.HashKey;
+            programKey.pixelKey = pixelShader.HashKey;
+            if (!_programCache.ContainsKey(programKey))
             {
                 // the key does not exist so we need to link the programs
                 Link(vertexShader, pixelShader);
             }
 
-            return _programCache[key];
+            return _programCache[programKey];
         }        
 
         private void Link(Shader vertexShader, Shader pixelShader)
@@ -161,8 +180,10 @@ namespace Microsoft.Xna.Framework.Graphics
 
 
             ShaderProgram shaderProgram = new ShaderProgram(program);
+            programKey.vertexKey = vertexShader.HashKey;
+            programKey.pixelKey = pixelShader.HashKey;
 
-            _programCache.Add(vertexShader.HashKey | pixelShader.HashKey, shaderProgram);
+            _programCache.Add(programKey, shaderProgram);
         }
 
 
