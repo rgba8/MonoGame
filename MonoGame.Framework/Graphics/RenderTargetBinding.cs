@@ -50,9 +50,11 @@ namespace Microsoft.Xna.Framework.Graphics
         private readonly Texture _renderTarget;
         private readonly int _arraySlice;
         private readonly Color _clearColor;
-        private readonly float _clearDepth;
+        private  float _clearDepth;
         private readonly int _clearStencil;
         private readonly TextureFilter _resolveFilter;
+        public int minLevel;
+        public int maxLevel;
 
         public Texture RenderTarget 
         {
@@ -72,6 +74,7 @@ namespace Microsoft.Xna.Framework.Graphics
         public float ClearDepth
         {
             get { return _clearDepth; }
+            set { _clearDepth = value; }
         }
 
         public int ClearStencil
@@ -100,6 +103,9 @@ namespace Microsoft.Xna.Framework.Graphics
             _clearStencil = 0;
 
             _resolveFilter = TextureFilter.Point;
+
+            minLevel = 0;
+            maxLevel = renderTarget.LevelCount - 1;
         }
 
         public RenderTargetBinding(RenderTarget2D renderTarget, Color clearColor, float clearDepth = 1.0f, int clearStencil = 0, TextureFilter resolveFilter = TextureFilter.Point)
@@ -113,6 +119,9 @@ namespace Microsoft.Xna.Framework.Graphics
             _clearDepth = clearDepth;
             _clearStencil = clearStencil;
             _resolveFilter = resolveFilter;
+
+            minLevel = 0;
+            maxLevel = renderTarget.LevelCount - 1;
         }
 
         public RenderTargetBinding(RenderTargetCube renderTarget, CubeMapFace cubeMapFace)
@@ -132,6 +141,9 @@ namespace Microsoft.Xna.Framework.Graphics
             _clearDepth = 1.0f;
             _clearStencil = 0;
             _resolveFilter = TextureFilter.Point;
+
+            minLevel = 0;
+            maxLevel = renderTarget.LevelCount - 1;
         }
 
 #if DIRECTX
