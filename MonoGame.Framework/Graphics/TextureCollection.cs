@@ -32,7 +32,7 @@ namespace Microsoft.Xna.Framework.Graphics
             }
         }
 
-        internal void Clear()
+        public void Clear()
         {
             for (var i = 0; i < _textures.Length; i++)
                 _textures[i] = null;

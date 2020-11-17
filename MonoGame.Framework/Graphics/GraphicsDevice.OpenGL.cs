@@ -458,7 +458,7 @@ namespace Microsoft.Xna.Framework.Graphics
 
                 for (var i = 0; i < first.Length; ++i)
                 {
-                    if ((first[i].RenderTarget != second[i].RenderTarget) || (first[i].ArraySlice != second[i].ArraySlice))
+                    if ((first[i].RenderTarget != second[i].RenderTarget) || (first[i].ArraySlice != second[i].ArraySlice) || (first[i].minLevel != second[i].minLevel))
                     {
                         return false;
                     }
@@ -704,7 +704,8 @@ namespace Microsoft.Xna.Framework.Graphics
             {
                 renderTargetBinding = this._currentRenderTargetBindings[i];
                 renderTarget = renderTargetBinding.RenderTarget as RenderTarget2D;
-                renderTarget.mipmapsDirty = renderTarget.LevelCount > 1;
+                renderTarget.minLevelDirty = renderTargetBinding.minLevel;
+                renderTarget.maxLevelDirty = renderTargetBinding.maxLevel;
             }
         }
 
@@ -741,7 +742,7 @@ namespace Microsoft.Xna.Framework.Graphics
                     if (renderTarget.glColorBuffer != renderTarget.glTexture)
                         GL.FramebufferRenderbuffer(FramebufferTarget.Framebuffer, colorAttachement, RenderbufferTarget.Renderbuffer, renderTarget.glColorBuffer);
                     else
-                        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, colorAttachement, renderTarget.glTarget, renderTarget.glTexture, 0);
+                        GL.FramebufferTexture2D(FramebufferTarget.Framebuffer, colorAttachement, renderTarget.glTarget, renderTarget.glTexture, renderTargetBinding.minLevel);
                 }               
 #if DEBUG
                 this.framebufferHelper.CheckFramebufferStatus();
