@@ -45,9 +45,34 @@ namespace Microsoft.Xna.Framework.Graphics
 			Meshes = new ModelMeshCollection(meshes);
 		}
 
+        public struct MeshPart
+        {
+            public ModelMeshPart mgPart;
+
+            public override int GetHashCode()
+            {
+                const uint hash = 0x9e3779b9;
+                var seed = mgPart.IndexBuffer.GetHashCode() + hash;
+                seed ^= mgPart.VertexBuffer.GetHashCode() + hash + (seed << 6) + (seed >> 2);
+                return (int)seed;
+            }
+            public override bool Equals(object obj)
+            {
+                return obj is MeshPart other && (mgPart.IndexBuffer.GetHashCode() == other.mgPart.IndexBuffer.GetHashCode() && mgPart.VertexBuffer.GetHashCode() == other.mgPart.VertexBuffer.GetHashCode());
+            }
+        }
+
+        private enum IndexConversion
+        {
+            None,
+            From16To16,
+            From16To32,
+            From32To16,
+            From32To32,
+        };
         public void RebuildIndexBuffers()
         {
-            Dictionary<int, List<ModelMeshPart>> ibMeshParts = new Dictionary<int, List<ModelMeshPart>>();
+            Dictionary<MeshPart, List<ModelMeshPart>> ibMeshParts = new Dictionary<MeshPart, List<ModelMeshPart>>();
             var meshCount = this.Meshes.Count;
             for (var meshIndex = 0; meshIndex < meshCount; meshIndex++)
             {
@@ -55,16 +80,16 @@ namespace Microsoft.Xna.Framework.Graphics
                 var partCount = mesh.MeshParts.Count;
                 for (var partIndex = 0; partIndex < partCount; partIndex++)
                 {
-                    var part = mesh.MeshParts[partIndex];
+                    var mgPart = mesh.MeshParts[partIndex];
                     var ibCount = ibMeshParts.Count;
                     List<ModelMeshPart> meshParts;
-                    int key = part.IndexBuffer.GetHashCode() ^ part.VertexBuffer.GetHashCode();
-                    if (!ibMeshParts.TryGetValue(key,  out meshParts))
+                    var key = new MeshPart { mgPart = mgPart };
+                    if (!ibMeshParts.TryGetValue(key, out meshParts))
                     {
                         meshParts = new List<ModelMeshPart>();
                         ibMeshParts[key] = meshParts;
                     }
-                    meshParts.Add(part);
+                    meshParts.Add(mgPart);
                 }
             }
 
@@ -78,6 +103,35 @@ namespace Microsoft.Xna.Framework.Graphics
                 if (partCount > 0)
                 {
                     var vertexBuffer = parts[0].VertexBuffer;
+                    var vertexData = vertexBuffer._data;
+                    var vertexDeclaration = vertexBuffer.VertexDeclaration;
+                    var vertexStride = vertexDeclaration.VertexStride;
+                    var vertexElements = vertexDeclaration.GetVertexElements();
+                    var vertexElementCount = vertexElements.Length;
+                    int positionOffset = 0;
+                    int positionCount = 0;
+                    int positionSize = 0;
+
+                    for (int i = 0; i < vertexElementCount; i++)
+                    {
+                        var v = vertexElements[i];
+                        if (v.VertexElementUsage == VertexElementUsage.Position)
+                        {
+                            positionOffset = v.Offset;
+                            switch (v.VertexElementFormat)
+                            {
+                                case VertexElementFormat.Vector3:
+                                    {
+                                        positionCount = 3;
+                                        positionSize = 4;
+                                        break;
+                                    }
+                                default:
+                                    throw new InvalidOperationException("unhandled position format in vertex buffer");
+                            }
+                            break;
+                        }
+                    }
 
                     var indexBuffer = parts[0].IndexBuffer;
                     var data = indexBuffer._data;
@@ -114,79 +168,158 @@ namespace Microsoft.Xna.Framework.Graphics
                         disposable[indexBuffer] = false;
                     }
 
+                    bool old32 = indexBuffer.IndexElementSize == IndexElementSize.ThirtyTwoBits;
+                    var new32 = newIndexBuffer.IndexElementSize == IndexElementSize.ThirtyTwoBits;
+                    IndexConversion indexConversion = IndexConversion.None;
+                    if (!old32 && !new32)
+                        indexConversion = IndexConversion.From16To16;
+                    else if (!old32 && new32)
+                        indexConversion = IndexConversion.From16To32;
+                    else if (old32 && !new32)
+                        indexConversion = IndexConversion.From32To16;
+                    else if (old32 && new32)
+                        indexConversion = IndexConversion.From32To32;
+
+                    double[] partMin = new double[3];
+                    double[] partMax = new double[3];
                     for (var partIndex = 0; partIndex < partCount; partIndex++)
                     {
+                        for (int i = 0; i < 3; i++)
+                        {
+                            partMin[i] = double.MaxValue;
+                            partMax[i] = double.MinValue;
+                        }
+
                         var part = parts[partIndex];
                         var startIndex = part.StartIndex;
                         var vertexOffset = part.VertexOffset;
                         part.VertexOffset = 0;
                         part.IndexBuffer = newIndexBuffer;
-                        var indexCount = part.PrimitiveCount * 3;
-                        if (indexBuffer.IndexElementSize == IndexElementSize.SixteenBits && newIndexBuffer.IndexElementSize == IndexElementSize.SixteenBits)
+                        var primitiveCount = part.PrimitiveCount;
+                        var indexCount = primitiveCount * 3;
+
+                        switch (indexConversion)
                         {
-                            for (var index = 0; index < indexCount; index++)
-                            {
-                                var offset = (startIndex + index) * 2;
-                                var b0 = data[offset];
-                                var b1 = data[offset + 1];
+                            case IndexConversion.From16To16:
+                                {
+                                    for (var index = 0; index < indexCount; index++)
+                                    {
+                                        var offset = (startIndex + index) * 2;
+                                        var b0 = data[offset];
+                                        var b1 = data[offset + 1];
+                                        int newIndex = (b1 << 8 | b0) + vertexOffset;
+                                        newData[offset] = (byte)(newIndex & 0xFF);
+                                        newData[offset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                                        var vertexPositionOffset = newIndex * vertexStride + positionOffset;
+                                        for (int i = 0; i < 3; i++)
+                                        {
+                                            double f = (double)BitConverter.ToSingle(vertexData, vertexPositionOffset + 4 * i);
+                                            if (f < partMin[i]) partMin[i] = f;
+                                            if (f > partMax[i]) partMax[i] = f;
+                                        }
+                                    }
+                                    break;
+                                }
+                            case IndexConversion.From16To32:
+                                {
+                                    for (var index = 0; index < indexCount; index++)
+                                    {
+                                        var offset = (startIndex + index) * 2;
+                                        var b0 = data[offset];
+                                        var b1 = data[offset + 1];
+                                        int newIndex = (b1 << 8 | b0) + vertexOffset;
+                                        var newOffset = (startIndex + index) * 4;
+                                        newData[newOffset] = (byte)(newIndex & 0xFF);
+                                        newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                                        newData[newOffset + 2] = (byte)((newIndex >> 16) & 0xFF);
+                                        newData[newOffset + 3] = (byte)((newIndex >> 24) & 0xFF);
+                                        var vertexPositionOffset = newIndex * vertexStride + positionOffset;
+                                        for (int i = 0; i < 3; i++)
+                                        {
+                                            double f = (double)BitConverter.ToSingle(vertexData, vertexPositionOffset + 4 * i);
+                                            if (f < partMin[i]) partMin[i] = f;
+                                            if (f > partMax[i]) partMax[i] = f;
+                                        }
+                                    }
 
-                                int newIndex = (b1 << 8 | b0) + vertexOffset;
-                                newData[offset] = (byte)(newIndex & 0xFF);
-                                newData[offset + 1] = (byte)((newIndex >> 8) & 0xFF);
-                            }
+                                    break;
+                                }
+                            case IndexConversion.From32To16:
+                                {
+                                    for (var index = 0; index < indexCount; index++)
+                                    {
+                                        var offset = (startIndex + index) * 4;
+                                        var b0 = data[offset];
+                                        var b1 = data[offset + 1];
+                                        var b2 = data[offset + 2];
+                                        var b3 = data[offset + 3];
+                                        int newIndex = (b3 << 24 | b2 << 16 | b1 << 8 | b0) + vertexOffset;
+                                        var newOffset = (startIndex + index) * 2;
+                                        newData[newOffset] = (byte)(newIndex & 0xFF);
+                                        newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                                        var vertexPositionOffset = newIndex * vertexStride + positionOffset;
+                                        for (int i = 0; i < 3; i++)
+                                        {
+                                            double f = (double)BitConverter.ToSingle(vertexData, vertexPositionOffset + 4 * i);
+                                            if (f < partMin[i]) partMin[i] = f;
+                                            if (f > partMax[i]) partMax[i] = f;
+                                        }
+                                    }
+                                    break;
+                                }
+                            case IndexConversion.From32To32:
+                                {
+                                    for (var index = 0; index < indexCount; index++)
+                                    {
+                                        var newOffset = (startIndex + index) * 4;
+                                        var b0 = data[newOffset];
+                                        var b1 = data[newOffset + 1];
+                                        var b2 = data[newOffset + 2];
+                                        var b3 = data[newOffset + 3];
+                                        int newIndex = (b3 << 24 | b2 << 16 | b1 << 8 | b0) + vertexOffset;
+                                        newData[newOffset] = (byte)(newIndex & 0xFF);
+                                        newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
+                                        newData[newOffset + 2] = (byte)((newIndex >> 16) & 0xFF);
+                                        newData[newOffset + 3] = (byte)((newIndex >> 24) & 0xFF);
+                                        var vertexPositionOffset = newIndex * vertexStride + positionOffset;
+                                        for (int i = 0; i < 3; i++)
+                                        {
+                                            double f = (double)BitConverter.ToSingle(vertexData, vertexPositionOffset + 4 * i);
+                                            if (f < partMin[i]) partMin[i] = f;
+                                            if (f > partMax[i]) partMax[i] = f;
+                                        }
+                                    }
+                                    break;
+                                }
+                            default:
+                                throw new InvalidOperationException("unhandled indices conversion");
                         }
-                        else if (indexBuffer.IndexElementSize == IndexElementSize.SixteenBits)
-                        {
-                            for (var index = 0; index < indexCount; index++)
-                            {
-                                var offset = (startIndex + index) * 2;
-                                var b0 = data[offset];
-                                var b1 = data[offset + 1];
 
-                                int newIndex = (b1 << 8 | b0) + vertexOffset;
-                                var newOffset = (startIndex + index) * 4;
-                                newData[newOffset] = (byte)(newIndex & 0xFF);
-                                newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
-                                newData[newOffset + 2] = (byte)((newIndex >> 16) & 0xFF);
-                                newData[newOffset + 3] = (byte)((newIndex >> 24) & 0xFF);
-                            }
-                        }
-                        else if (newIndexBuffer.IndexElementSize == IndexElementSize.ThirtyTwoBits)
-                        {
-                            for (var index = 0; index < indexCount; index++)
-                            {
-                                var newOffset = (startIndex + index) * 4;
-                                var b0 = data[newOffset];
-                                var b1 = data[newOffset + 1];
-                                var b2 = data[newOffset + 2];
-                                var b3 = data[newOffset + 3];
+                        double partMinX = partMin[0];
+                        double partMinY = partMin[1];
+                        double partMinZ = partMin[2];
 
-                                int newIndex = (b3 << 24 | b2 << 16 | b1 << 8 | b0) + vertexOffset;
+                        double partMaxX = partMax[0];
+                        double partMaxY = partMax[1];
+                        double partMaxZ = partMax[2];
 
-                                newData[newOffset] = (byte)(vertexOffset & 0xFF);
-                                newData[newOffset + 1] = (byte)((vertexOffset >> 8) & 0xFF);
-                                newData[newOffset + 2] = (byte)((vertexOffset >> 16) & 0xFF);
-                                newData[newOffset + 3] = (byte)((vertexOffset >> 24) & 0xFF);
-                            }
-                        }
-                        else
-                        {
-                            for (var index = 0; index < indexCount; index++)
-                            {
-                                var offset = (startIndex + index) * 4;
-                                var b0 = data[offset];
-                                var b1 = data[offset + 1];
-                                var b2 = data[offset + 2];
-                                var b3 = data[offset + 3];
+                        double partSizeX = partMaxX - partMinX;
+                        double partSizeY = partMaxY - partMinY;
+                        double partSizeZ = partMaxZ - partMinZ;
 
-                                int newIndex = (b3 << 24 | b2 << 16 | b1 << 8 | b0) + vertexOffset;
+                        double partRadiusX = partSizeX * 0.5;
+                        double partRadiusY = partSizeY * 0.5;
+                        double partRadiusZ = partSizeZ * 0.5;
 
-                                var newOffset = (startIndex + index) * 2;
-                                newData[newOffset] = (byte)(newIndex & 0xFF);
-                                newData[newOffset + 1] = (byte)((newIndex >> 8) & 0xFF);
-                            }
-                        }
+                        part.Center = new Vector3((float)(partMinX + partRadiusX), (float)(partMinY + partRadiusY), (float)(partMinZ + partRadiusZ));
+                        part.SqRadius = partRadiusX * partRadiusX + partRadiusY * partRadiusY + partRadiusZ * partRadiusZ;
+                        part.Radius = Math.Sqrt(part.SqRadius);
+                        part.Min = new Vector3((float)partMinX, (float)partMinY, (float)partMinZ);
+                        part.Max = new Vector3((float)partMaxX, (float)partMaxY, (float)partMaxZ);
+                        part.Size = new Vector3((float)partSizeX, (float)partSizeY, (float)partSizeZ);
+                        part.HalfSize = new Vector3((float)partRadiusX, (float)partRadiusY, (float)partRadiusZ);
                     }
+
                     newIndexBuffer.SetData(newData);
                 }
             }
@@ -194,6 +327,7 @@ namespace Microsoft.Xna.Framework.Graphics
             foreach (var kv in ibMeshParts)
             {
                 kv.Value[0].IndexBuffer._data = null;
+                kv.Value[0].VertexBuffer._data = null;
             }
 
 
@@ -206,7 +340,6 @@ namespace Microsoft.Xna.Framework.Graphics
                 kv.Key._data = null;
             }
         }
-
 
         public void BuildHierarchy()
 		{
