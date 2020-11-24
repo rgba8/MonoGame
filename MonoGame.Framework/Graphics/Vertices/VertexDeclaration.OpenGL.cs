@@ -73,8 +73,8 @@ namespace Microsoft.Xna.Framework.Graphics
                         this.VertexStride,
                         (IntPtr)(offset.ToInt64() + element.Offset));
                     GraphicsExtensions.CheckGLError();
-                    GraphicsDevice.SetVertexAttributeArray(attrInfo.EnabledAttributes);
                 }
+                GraphicsDevice.SetVertexAttributeArray(attrInfo.EnabledAttributes);
             }
         }
 
